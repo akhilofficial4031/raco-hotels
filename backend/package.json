@@ -8,7 +8,11 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit --pretty false",
     "db:generate": "drizzle-kit generate",
-    "db:migrate:apply": "wrangler d1 migrations apply local-db --local"
+    "db:migrate:apply": "wrangler d1 migrations apply local-db --local",
+    "lint": "eslint . --ext .ts,.tsx,.js",
+    "lint:fix": "eslint . --ext .ts,.tsx,.js --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
   },
   "dependencies": {
     "drizzle-orm": "^0.33.0",
