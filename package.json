@@ -1,0 +1,29 @@
+{
+  "name": "raco-hotels",
+  "workspaces": [
+    "packages/*",
+    "frontend",
+    "backend"
+  ],
+  "packageManager": "yarn@4.6.0",
+  "scripts": {
+    "prepare": "husky install",
+    "commitlint": "commitlint --edit",
+    "dev": "concurrently -n FE,BE -c cyan,magenta \"yarn --cwd frontend dev\" \"yarn --cwd backend dev\"",
+    "dev:frontend": "yarn --cwd frontend dev",
+    "dev:backend": "yarn --cwd backend dev",
+    "build": "yarn workspaces foreach -At run build",
+    "typecheck": "yarn workspaces foreach -At run typecheck"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250704.0",
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
+    "@tailwindcss/postcss": "^4.1.11",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
+    "husky": "^8.0.3",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11"
+  }
+}

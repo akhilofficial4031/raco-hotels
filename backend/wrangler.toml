@@ -1,0 +1,23 @@
+name = "raco-hotels-backend"
+main = "src/index.ts"
+compatibility_date = "2024-07-01"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "local-kv"
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "local-r2"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "local-db"
+database_id = "local-db-id"
+migrations_dir = "drizzle"
+
+[dev]
+port = 8787
+local_protocol = "http"
+persist = true
+

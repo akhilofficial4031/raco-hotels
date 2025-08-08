@@ -1,0 +1,49 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+## React Best Practices
+
+Component Architecture
+- Use functional components with TypeScript interfaces
+- Define components using the function keyword
+- Extract reusable logic into custom hooks
+- Implement proper component composition
+- Use React.memo() strategically for performance
+- Implement proper cleanup in useEffect hooks
+
+React Performance Optimization
+- Use useCallback for memoizing callback functions
+- Implement useMemo for expensive computations
+- Avoid inline function definitions in TSX
+- Implement code splitting using dynamic imports
+- Implement proper key props in lists (avoid using index as key)
+
+Error Boundaries
+- Use error boundaries to catch and handle errors in React component trees gracefully.
+- Design user-friendly fallback UIs to display when errors occur, keeping users informed without breaking the app.
+
+Accessibility (a11y)
+Core Requirements
+- Use semantic HTML for meaningful structure.
+- Apply accurate ARIA attributes where needed.
+- Ensure full keyboard navigation support.
+- Manage focus order and visibility effectively.
+- Maintain accessible color contrast ratios.
+- Follow a logical heading hierarchy.
+- Make all interactive elements accessible.
+- Provide clear and accessible error feedback.
+
+Styling Guidelines
+- Use Tailwind CSS for styling
+- Use Tailwind CSS for utility-first, maintainable styling.
+- Design with mobile-first, responsive principles for flexibility across devices.
+- Ensure color contrast ratios meet accessibility standards for readability.
+- Maintain consistent spacing values to establish visual harmony.
+- Define CSS variables for theme colors and spacing to support easy theming and maintainability.
+
+Other Guidelines
+
+
+- Check [eslint.config.js](mdc:frontend/eslint.config.js) to get the linters configured and code accordingly.

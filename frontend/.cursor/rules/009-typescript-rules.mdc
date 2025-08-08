@@ -1,0 +1,11 @@
+---
+description: 
+globs: *.tsx
+alwaysApply: false
+---
+## TypeScript Usage
+- Always use **strict type-checking**.
+- Define **interfaces** and **types** for all props and state.
+- Use **generics** where applicable for reusable logic.
+
+- Avoid **any** type; always specify types explicitly.

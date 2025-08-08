@@ -1,0 +1,71 @@
+---
+description: This rule describes what the project is - the overview and requirements
+globs:
+alwaysApply: false
+---
+
+## About Project
+
+**raco-hotels** is an admin-side web application designed for managing hotels, rooms, amenities, features, promo codes, users, bookings, and payments efficiently. It provides a user-friendly interface for administrators to manage hotel resources and website content effectively.
+
+---
+
+## Core Frontend Modules & Pages
+
+### 1. User Authentication
+
+- Secure login page for admin users.
+- (Optional) Password reset and multi-factor authentication flows.
+
+### 2. Hotels Management
+
+- Hotels list page with sortable and searchable table.
+- Create, edit, and delete hotels.
+- Hotel details page with tabs for rooms, features, bookings, payments.
+- Link features and rooms to hotels via multi-select or drag-and-drop interfaces.
+
+### 3. Rooms Management
+
+- List and filter rooms by hotel with search and sorting.
+- Create, edit, and delete rooms with fields for type, occupancy, price, images, and description.
+- Assign amenities to rooms with a multi-select UI.
+
+### 4. Amenities Management
+
+- List, create, edit, and delete amenities.
+- Assign amenities to rooms.
+- Confirmation dialogs for deletes.
+
+### 5. Features Management
+
+- List and manage hotel features.
+- Assign features to hotels.
+- Toggle feature visibility.
+
+### 6. Content Management
+
+- Editable homepage sections including hero images, banners, promotional content, and featured hotels/rooms.
+- About page content editor with WYSIWYG or Markdown support.
+- Image and file uploads with previews.
+
+### 7. Promo Code Management
+
+- List all promo codes with status, validity, and usage details.
+- Create and edit promo codes with validation for discount type, period, and usage.
+- Activate/deactivate or delete promo codes.
+
+### 8. User Management
+
+- List admin users with role-based access control.
+- Create, edit, and delete users and assign roles and permissions.
+- (Optional) View and manage customer profiles.
+
+### 9. Booking Schedules
+
+- View bookings in list or calendar view with filters by hotel, date, status, and user.
+- Approve, edit, or cancel bookings via modal or detail pages.
+
+### 10. Payment Listings
+
+- List all payment transactions with filters and search.
+- View payment details including amount, method, status, and reference.

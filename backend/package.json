@@ -1,0 +1,23 @@
+{
+  "name": "@raco-hotels/backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --local",
+    "build": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --pretty false",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:apply": "wrangler d1 migrations apply local-db --local"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.33.0",
+    "hono": "^4.6.9"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250704.0",
+    "drizzle-kit": "^0.24.0",
+    "typescript": "^5.5.4",
+    "wrangler": "^3.80.3"
+  }
+}

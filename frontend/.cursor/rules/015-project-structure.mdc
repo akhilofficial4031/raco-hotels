@@ -1,0 +1,74 @@
+---
+description: This rule desribes the overall high level folder structure of the project
+globs: 
+alwaysApply: false
+---
+## Project Structure
+
+src/
+|-- App.tsx
+|-- index.tsx
+|-- reportWebVitals.ts
+|-- setupTests.ts
+|
+|-- assets/
+|   |-- .gitkeep
+|
+|-- config/
+|   |-- .gitkeep
+|
+|-- constants/
+|   |-- messages.ts
+|   |-- index.ts
+|
+|-- features/
+|   |-- authentication/
+|   |   |-- components/
+|   |   |   |-- .gitkeep
+|   |   |-- hooks/
+|   |   |   |-- .gitkeep
+|   |   |-- services/
+|   |   |   |-- .gitkeep
+|   |   |-- store/
+|   |   |   |-- .gitkeep
+|   |   |-- types/
+|   |   |   |-- .gitkeep
+|   |   |-- utils/
+|   |   |   |-- .gitkeep
+|   |   |-- views/
+|   |   |   |-- .gitkeep
+|   |   |-- index.ts
+|   |-- .gitkeep
+|
+|-- providers/              # Global application providers
+|   |-- .gitkeep
+|
+|-- routes/                 # Route configuration and management
+|   |-- .gitkeep
+|
+|-- shared/                 # Truly shared/global modules
+|   |-- components/         # Global, reusable UI components
+|   |   |-- .gitkeep
+|   |-- contexts/
+|   |   |-- .gitkeep
+|   |-- hooks/
+|   |   |-- .gitkeep
+|   |-- layouts/            # Global layout components
+|   |   |-- .gitkeep
+|   |-- lib/
+|   |   |-- .gitkeep
+|   |-- services/
+|   |   |-- .gitkeep
+|   |-- types/
+|   |   |-- common.ts
+|   |   |-- index.ts
+|   |-- utils/
+|   |   |-- helpers.ts
+|   |   |-- index.ts
+|
+|-- store/                  # Global state management configuration
+|   |-- .gitkeep
+|
+|-- styles/                 # Global styles, theme definitions
+
+|   |-- global.css
