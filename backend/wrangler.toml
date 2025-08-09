@@ -14,7 +14,7 @@ bucket_name = "local-r2"
 binding = "DB"
 database_name = "local-db"
 database_id = "local-db-id"
-migrations_dir = "drizzle"
+migrations_dir = "drizzle/migrations"
 
 [dev]
 port = 8787
