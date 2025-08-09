@@ -1,0 +1,15 @@
+node_modules
+.yarn
+dist
+build
+.next
+.turbo
+coverage
+**/.output
+**/.cache
+**/.vercel
+**/.netlify
+**/drizzle/**/meta
+**/.wrangler
+**/prisma/**/migrations
+

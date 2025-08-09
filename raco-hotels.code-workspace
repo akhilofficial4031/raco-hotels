@@ -1,30 +1,30 @@
 {
   "folders": [
     {
-      "path": "."
-    }
+      "path": ".",
+    },
   ],
   "settings": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
     "terminal.integrated.defaultProfile.osx": "zsh",
     "terminal.integrated.fontFamily": "Droid Sans Mono, 'Courier New', monospace",
     "terminal.integrated.fontSize": 16,
     "terminal.integrated.profiles.osx": {
       "zsh": {
         "path": "/bin/zsh",
-        "args": ["-l"]
-      }
+        "args": ["-l"],
+      },
     },
     "workbench.colorCustomizations": {
       "terminal.background": "#170c31",
-      "terminalCursor.foreground": "#6b3ae3"
+      "terminalCursor.foreground": "#6b3ae3",
     },
     "typescript.preferences.includePackageJsonAutoImports": "auto",
     "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit"
+      "source.fixAll": "explicit",
+      "source.fixAll.eslint": "explicit",
     },
-    "eslint.workingDirectories": [
-      "frontend",
-      "backend"
-    ]
-  }
-} 
+    "eslint.workingDirectories": ["frontend", "backend"],
+  },
+}

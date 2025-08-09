@@ -1,5 +1,5 @@
 import { Button, Input } from "antd";
-import { useForm } from "react-hook-form";
+import { FieldValues, useForm } from "react-hook-form";
 import { Link } from "react-router";
 
 const Login = () => {
@@ -8,7 +8,7 @@ const Login = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const onSubmit = (data) => console.log(data);
+  const onSubmit = (data: FieldValues) => console.log(data);
   console.log(errors);
   return (
     <>
