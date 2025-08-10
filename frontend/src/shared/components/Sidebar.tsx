@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useSidebar } from "../hooks/useSidebar";
 import { SidebarItem } from "../models/sidebar";
 import {
@@ -12,11 +12,12 @@ import {
 
 const Sidebar = () => {
   const { isOpen } = useSidebar();
+  const location = useLocation();
   const sidebarItems: SidebarItem[] = [
     {
       label: "Dashboard",
       icon: <HomeOutlined />,
-      path: "/",
+      path: "/dashboard",
     },
     {
       label: "Hotels",
@@ -48,11 +49,11 @@ const Sidebar = () => {
   return (
     <div
       className={`h-screen bg-slate-900 fixed top-0 left-0 z-10 transition-all duration-300 ${
-        isOpen ? "w-60" : "w-20"
+        isOpen ? "w-60" : "w-14"
       }`}
     >
-      <div className="h-16 bg-[#090f21] flex items-start justify-center flex-col">
-        <h1 className="text-2xl text-left px-5 py-2 text-white">
+      <div className="h-16 flex items-start justify-center flex-col border-b-1 border-slate-800">
+        <h1 className="text-2xl text-left px-5 py-2 text-gray-100">
           {isOpen ? "Raco Hotels" : "R"}
         </h1>
       </div>
@@ -61,9 +62,11 @@ const Sidebar = () => {
           <Link
             to={item.path}
             key={item.label}
-            className="flex items-center gap-2 text-white hover:text-gray-300 hover:bg-[#090f21] py-3 px-5 rounded-md"
+            className={`${isOpen?'border-l-4':'border-l-0'} flex items-center gap-2 text-gray-100 hover:text-gray-300 hover:bg-[#090f21] py-3 px-5 border-transparent ${
+              location.pathname.includes(item.path) ? "bg-[#090f21] !border-blue-600 !text-blue-600" : ""
+            }`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 overflow-hidden">
               {item.icon}
               {item.label}
             </div>

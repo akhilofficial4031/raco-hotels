@@ -2005,7 +2005,7 @@ __metadata:
     drizzle-orm: "npm:^0.33.0"
     hono: "npm:^4.6.9"
     jsonwebtoken: "npm:^9.0.2"
-    tsx: "npm:^4.19.2"
+    tsx: "npm:^4.20.3"
     typescript: "npm:^5.5.4"
     wrangler: "npm:^3.80.3"
     zod: "npm:^4.0.16"
@@ -9276,7 +9276,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tsx@npm:^4.19.2":
+"tsx@npm:^4.20.3":
   version: 4.20.3
   resolution: "tsx@npm:4.20.3"
   dependencies:
