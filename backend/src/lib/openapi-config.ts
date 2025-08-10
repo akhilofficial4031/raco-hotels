@@ -1,6 +1,6 @@
+import type { AppBindings, AppVariables } from "../types";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import type { Context } from "hono";
-import type { AppBindings, AppVariables } from "../types";
 
 // OpenAPI specification type for enhanced endpoint
 interface OpenAPISpec {
@@ -17,7 +17,7 @@ interface OpenAPISpec {
 }
 
 // Base OpenAPI configuration
-export const baseOpenAPIConfig = {
+export const baseOpenAPIConfig: OpenAPISpec = {
   openapi: "3.0.0",
   info: {
     title: "Raco Hotels API",
@@ -42,7 +42,7 @@ export const baseOpenAPIConfig = {
       url: "https://api.raco-hotels.com",
       description: "Production server",
     },
-  ],
+  ] as object[],
   tags: [
     {
       name: "System",
@@ -60,7 +60,7 @@ export const baseOpenAPIConfig = {
       name: "Hotels",
       description: "Hotel management operations",
     },
-  ],
+  ] as object[],
 } as const;
 
 // Security schemes for OpenAPI
@@ -123,7 +123,7 @@ export function configureOpenAPI(
   app: OpenAPIHono<{ Bindings: AppBindings; Variables: AppVariables }>,
 ) {
   // Basic OpenAPI documentation endpoint
-  app.doc("/openapi-base.json", baseOpenAPIConfig);
+  app.doc("/openapi-base.json", baseOpenAPIConfig as any);
 
   // Enhanced OpenAPI endpoint with security schemes
   app.get("/openapi.json", createEnhancedOpenAPIHandler(app));

@@ -4,6 +4,8 @@ export {
   requireRole,
   requireAdmin,
   requireStaffOrAdmin,
+  requireCustomer,
+  requireCustomerOrStaff,
   requireAuth,
 } from "./rbac";
 export { csrfMiddleware } from "./csrf";
