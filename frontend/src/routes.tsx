@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import App from "./App";
 import { AuthLayout, UnAuthLayout } from "./shared/layouts";
-import { Login } from "./pages";
+import { Login, NotFound } from "./pages";
 
 const router = createBrowserRouter([
   {
@@ -16,6 +16,10 @@ const router = createBrowserRouter([
         path: "dashboard",
         Component: App,
       },
+      {
+        path: "*",
+        Component: NotFound,
+      }
     ],
   },
   {
@@ -27,6 +31,7 @@ const router = createBrowserRouter([
       },
     ],
   },
+ 
 ]);
 
 export default router;
