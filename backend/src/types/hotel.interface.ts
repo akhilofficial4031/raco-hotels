@@ -49,3 +49,19 @@ export interface CreateHotelData extends Partial<DatabaseHotel> {
 }
 
 export type UpdateHotelData = Partial<DatabaseHotel>;
+
+export interface DatabaseHotelImage {
+  id: number;
+  hotelId: number;
+  url: string;
+  alt: string | null;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface CreateHotelImageData {
+  hotelId: number;
+  url: string;
+  alt?: string | null;
+  sortOrder?: number;
+}
