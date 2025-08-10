@@ -248,6 +248,54 @@ export class HotelResponse {
       "hotel.listRetrieved",
     );
   }
+
+  // Hotel with images responses
+  static hotelWithImagesRetrieved(c: Context, hotel: any, images: any[]) {
+    return createLocalizedResponse(
+      c,
+      { hotel: { ...hotel, images } },
+      "hotel.retrievedWithImages",
+    );
+  }
+
+  static hotelWithImagesCreated(c: Context, hotel: any, images: any[]) {
+    return createLocalizedResponse(
+      c,
+      { hotel: { ...hotel, images } },
+      "hotel.createdWithImages",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static hotelWithImagesUpdated(c: Context, hotel: any, images: any[]) {
+    return createLocalizedResponse(
+      c,
+      { hotel: { ...hotel, images } },
+      "hotel.updatedWithImages",
+    );
+  }
+
+  // Hotel image responses
+  static hotelImageAdded(c: Context, image: any) {
+    return createLocalizedResponse(
+      c,
+      { image },
+      "hotel.imageAdded",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static hotelImageUpdated(c: Context, image: any) {
+    return createLocalizedResponse(c, { image }, "hotel.imageUpdated");
+  }
+
+  static hotelImageDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "hotel.imageDeleted");
+  }
+
+  static hotelImagesRetrieved(c: Context, images: any[]) {
+    return createLocalizedResponse(c, { images }, "hotel.imagesRetrieved");
+  }
 }
 
 // Amenity-specific response helpers

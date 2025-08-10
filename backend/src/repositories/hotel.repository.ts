@@ -1,6 +1,9 @@
 import { and, count, desc, like, or, eq } from "drizzle-orm";
 
-import { hotel as hotelTable } from "../../drizzle/schema";
+import {
+  hotel as hotelTable,
+  hotelImage as hotelImageTable,
+} from "../../drizzle/schema";
 import { getDb } from "../db";
 
 import type {
@@ -9,6 +12,8 @@ import type {
   PaginationParams,
   CreateHotelData,
   UpdateHotelData,
+  DatabaseHotelImage,
+  CreateHotelImageData,
 } from "../types";
 
 export class HotelRepository {
@@ -125,5 +130,111 @@ export class HotelRepository {
       .where(eq(hotelTable.id, id))
       .returning();
     return rows.length > 0;
+  }
+
+  // Hotel Image methods
+  static async findImagesByHotelId(
+    db: D1Database,
+    hotelId: number,
+  ): Promise<DatabaseHotelImage[]> {
+    const database = getDb(db);
+    const rows = await database
+      .select()
+      .from(hotelImageTable)
+      .where(eq(hotelImageTable.hotelId, hotelId))
+      .orderBy(hotelImageTable.sortOrder, hotelImageTable.createdAt);
+    return rows as DatabaseHotelImage[];
+  }
+
+  static async findImageById(
+    db: D1Database,
+    id: number,
+  ): Promise<DatabaseHotelImage | null> {
+    const database = getDb(db);
+    const rows = await database
+      .select()
+      .from(hotelImageTable)
+      .where(eq(hotelImageTable.id, id))
+      .limit(1);
+    return (rows[0] as DatabaseHotelImage) || null;
+  }
+
+  static async createImage(
+    db: D1Database,
+    data: CreateHotelImageData,
+  ): Promise<DatabaseHotelImage> {
+    const database = getDb(db);
+    const nowIso = new Date().toISOString();
+    const [created] = await database
+      .insert(hotelImageTable)
+      .values({
+        ...data,
+        createdAt: nowIso,
+      } as any)
+      .returning();
+    return created as DatabaseHotelImage;
+  }
+
+  static async updateImage(
+    db: D1Database,
+    id: number,
+    data: Partial<DatabaseHotelImage>,
+  ): Promise<DatabaseHotelImage | null> {
+    const database = getDb(db);
+    const payload = Object.fromEntries(
+      Object.entries(data).filter(([, v]) => v !== undefined),
+    );
+    const rows = await database
+      .update(hotelImageTable)
+      .set(payload as any)
+      .where(eq(hotelImageTable.id, id))
+      .returning();
+    return (rows[0] as DatabaseHotelImage) || null;
+  }
+
+  static async deleteImage(db: D1Database, id: number): Promise<boolean> {
+    const database = getDb(db);
+    const rows = await database
+      .delete(hotelImageTable)
+      .where(eq(hotelImageTable.id, id))
+      .returning();
+    return rows.length > 0;
+  }
+
+  static async deleteImagesByHotelId(
+    db: D1Database,
+    hotelId: number,
+  ): Promise<boolean> {
+    const database = getDb(db);
+    const rows = await database
+      .delete(hotelImageTable)
+      .where(eq(hotelImageTable.hotelId, hotelId))
+      .returning();
+    return rows.length > 0;
+  }
+
+  static async updateImageSortOrder(
+    db: D1Database,
+    id: number,
+    sortOrder: number,
+  ): Promise<DatabaseHotelImage | null> {
+    const database = getDb(db);
+    const rows = await database
+      .update(hotelImageTable)
+      .set({ sortOrder })
+      .where(eq(hotelImageTable.id, id))
+      .returning();
+    return (rows[0] as DatabaseHotelImage) || null;
+  }
+
+  static async findHotelWithImages(
+    db: D1Database,
+    id: number,
+  ): Promise<{ hotel: DatabaseHotel; images: DatabaseHotelImage[] } | null> {
+    const hotel = await this.findById(db, id);
+    if (!hotel) return null;
+
+    const images = await this.findImagesByHotelId(db, id);
+    return { hotel, images };
   }
 }

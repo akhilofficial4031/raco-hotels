@@ -102,4 +102,253 @@ export class HotelController {
       "operation.deleteHotelFailed",
     );
   }
+
+  static async getHotelWithImages(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const id = parseInt(c.req.param("id"), 10);
+        const result = await HotelService.getHotelWithImages(c.env.DB, id);
+        if (!result) return HotelResponse.hotelNotFound(c);
+        return HotelResponse.hotelWithImagesRetrieved(
+          c,
+          result.hotel,
+          result.images,
+        );
+      },
+      "operation.fetchHotelWithImagesFailed",
+    );
+  }
+
+  static async createHotelWithImages(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        try {
+          const formData = await c.req.formData();
+
+          // Extract hotel data from form
+          const hotelDataStr = formData.get("hotelData");
+          if (!hotelDataStr || typeof hotelDataStr !== "string") {
+            return ApiResponse.badRequest(c, "Hotel data is required");
+          }
+
+          let hotelData;
+          try {
+            hotelData = JSON.parse(hotelDataStr);
+          } catch {
+            return ApiResponse.badRequest(c, "Invalid hotel data JSON");
+          }
+
+          // Extract image files
+          const imageFiles: File[] = [];
+          for (const [key, value] of formData.entries()) {
+            if (key.startsWith("images[") && value instanceof File) {
+              imageFiles.push(value);
+            }
+          }
+
+          const result = await HotelService.createHotelWithImages(
+            c.env.DB,
+            c.env.R2_BUCKET,
+            hotelData,
+            imageFiles,
+            c.env.R2_PUBLIC_BASE_URL || "",
+          );
+
+          return HotelResponse.hotelWithImagesCreated(
+            c,
+            result.hotel,
+            result.images,
+          );
+        } catch (e) {
+          if (e instanceof Error && e.message.includes("slug")) {
+            return ApiResponse.conflict(c, e.message);
+          }
+          throw e;
+        }
+      },
+      "operation.createHotelWithImagesFailed",
+    );
+  }
+
+  static async updateHotelWithImages(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const id = parseInt(c.req.param("id"), 10);
+        try {
+          const formData = await c.req.formData();
+
+          // Extract hotel data from form
+          const hotelDataStr = formData.get("hotelData");
+          if (!hotelDataStr || typeof hotelDataStr !== "string") {
+            return ApiResponse.badRequest(c, "Hotel data is required");
+          }
+
+          let hotelData;
+          try {
+            hotelData = JSON.parse(hotelDataStr);
+          } catch {
+            return ApiResponse.badRequest(c, "Invalid hotel data JSON");
+          }
+
+          // Extract replace images flag
+          const replaceImages = formData.get("replaceImages") === "true";
+
+          // Extract image files
+          const imageFiles: File[] = [];
+          for (const [key, value] of formData.entries()) {
+            if (key.startsWith("images[") && value instanceof File) {
+              imageFiles.push(value);
+            }
+          }
+
+          const result = await HotelService.updateHotelWithImages(
+            c.env.DB,
+            c.env.R2_BUCKET,
+            id,
+            hotelData,
+            imageFiles.length > 0 ? imageFiles : undefined,
+            replaceImages,
+            c.env.R2_PUBLIC_BASE_URL || "",
+          );
+
+          return HotelResponse.hotelWithImagesUpdated(
+            c,
+            result.hotel,
+            result.images,
+          );
+        } catch (e) {
+          if (e instanceof Error) {
+            if (e.message === "Hotel not found")
+              return HotelResponse.hotelNotFound(c);
+            if (e.message.includes("slug")) {
+              return ApiResponse.conflict(c, e.message);
+            }
+          }
+          throw e;
+        }
+      },
+      "operation.updateHotelWithImagesFailed",
+    );
+  }
+
+  static async addHotelImage(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const hotelId = parseInt(c.req.param("id"), 10);
+        try {
+          const formData = await c.req.formData();
+
+          // Extract image file
+          const imageFile = formData.get("image");
+          if (!imageFile || !(imageFile instanceof File)) {
+            return ApiResponse.badRequest(c, "Image file is required");
+          }
+
+          // Extract alt text
+          const alt = formData.get("alt");
+          const altText = alt && typeof alt === "string" ? alt : undefined;
+
+          const image = await HotelService.addHotelImage(
+            c.env.DB,
+            c.env.R2_BUCKET,
+            hotelId,
+            imageFile,
+            altText,
+            c.env.R2_PUBLIC_BASE_URL || "",
+          );
+
+          return HotelResponse.hotelImageAdded(c, image);
+        } catch (e) {
+          if (e instanceof Error) {
+            if (e.message === "Hotel not found")
+              return HotelResponse.hotelNotFound(c);
+            if (
+              e.message.includes("Invalid image type") ||
+              e.message.includes("File size too large")
+            ) {
+              return ApiResponse.badRequest(c, e.message);
+            }
+          }
+          throw e;
+        }
+      },
+      "operation.addHotelImageFailed",
+    );
+  }
+
+  static async getHotelImages(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const hotelId = parseInt(c.req.param("id"), 10);
+        try {
+          const images = await HotelService.getHotelImages(c.env.DB, hotelId);
+          return HotelResponse.hotelImagesRetrieved(c, images);
+        } catch (e) {
+          if (e instanceof Error && e.message === "Hotel not found") {
+            return HotelResponse.hotelNotFound(c);
+          }
+          throw e;
+        }
+      },
+      "operation.fetchHotelImagesFailed",
+    );
+  }
+
+  static async deleteHotelImage(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const imageId = parseInt(c.req.param("imageId"), 10);
+        try {
+          const deleted = await HotelService.deleteHotelImage(
+            c.env.DB,
+            c.env.R2_BUCKET,
+            imageId,
+          );
+          if (!deleted) return ApiResponse.notFound(c, "Image not found");
+          return HotelResponse.hotelImageDeleted(c);
+        } catch (e) {
+          if (e instanceof Error && e.message === "Image not found") {
+            return ApiResponse.notFound(c, "Image not found");
+          }
+          throw e;
+        }
+      },
+      "operation.deleteHotelImageFailed",
+    );
+  }
+
+  static async updateImageSortOrder(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const imageId = parseInt(c.req.param("imageId"), 10);
+        const payload = await c.req.json();
+
+        if (typeof payload.sortOrder !== "number") {
+          return ApiResponse.badRequest(c, "Sort order must be a number");
+        }
+
+        try {
+          const updated = await HotelService.updateImageSortOrder(
+            c.env.DB,
+            imageId,
+            payload.sortOrder,
+          );
+          return HotelResponse.hotelImageUpdated(c, updated);
+        } catch (e) {
+          if (e instanceof Error && e.message === "Image not found") {
+            return ApiResponse.notFound(c, "Image not found");
+          }
+          throw e;
+        }
+      },
+      "operation.updateImageSortOrderFailed",
+    );
+  }
 }

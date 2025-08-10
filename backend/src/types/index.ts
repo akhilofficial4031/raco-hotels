@@ -6,6 +6,8 @@ export interface AppBindings {
   DB: D1Database;
   R2_BUCKET: R2Bucket;
   KV: KVNamespace;
+  // Optional vars from wrangler [vars]
+  R2_PUBLIC_BASE_URL?: string;
 }
 
 // Context variables
@@ -53,6 +55,8 @@ export type {
   HotelFilters,
   CreateHotelData,
   UpdateHotelData,
+  DatabaseHotelImage,
+  CreateHotelImageData,
 } from "./hotel.interface";
 
 export type {
