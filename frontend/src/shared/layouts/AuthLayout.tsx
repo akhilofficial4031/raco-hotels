@@ -12,7 +12,7 @@ export default function AuthLayout() {
       }}
     >
       <main
-        className={`${isOpen ? "ml-60" : "ml-20"} transition-all duration-300`}
+        className={`${isOpen ? "ml-60" : "ml-14"} transition-all duration-300`}
       >
         <Sidebar />
         <Header />
