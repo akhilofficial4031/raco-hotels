@@ -1,0 +1,1 @@
+ALTER TABLE `hotel` ADD `location_info` text;

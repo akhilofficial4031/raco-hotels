@@ -17,9 +17,24 @@ export interface DatabaseHotel {
   starRating: number | null;
   checkInTime: string | null;
   checkOutTime: string | null;
+  // Optional JSON array with information about nearby locations, attractions, etc.
+  locationInfo: LocationInfoSection[] | null;
   isActive: number;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LocationInfoImage {
+  url: string;
+  alt?: string | null;
+}
+
+export interface LocationInfoSection {
+  heading: string;
+  subHeading?: string | null;
+  bulletPoints?: string[] | null;
+  description?: string | null;
+  images?: LocationInfoImage[] | null;
 }
 
 export interface HotelFilters {
