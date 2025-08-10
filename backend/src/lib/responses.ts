@@ -1,0 +1,275 @@
+import { type Context } from "hono";
+
+import { HTTP_STATUS, ERROR_CODES } from "../constants";
+import {
+  getI18n,
+  createLocalizedResponse,
+  createLocalizedError,
+} from "../utils/i18n";
+
+import type { ApiSuccessResponse, ApiErrorResponse } from "../types";
+
+// Generic API response builder
+export class ApiResponse {
+  static success<T>(
+    c: Context,
+    data: T,
+    message?: string,
+    statusCode: number = HTTP_STATUS.OK,
+  ) {
+    const response: ApiSuccessResponse<T> = {
+      success: true,
+      data,
+      ...(message && { message }),
+    };
+    return c.json(response, statusCode as any);
+  }
+
+  static created<T>(c: Context, data: T, message?: string) {
+    return this.success(c, data, message, HTTP_STATUS.CREATED);
+  }
+
+  static error(
+    c: Context,
+    code: string,
+    message: string,
+    statusCode: number = HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    details?: any,
+  ) {
+    const response: ApiErrorResponse = {
+      success: false,
+      error: {
+        code,
+        message,
+        ...(details && { details }),
+      },
+    };
+    return c.json(response, statusCode as any);
+  }
+
+  static badRequest(c: Context, message: string, details?: any) {
+    return this.error(
+      c,
+      ERROR_CODES.VALIDATION_ERROR,
+      message,
+      HTTP_STATUS.BAD_REQUEST,
+      details,
+    );
+  }
+
+  static unauthorized(c: Context, message: string = "Unauthorized access") {
+    return this.error(
+      c,
+      ERROR_CODES.UNAUTHORIZED_ACCESS,
+      message,
+      HTTP_STATUS.UNAUTHORIZED,
+    );
+  }
+
+  static forbidden(c: Context, message: string = "Forbidden") {
+    return this.error(
+      c,
+      ERROR_CODES.UNAUTHORIZED_ACCESS,
+      message,
+      HTTP_STATUS.FORBIDDEN,
+    );
+  }
+
+  static notFound(c: Context, message: string = "Resource not found") {
+    return this.error(
+      c,
+      ERROR_CODES.USER_NOT_FOUND,
+      message,
+      HTTP_STATUS.NOT_FOUND,
+    );
+  }
+
+  static conflict(c: Context, message: string = "Resource conflict") {
+    return this.error(
+      c,
+      ERROR_CODES.USER_ALREADY_EXISTS,
+      message,
+      HTTP_STATUS.CONFLICT,
+    );
+  }
+
+  static internalError(c: Context, message: string = "Internal server error") {
+    return this.error(
+      c,
+      ERROR_CODES.INTERNAL_ERROR,
+      message,
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
+// User-specific response helpers
+export class UserResponse {
+  static userNotFound(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.userNotFound",
+      "user.notFound",
+      HTTP_STATUS.NOT_FOUND,
+    );
+  }
+
+  static userAlreadyExists(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.userAlreadyExists",
+      "user.alreadyExists",
+      HTTP_STATUS.CONFLICT,
+    );
+  }
+
+  static userCreated(c: Context, user: any) {
+    return createLocalizedResponse(
+      c,
+      { user },
+      "user.created",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static userUpdated(c: Context, user: any) {
+    return createLocalizedResponse(c, { user }, "user.updated");
+  }
+
+  static userDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "user.deleted");
+  }
+
+  static usersList(c: Context, users: any[], pagination?: any) {
+    return createLocalizedResponse(
+      c,
+      {
+        users,
+        ...(pagination && { pagination }),
+      },
+      "user.listRetrieved",
+    );
+  }
+
+  static userRetrieved(c: Context, user: any) {
+    return createLocalizedResponse(c, { user }, "user.retrieved");
+  }
+
+  static loginSuccessful(
+    c: Context,
+    user: any,
+    tokenInfo: { csrfToken: string; expiresIn: number },
+  ) {
+    return createLocalizedResponse(
+      c,
+      { user, ...tokenInfo },
+      "user.loginSuccessful",
+    );
+  }
+
+  static invalidCredentials(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.invalidCredentials",
+      "user.invalidCredentials",
+      HTTP_STATUS.UNAUTHORIZED,
+    );
+  }
+
+  static accountDisabled(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.accountDisabled",
+      "user.accountDisabled",
+      HTTP_STATUS.FORBIDDEN,
+    );
+  }
+
+  static passwordChanged(c: Context) {
+    return createLocalizedResponse(c, {}, "user.passwordChanged");
+  }
+
+  static invalidCurrentPassword(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.invalidCurrentPassword",
+      "user.invalidCurrentPassword",
+      HTTP_STATUS.BAD_REQUEST,
+    );
+  }
+
+  static passwordValidationFailed(c: Context, details: string) {
+    return createLocalizedError(
+      c,
+      "errorCodes.passwordValidationFailed",
+      "password.validationFailed",
+      HTTP_STATUS.BAD_REQUEST,
+      { details },
+    );
+  }
+}
+
+// Async route handler wrapper for error handling
+export async function handleAsyncRoute(
+  c: Context,
+  handler: () => Promise<Response>,
+  errorMessageKey: string = "system.operationFailed",
+): Promise<Response> {
+  try {
+    return await handler();
+  } catch (error) {
+    const { t } = getI18n(c);
+    const errorMessage = t(errorMessageKey);
+
+    console.error(`[${new Date().toISOString()}] ${errorMessage}:`, error);
+
+    // Handle validation errors
+    if (error instanceof Error && error.message.includes("validation")) {
+      return createLocalizedError(
+        c,
+        "errorCodes.validationError",
+        "system.validationError",
+        HTTP_STATUS.BAD_REQUEST,
+        { details: error.message },
+      );
+    }
+
+    return createLocalizedError(
+      c,
+      "errorCodes.internalError",
+      errorMessageKey,
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
+// Health check response
+export class SystemResponse {
+  static healthCheck(c: Context) {
+    const { t, messages } = getI18n(c);
+    return createLocalizedResponse(
+      c,
+      {
+        status: t("system.healthy"),
+        timestamp: new Date().toISOString(),
+        service: messages.service.name,
+      },
+      "system.healthy",
+    );
+  }
+
+  static apiInfo(c: Context) {
+    const { messages } = getI18n(c);
+    return createLocalizedResponse(
+      c,
+      {
+        service: messages.service.name,
+        version: messages.service.version,
+        framework: messages.service.framework,
+        documentation: messages.service.documentation,
+        openapi: messages.service.openapi,
+      },
+      "system.healthy",
+    );
+  }
+}

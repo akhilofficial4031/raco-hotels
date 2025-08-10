@@ -1,6 +1,7 @@
 name = "raco-hotels-backend"
 main = "src/index.ts"
-compatibility_date = "2024-07-01"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
 
 [[kv_namespaces]]
 binding = "KV"
@@ -19,5 +20,4 @@ migrations_dir = "drizzle/migrations"
 [dev]
 port = 8787
 local_protocol = "http"
-persist = true
 

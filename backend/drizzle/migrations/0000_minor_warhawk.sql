@@ -41,7 +41,9 @@ CREATE TABLE `user` (
 	`role` text DEFAULT 'guest' NOT NULL,
 	`status` text DEFAULT 'active' NOT NULL,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	CHECK (`role` IN ('guest','staff','admin')),
+	CHECK (`status` IN ('active','disabled'))
 );
 --> statement-breakpoint
 CREATE TABLE `amenity` (
