@@ -7,7 +7,10 @@ export const PERMISSIONS = {
   USERS_UPDATE: "users.update",
   USERS_DELETE: "users.delete",
   // Extend with other modules, e.g.:
-  // HOTELS_READ: "hotels.read",
+  HOTELS_READ: "hotels.read",
+  HOTELS_CREATE: "hotels.create",
+  HOTELS_UPDATE: "hotels.update",
+  HOTELS_DELETE: "hotels.delete",
   // AMENITIES_UPDATE: "amenities.update",
 } as const;
 
@@ -28,6 +31,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.USERS_CREATE,
     PERMISSIONS.USERS_UPDATE,
     PERMISSIONS.USERS_DELETE,
+    PERMISSIONS.HOTELS_READ,
+    PERMISSIONS.HOTELS_CREATE,
+    PERMISSIONS.HOTELS_UPDATE,
+    PERMISSIONS.HOTELS_DELETE,
   ],
   [USER_ROLES.STAFF]: [PERMISSIONS.USERS_READ],
   [USER_ROLES.GUEST]: [],

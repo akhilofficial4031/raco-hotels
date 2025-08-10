@@ -9,6 +9,7 @@ import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
 import authRoutes from "./routes/auth";
 import systemRoutes from "./routes/system";
 import userRoutes from "./routes/user";
+import hotelRoutes from "./routes/hotel";
 // Import middleware and utilities
 import { i18nMiddleware } from "./utils/i18n";
 import { getLocalizedMessage } from "./utils/i18n";
@@ -63,46 +64,10 @@ app.route("/", systemRoutes);
 
 // Register API routes
 app.route("/api/users", userRoutes);
+app.route("/api/hotels", hotelRoutes);
 app.route("/api", authRoutes);
 
-// Legacy hotel routes (keeping for compatibility)
-app.get("/hotels", async (c) => {
-  const { getDb } = await import("./db");
-  const { desc } = await import("drizzle-orm");
-  const { hotel } = await import("../drizzle/schema");
-
-  const db = getDb(c.env.DB);
-  const rows = await db.select().from(hotel).orderBy(desc(hotel.id));
-  return c.json({
-    success: true,
-    data: { hotels: rows },
-  });
-});
-
-app.post("/hotels", async (c) => {
-  const { getDb } = await import("./db");
-  const { desc } = await import("drizzle-orm");
-  const { hotel } = await import("../drizzle/schema");
-
-  const db = getDb(c.env.DB);
-  const body = await c.req
-    .json<{ name?: string }>()
-    .catch(() => ({ name: "New Hotel" }));
-  const name = (body.name ?? "New Hotel").trim();
-  await db.insert(hotel).values({ name }).run();
-  const [created] = await db
-    .select()
-    .from(hotel)
-    .orderBy(desc(hotel.id))
-    .limit(1);
-  return c.json(
-    {
-      success: true,
-      data: created,
-    },
-    201,
-  );
-});
+// Legacy hotel routes removed in favor of /api/hotels router
 
 // Configure OpenAPI documentation
 configureOpenAPI(app);
