@@ -1,11 +1,11 @@
 import { HotelRepository } from "../repositories/hotel.repository";
 
-import type { z } from "zod";
 import type {
   CreateHotelRequestSchema,
   UpdateHotelRequestSchema,
   HotelQueryParamsSchema,
 } from "../schemas";
+import type { z } from "zod";
 
 export class HotelService {
   static async createHotel(

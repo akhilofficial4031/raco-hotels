@@ -47,3 +47,16 @@ export type {
   PaginationParams,
   PaginatedResponse,
 } from "./user.interface";
+
+export type {
+  DatabaseHotel,
+  HotelFilters,
+  CreateHotelData,
+  UpdateHotelData,
+} from "./hotel.interface";
+
+export type {
+  DatabaseAmenity,
+  CreateAmenityData,
+  UpdateAmenityData,
+} from "./amenity.interface";

@@ -1,5 +1,5 @@
-import { createPublicRoute, ApiTags } from "../../lib/openapi";
-import { HealthCheckResponseSchema } from "../../schemas";
+import { createPublicRoute, ApiTags } from "../lib/openapi";
+import { HealthCheckResponseSchema } from "../schemas";
 
 export const SystemRouteDefinitions = {
   // GET /health - Health check

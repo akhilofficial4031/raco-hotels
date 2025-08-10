@@ -1,7 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 
-import { AuthRouteDefinitions } from "./definitions/auth";
 import { AuthController } from "../controllers/auth.controller";
+import { AuthRouteDefinitions } from "../definitions/auth.definition";
 import { authMiddleware, csrfMiddleware } from "../middleware";
 
 import type { AppBindings, AppVariables } from "../types";

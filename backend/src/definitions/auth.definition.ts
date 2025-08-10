@@ -4,7 +4,7 @@ import {
   createPublicRoute,
   createAuthenticatedRoute,
   ApiTags,
-} from "../../lib/openapi";
+} from "../lib/openapi";
 
 // Request schemas
 const LoginRequestSchema = z.object({

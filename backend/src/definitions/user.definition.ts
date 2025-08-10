@@ -1,9 +1,4 @@
-import { z } from "zod";
-import {
-  createPublicRoute,
-  createAuthenticatedRoute,
-  ApiTags,
-} from "../../lib/openapi";
+import { createAuthenticatedRoute, ApiTags } from "../lib/openapi";
 import {
   UserResponseSchema,
   UsersListResponseSchema,
@@ -14,7 +9,7 @@ import {
   DeleteUserResponseSchema,
   UserQueryParamsSchema,
   UserPathParamsSchema,
-} from "../../schemas";
+} from "../schemas";
 
 export const UserRouteDefinitions = {
   // GET /users - Get all users (Admin only)

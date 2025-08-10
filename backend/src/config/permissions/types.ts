@@ -11,7 +11,11 @@ export const PERMISSIONS = {
   HOTELS_CREATE: "hotels.create",
   HOTELS_UPDATE: "hotels.update",
   HOTELS_DELETE: "hotels.delete",
-  // AMENITIES_UPDATE: "amenities.update",
+
+  AMENITIES_READ: "amenities.read",
+  AMENITIES_CREATE: "amenities.create",
+  AMENITIES_UPDATE: "amenities.update",
+  AMENITIES_DELETE: "amenities.delete",
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -35,6 +39,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.HOTELS_CREATE,
     PERMISSIONS.HOTELS_UPDATE,
     PERMISSIONS.HOTELS_DELETE,
+    PERMISSIONS.AMENITIES_READ,
+    PERMISSIONS.AMENITIES_CREATE,
+    PERMISSIONS.AMENITIES_UPDATE,
+    PERMISSIONS.AMENITIES_DELETE,
   ],
   [USER_ROLES.STAFF]: [PERMISSIONS.USERS_READ],
   [USER_ROLES.GUEST]: [],

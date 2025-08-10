@@ -1,7 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 
-import { SystemRouteDefinitions } from "./definitions/system";
-import { SystemController } from "../controllers/user.controller";
+import { SystemController } from "../controllers/system.controller";
+import { SystemRouteDefinitions } from "../definitions/system.definition";
 
 import type { AppBindings } from "../types";
 
