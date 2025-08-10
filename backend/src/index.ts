@@ -2,11 +2,13 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 
+// Import OpenAPI configuration
+import { configureOpenAPI } from "./lib/openapi-config";
 // Import routes
 import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
+import authRoutes from "./routes/auth";
 import systemRoutes from "./routes/system";
 import userRoutes from "./routes/user";
-import authRoutes from "./routes/auth";
 // Import middleware and utilities
 import { i18nMiddleware } from "./utils/i18n";
 import { getLocalizedMessage } from "./utils/i18n";
@@ -48,10 +50,10 @@ app.use("*", i18nMiddleware());
 // Add request logging middleware
 app.use("*", async (c, next) => {
   const start = Date.now();
-  console.log(`[${new Date().toISOString()}] ${c.req.method} ${c.req.url}`);
+  console.warn(`[${new Date().toISOString()}] ${c.req.method} ${c.req.url}`);
   await next();
   const end = Date.now();
-  console.log(
+  console.warn(
     `[${new Date().toISOString()}] ${c.req.method} ${c.req.url} - ${c.res.status} (${end - start}ms)`,
   );
 });
@@ -102,54 +104,10 @@ app.post("/hotels", async (c) => {
   );
 });
 
-// OpenAPI documentation endpoint
-app.doc("/openapi.json", {
-  openapi: "3.0.0",
-  info: {
-    title: "Raco Hotels API",
-    version: "1.0.0",
-    description:
-      "A comprehensive hotel management API with user management, authentication, and hotel operations. Features JWT authentication with HTTP-only cookies and CSRF protection.",
-    contact: {
-      name: "Raco Hotels Development Team",
-      email: "dev@raco-hotels.com",
-    },
-    license: {
-      name: "MIT",
-      url: "https://opensource.org/licenses/MIT",
-    },
-  },
-  servers: [
-    {
-      url: "http://localhost:8787",
-      description: "Local development server",
-    },
-    {
-      url: "https://api.raco-hotels.com",
-      description: "Production server",
-    },
-  ],
-  tags: [
-    {
-      name: "System",
-      description: "System health and API information endpoints",
-    },
-    {
-      name: "Users",
-      description: "User management operations",
-    },
-    {
-      name: "Authentication",
-      description: "Authentication and authorization operations",
-    },
-    {
-      name: "Hotels",
-      description: "Hotel management operations",
-    },
-  ],
-});
+// Configure OpenAPI documentation
+configureOpenAPI(app);
 
-// Swagger UI endpoint
+// Swagger UI endpoint with enhanced configuration
 app.get(
   "/swagger-ui",
   swaggerUI({
@@ -158,8 +116,18 @@ app.get(
 );
 
 // Alternative Swagger UI paths for convenience
-app.get("/docs", swaggerUI({ url: "/openapi.json" }));
-app.get("/api-docs", swaggerUI({ url: "/openapi.json" }));
+app.get(
+  "/docs",
+  swaggerUI({
+    url: "/openapi.json",
+  }),
+);
+app.get(
+  "/api-docs",
+  swaggerUI({
+    url: "/openapi.json",
+  }),
+);
 
 // Environment check endpoint
 app.get("/env", (c) => {
@@ -173,6 +141,40 @@ app.get("/env", (c) => {
       kv: hasKV,
       r2: hasR2,
       timestamp: new Date().toISOString(),
+    },
+  });
+});
+
+// API information endpoint with authentication details
+app.get("/api-info", (c) => {
+  return c.json({
+    success: true,
+    data: {
+      title: "Raco Hotels API",
+      version: "1.0.0",
+      description: "A comprehensive hotel management API with authentication",
+      authentication: {
+        methods: ["JWT Bearer Token", "HTTP-only Cookies"],
+        testCredentials: {
+          email: "admin@raco.com",
+          password: "admin123",
+          note: "Use POST /auth/login to get authentication tokens",
+        },
+        instructions: [
+          "1. Login using POST /api/auth/login with test credentials",
+          "2. Copy the CSRF token from the response",
+          "3. Use 'Authorize' button in Swagger UI",
+          "4. For Bearer token: Extract JWT from browser cookies or use login response",
+          "5. For CSRF token: Use the csrfToken from login response",
+          "6. Test protected endpoints",
+        ],
+      },
+      endpoints: {
+        docs: ["/docs", "/swagger-ui", "/api-docs"],
+        openapi: "/openapi.json",
+        login: "/api/auth/login",
+        logout: "/api/auth/logout",
+      },
     },
   });
 });

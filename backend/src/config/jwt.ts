@@ -20,12 +20,12 @@ export const COOKIE_CONFIG = {
   CSRF_TOKEN_NAME: "csrf_token",
   OPTIONS: {
     httpOnly: true,
-    secure: true, // Always secure in production, consider environment-based for development
-    sameSite: "strict" as const,
+    secure: process.env.NODE_ENV === "production", // Only secure in production
+    sameSite: "lax" as const, // Changed from strict to lax for better compatibility
     path: "/",
   },
-  ACCESS_TOKEN_MAX_AGE: 15 * 60 * 1000, // 15 minutes in milliseconds
-  REFRESH_TOKEN_MAX_AGE: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+  ACCESS_TOKEN_MAX_AGE: 15 * 60, // 15 minutes in seconds
+  REFRESH_TOKEN_MAX_AGE: 7 * 24 * 60 * 60, // 7 days in seconds
 } as const;
 
 // JWT Payload Interface

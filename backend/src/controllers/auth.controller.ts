@@ -21,7 +21,7 @@ export class AuthController {
       async () => {
         const { email, password } = await c.req.json();
 
-        try {
+                try {
           const user = await AuthService.authenticateUser(
             c.env.DB,
             email,

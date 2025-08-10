@@ -55,7 +55,8 @@ export function createLocalizedResponse(
   return c.json(
     {
       success: statusCode < 400,
-      data: statusCode < 400 ? { ...data, message } : undefined,
+      message,
+      data: statusCode < 400 ? data : undefined,
       error:
         statusCode >= 400
           ? { code: messageKey.toUpperCase(), message }
