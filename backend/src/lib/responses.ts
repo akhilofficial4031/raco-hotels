@@ -209,6 +209,47 @@ export class UserResponse {
   }
 }
 
+// Hotel-specific response helpers
+export class HotelResponse {
+  static hotelNotFound(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.notFound",
+      "hotel.notFound",
+      HTTP_STATUS.NOT_FOUND,
+    );
+  }
+
+  static hotelCreated(c: Context, hotel: any) {
+    return createLocalizedResponse(
+      c,
+      { hotel },
+      "hotel.created",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static hotelUpdated(c: Context, hotel: any) {
+    return createLocalizedResponse(c, { hotel }, "hotel.updated");
+  }
+
+  static hotelDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "hotel.deleted");
+  }
+
+  static hotelRetrieved(c: Context, hotel: any) {
+    return createLocalizedResponse(c, { hotel }, "hotel.retrieved");
+  }
+
+  static hotelsList(c: Context, hotels: any[], pagination?: any) {
+    return createLocalizedResponse(
+      c,
+      { hotels, ...(pagination && { pagination }) },
+      "hotel.listRetrieved",
+    );
+  }
+}
+
 // Async route handler wrapper for error handling
 export async function handleAsyncRoute(
   c: Context,
