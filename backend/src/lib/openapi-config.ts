@@ -60,6 +60,14 @@ export const baseOpenAPIConfig: OpenAPISpec = {
       name: "Hotels",
       description: "Hotel management operations",
     },
+    {
+      name: "Amenities",
+      description: "Amenity management operations",
+    },
+    {
+      name: "Features",
+      description: "Feature management operations",
+    },
   ] as object[],
 } as const;
 

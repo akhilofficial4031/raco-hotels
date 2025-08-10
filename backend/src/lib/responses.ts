@@ -340,6 +340,47 @@ export class AmenityResponse {
   }
 }
 
+// Feature-specific response helpers
+
+export class FeatureResponse {
+  static featureNotFound(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.notFound",
+      "feature.notFound",
+      HTTP_STATUS.NOT_FOUND,
+    );
+  }
+
+  static featureCreated(c: Context, feature: any) {
+    return createLocalizedResponse(
+      c,
+      { feature },
+      "feature.created",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static featureUpdated(c: Context, feature: any) {
+    return createLocalizedResponse(c, { feature }, "feature.updated");
+  }
+
+  static featureDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "feature.deleted");
+  }
+
+  static featureRetrieved(c: Context, feature: any) {
+    return createLocalizedResponse(c, { feature }, "feature.retrieved");
+  }
+
+  static featuresList(c: Context, features: any[], pagination?: any) {
+    return createLocalizedResponse(
+      c,
+      { features, ...(pagination && { pagination }) },
+      "feature.listRetrieved",
+    );
+  }
+}
 // Async route handler wrapper for error handling
 export async function handleAsyncRoute(
   c: Context,

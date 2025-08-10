@@ -8,6 +8,7 @@ import { configureOpenAPI } from "./lib/openapi-config";
 import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
 import amenityRoutes from "./routes/amenity.route";
 import authRoutes from "./routes/auth.route";
+import featureRoutes from "./routes/feature.route";
 import hotelRoutes from "./routes/hotel.route";
 import systemRoutes from "./routes/system.route";
 // Import middleware and utilities
@@ -62,6 +63,7 @@ app.use("*", async (c, next) => {
 
 // Register API routes
 app.route("/api/amenities", amenityRoutes);
+app.route("/api/features", featureRoutes);
 app.route("/api/hotels", hotelRoutes);
 app.route("/api/users", userRoutes);
 app.route("/api/auth", authRoutes);
