@@ -1,4 +1,4 @@
-import { createAuthenticatedRoute, ApiTags } from "../../lib/openapi";
+import { createAuthenticatedRoute, ApiTags } from "../lib/openapi";
 import {
   HotelResponseSchema,
   HotelsListResponseSchema,
@@ -6,7 +6,7 @@ import {
   UpdateHotelRequestSchema,
   HotelPathParamsSchema,
   HotelQueryParamsSchema,
-} from "../../schemas";
+} from "../schemas";
 
 export const HotelRouteDefinitions = {
   getHotels: createAuthenticatedRoute({

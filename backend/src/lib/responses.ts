@@ -250,6 +250,48 @@ export class HotelResponse {
   }
 }
 
+// Amenity-specific response helpers
+
+export class AmenityResponse {
+  static amenityNotFound(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.notFound",
+      "amenity.notFound",
+      HTTP_STATUS.NOT_FOUND,
+    );
+  }
+
+  static amenityCreated(c: Context, amenity: any) {
+    return createLocalizedResponse(
+      c,
+      { amenity },
+      "amenity.created",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static amenityUpdated(c: Context, amenity: any) {
+    return createLocalizedResponse(c, { amenity }, "amenity.updated");
+  }
+
+  static amenityDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "amenity.deleted");
+  }
+
+  static amenityRetrieved(c: Context, amenity: any) {
+    return createLocalizedResponse(c, { amenity }, "amenity.retrieved");
+  }
+
+  static amenitiesList(c: Context, amenities: any[], pagination?: any) {
+    return createLocalizedResponse(
+      c,
+      { amenities, ...(pagination && { pagination }) },
+      "amenity.listRetrieved",
+    );
+  }
+}
+
 // Async route handler wrapper for error handling
 export async function handleAsyncRoute(
   c: Context,

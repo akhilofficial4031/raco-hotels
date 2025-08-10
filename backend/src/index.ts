@@ -6,11 +6,12 @@ import { cors } from "hono/cors";
 import { configureOpenAPI } from "./lib/openapi-config";
 // Import routes
 import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
-import authRoutes from "./routes/auth";
-import systemRoutes from "./routes/system";
-import userRoutes from "./routes/user";
-import hotelRoutes from "./routes/hotel";
+import amenityRoutes from "./routes/amenity.route";
+import authRoutes from "./routes/auth.route";
+import hotelRoutes from "./routes/hotel.route";
+import systemRoutes from "./routes/system.route";
 // Import middleware and utilities
+import userRoutes from "./routes/user.route";
 import { i18nMiddleware } from "./utils/i18n";
 import { getLocalizedMessage } from "./utils/i18n";
 
@@ -59,13 +60,12 @@ app.use("*", async (c, next) => {
   );
 });
 
-// Register system routes (health check, API info)
-app.route("/", systemRoutes);
-
 // Register API routes
-app.route("/api/users", userRoutes);
+app.route("/api/amenities", amenityRoutes);
 app.route("/api/hotels", hotelRoutes);
-app.route("/api", authRoutes);
+app.route("/api/users", userRoutes);
+app.route("/api/auth", authRoutes);
+app.route("/api/system", systemRoutes);
 
 // Legacy hotel routes removed in favor of /api/hotels router
 

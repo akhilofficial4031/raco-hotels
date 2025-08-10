@@ -1,13 +1,8 @@
 // Removed authentication imports as they are now in auth.controller.ts
-import {
-  UserResponse,
-  SystemResponse,
-  handleAsyncRoute,
-} from "../lib/responses";
+import { UserResponse, handleAsyncRoute } from "../lib/responses";
 import { UserService } from "../services/user.service";
 
 import type { AppContext } from "../types";
-import type { Context } from "hono";
 
 export class UserController {
   // GET /users - Get all users with optional filters and pagination
@@ -203,23 +198,4 @@ export class UserController {
   // Authentication methods moved to AuthController
 
   // Password change method moved to AuthController
-}
-
-// System controller for health checks and basic endpoints
-export class SystemController {
-  // GET /health - Health check
-  static async healthCheck(c: Context) {
-    return handleAsyncRoute(
-      c,
-      async () => {
-        return SystemResponse.healthCheck(c);
-      },
-      "operation.healthCheckFailed",
-    );
-  }
-
-  // GET / - API info
-  static async getApiInfo(c: Context) {
-    return SystemResponse.apiInfo(c);
-  }
 }

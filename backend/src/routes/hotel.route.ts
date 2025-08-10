@@ -1,10 +1,10 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { PERMISSIONS } from "../config/permissions";
-import { assertPermission } from "../middleware/permissions";
-import { HotelRouteDefinitions } from "./definitions/hotel";
 import { HotelController } from "../controllers/hotel.controller";
+import { HotelRouteDefinitions } from "../definitions/hotel.definition";
 import { authMiddleware, csrfMiddleware } from "../middleware";
+import { assertPermission } from "../middleware/permissions";
 
 import type { AppBindings, AppVariables } from "../types";
 

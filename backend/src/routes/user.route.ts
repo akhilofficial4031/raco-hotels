@@ -1,10 +1,10 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { PERMISSIONS } from "../config/permissions";
-import { assertPermission } from "../middleware/permissions";
-import { UserRouteDefinitions } from "./definitions/user";
 import { UserController } from "../controllers/user.controller";
+import { UserRouteDefinitions } from "../definitions/user.definition";
 import { authMiddleware, csrfMiddleware } from "../middleware";
+import { assertPermission } from "../middleware/permissions";
 
 import type { AppBindings, AppVariables } from "../types";
 
