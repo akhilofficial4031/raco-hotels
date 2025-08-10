@@ -64,3 +64,9 @@ export type {
   CreateAmenityData,
   UpdateAmenityData,
 } from "./amenity.interface";
+
+export type {
+  DatabaseFeature,
+  CreateFeatureData,
+  UpdateFeatureData,
+} from "./feature.interface";
