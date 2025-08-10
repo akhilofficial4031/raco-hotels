@@ -1,8 +1,10 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 
+import { PERMISSIONS } from "../config/permissions";
+import { assertPermission } from "../middleware/permissions";
 import { UserRouteDefinitions } from "./definitions/user";
 import { UserController } from "../controllers/user.controller";
-import { authMiddleware, requireAdmin, csrfMiddleware } from "../middleware";
+import { authMiddleware, csrfMiddleware } from "../middleware";
 
 import type { AppBindings, AppVariables } from "../types";
 
@@ -12,58 +14,53 @@ const userRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-// Apply middleware globally (except for public routes)
+// Authentication + CSRF wrapper; permissions are enforced per-route (Option C)
 userRoutes.use("*", async (c, next) => {
-  const path = c.req.path;
   const method = c.req.method;
-
-  // Skip middleware for public routes
-  if (path.includes("/login") || path.includes("/logout")) {
-    return next();
-  }
-
-  // Apply auth middleware for all other routes
   await authMiddleware(c, async () => {
-    // Apply admin middleware for admin-only routes
-    if (!path.includes("/change-password")) {
-      await requireAdmin(c, async () => {
-        // Apply CSRF for state-changing operations
-        if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-          await csrfMiddleware(c, next);
-        } else {
-          await next();
-        }
-      });
-    } else {
-      // Apply CSRF for password change
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
       await csrfMiddleware(c, next);
+    } else {
+      await next();
     }
   });
 });
 
 // Authentication routes moved to auth.ts
 
-// Admin-only routes
-userRoutes.openapi(UserRouteDefinitions.getUsers, UserController.getUsers);
-userRoutes.openapi(
-  UserRouteDefinitions.getUserById,
-  UserController.getUserById,
-);
-userRoutes.openapi(UserRouteDefinitions.createUser, UserController.createUser);
-userRoutes.openapi(UserRouteDefinitions.updateUser, UserController.updateUser);
-userRoutes.openapi(UserRouteDefinitions.deleteUser, UserController.deleteUser);
-userRoutes.openapi(
-  UserRouteDefinitions.toggleUserStatus,
-  UserController.toggleUserStatus,
-);
-userRoutes.openapi(
-  UserRouteDefinitions.searchUsers,
-  UserController.searchUsers,
-);
-userRoutes.openapi(
-  UserRouteDefinitions.getUserStats,
-  UserController.getUserStats,
-);
+// Admin-only routes with single-route permission guards (Option C)
+userRoutes.openapi(UserRouteDefinitions.getUsers, async (c) => {
+  await assertPermission(c, PERMISSIONS.USERS_READ);
+  return UserController.getUsers(c as any);
+});
+userRoutes.openapi(UserRouteDefinitions.getUserById, async (c) => {
+  await assertPermission(c, PERMISSIONS.USERS_READ);
+  return UserController.getUserById(c as any);
+});
+userRoutes.openapi(UserRouteDefinitions.createUser, async (c) => {
+  await assertPermission(c, PERMISSIONS.USERS_CREATE);
+  return UserController.createUser(c as any);
+});
+userRoutes.openapi(UserRouteDefinitions.updateUser, async (c) => {
+  await assertPermission(c, PERMISSIONS.USERS_UPDATE);
+  return UserController.updateUser(c as any);
+});
+userRoutes.openapi(UserRouteDefinitions.deleteUser, async (c) => {
+  await assertPermission(c, PERMISSIONS.USERS_DELETE);
+  return UserController.deleteUser(c as any);
+});
+userRoutes.openapi(UserRouteDefinitions.toggleUserStatus, async (c) => {
+  await assertPermission(c, PERMISSIONS.USERS_UPDATE);
+  return UserController.toggleUserStatus(c as any);
+});
+userRoutes.openapi(UserRouteDefinitions.searchUsers, async (c) => {
+  await assertPermission(c, PERMISSIONS.USERS_READ);
+  return UserController.searchUsers(c as any);
+});
+userRoutes.openapi(UserRouteDefinitions.getUserStats, async (c) => {
+  await assertPermission(c, PERMISSIONS.USERS_READ);
+  return UserController.getUserStats(c as any);
+});
 
 // Password change route moved to auth.ts
 

@@ -1,8 +1,11 @@
 import { eq } from "drizzle-orm";
+import { eq as dEq } from "drizzle-orm";
 
+import { role, permission, rolePermission } from "../../drizzle/schema";
 import { user } from "../../drizzle/schema/user";
 import { getDb } from "../db";
 
+import type { PermissionKey } from "../config/permissions";
 import type { DatabaseUser } from "../types";
 
 export class AuthRepository {
@@ -169,5 +172,32 @@ export class AuthRepository {
     }
 
     return foundUser;
+  }
+
+  // Retrieve permissions attached to a role from DB. Returns [] if none found.
+  static async getPermissionsForRole(
+    db: D1Database,
+    roleName: string,
+  ): Promise<PermissionKey[]> {
+    const database = getDb(db);
+    try {
+      const matchedRole = await database
+        .select({ id: role.id, name: role.name })
+        .from(role)
+        .where(dEq(role.name, roleName))
+        .limit(1);
+      const r = matchedRole[0];
+      if (!r) return [];
+
+      const rows = await database
+        .select({ key: permission.key })
+        .from(rolePermission)
+        .leftJoin(permission, dEq(rolePermission.permissionId, permission.id))
+        .where(dEq(rolePermission.roleId, r.id));
+
+      return rows.map((row) => row.key as PermissionKey).filter(Boolean);
+    } catch {
+      return [];
+    }
   }
 }
