@@ -30,6 +30,9 @@ export const hotel = sqliteTable(
     starRating: integer("star_rating"),
     checkInTime: text("check_in_time"),
     checkOutTime: text("check_out_time"),
+    // Optional JSON array with rich location-related info (nearest tourist centers, bars, restaurants, etc.)
+    // Stored as JSON text in SQLite; not intended for querying, only retrieval
+    locationInfo: text("location_info", { mode: "json" }),
     isActive: integer("is_active").notNull().default(1),
     createdAt: text("created_at")
       .notNull()

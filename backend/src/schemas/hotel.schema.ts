@@ -1,5 +1,22 @@
 import z from "zod";
 
+const LocationInfoImageSchema = z
+  .object({
+    url: z.string().url().openapi({ example: "https://cdn.example.com/img.jpg" }),
+    alt: z.string().nullable().optional().openapi({ example: "Golden Gate Bridge" }),
+  })
+  .openapi("LocationInfoImage");
+
+const LocationInfoSectionSchema = z
+  .object({
+    heading: z.string().openapi({ example: "Nearby Attractions" }),
+    subHeading: z.string().nullable().optional().openapi({ example: "Top picks" }),
+    bulletPoints: z.array(z.string()).nullable().optional().openapi({ example: ["5 min to beach", "Close to metro"] }),
+    description: z.string().nullable().optional().openapi({ example: "Great neighborhood with lots to do." }),
+    images: z.array(LocationInfoImageSchema).nullable().optional(),
+  })
+  .openapi("LocationInfoSection");
+
 // Hotel Schemas
 export const HotelSchema = z
   .object({
@@ -24,6 +41,10 @@ export const HotelSchema = z
     starRating: z.number().int().nullable().openapi({ example: 4 }),
     checkInTime: z.string().nullable().openapi({ example: "15:00" }),
     checkOutTime: z.string().nullable().openapi({ example: "11:00" }),
+    locationInfo: z
+      .array(LocationInfoSectionSchema)
+      .nullable()
+      .openapi({ description: "Optional rich JSON content about nearby locations" }),
     isActive: z.number().int().openapi({ example: 1 }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     updatedAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
@@ -58,6 +79,10 @@ export const CreateHotelRequestSchema = z
       .openapi({ example: 4 }),
     checkInTime: z.string().optional().openapi({ example: "15:00" }),
     checkOutTime: z.string().optional().openapi({ example: "11:00" }),
+    locationInfo: z
+      .array(LocationInfoSectionSchema)
+      .optional()
+      .openapi({ description: "Optional rich JSON content about nearby locations" }),
     isActive: z.number().int().optional().openapi({ example: 1 }),
   })
   .openapi("CreateHotelRequest");
