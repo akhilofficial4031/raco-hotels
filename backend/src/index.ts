@@ -1,37 +1,91 @@
-import { desc } from "drizzle-orm";
-import { Hono } from "hono";
+import { swaggerUI } from "@hono/swagger-ui";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { cors } from "hono/cors";
 
-import { getDb } from "./db";
-import { hotel } from "../drizzle/schema";
+// Import routes
+import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
+import systemRoutes from "./routes/system";
+import userRoutes from "./routes/user";
+import authRoutes from "./routes/auth";
+// Import middleware and utilities
+import { i18nMiddleware } from "./utils/i18n";
+import { getLocalizedMessage } from "./utils/i18n";
 
-type Bindings = {
-  DB: D1Database;
-  R2_BUCKET: R2Bucket;
-  KV: KVNamespace;
-};
+// Import types
+import type { AppBindings, AppVariables } from "./types";
 
-const app = new Hono<{ Bindings: Bindings }>();
+// Create main app with OpenAPI support
+const app = new OpenAPIHono<{
+  Bindings: AppBindings;
+  Variables: AppVariables;
+}>();
 
-app.get("/", (c) =>
-  c.json({ ok: true, service: "backend", framework: "hono" }),
+// Add CORS middleware
+app.use(
+  "*",
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:5173"], // Frontend dev servers
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Accept-Language",
+      "X-CSRF-Token",
+    ],
+    credentials: true, // Allow cookies to be sent
+  }),
 );
 
-app.get("/env", (c) => {
-  const hasDB = Boolean(c.env.DB);
-  const hasKV = Boolean(c.env.KV);
-  const hasR2 = Boolean(c.env.R2_BUCKET);
-  return c.json({ d1: hasDB, kv: hasKV, r2: hasR2 });
+// Add security headers middleware
+app.use("*", securityHeadersMiddleware);
+
+// Add rate limiting middleware
+app.use("*", rateLimitMiddleware);
+
+// Add i18n middleware
+app.use("*", i18nMiddleware());
+
+// Add request logging middleware
+app.use("*", async (c, next) => {
+  const start = Date.now();
+  console.log(`[${new Date().toISOString()}] ${c.req.method} ${c.req.url}`);
+  await next();
+  const end = Date.now();
+  console.log(
+    `[${new Date().toISOString()}] ${c.req.method} ${c.req.url} - ${c.res.status} (${end - start}ms)`,
+  );
 });
 
+// Register system routes (health check, API info)
+app.route("/", systemRoutes);
+
+// Register API routes
+app.route("/api/users", userRoutes);
+app.route("/api", authRoutes);
+
+// Legacy hotel routes (keeping for compatibility)
 app.get("/hotels", async (c) => {
+  const { getDb } = await import("./db");
+  const { desc } = await import("drizzle-orm");
+  const { hotel } = await import("../drizzle/schema");
+
   const db = getDb(c.env.DB);
   const rows = await db.select().from(hotel).orderBy(desc(hotel.id));
-  return c.json({ hotels: rows });
+  return c.json({
+    success: true,
+    data: { hotels: rows },
+  });
 });
 
 app.post("/hotels", async (c) => {
+  const { getDb } = await import("./db");
+  const { desc } = await import("drizzle-orm");
+  const { hotel } = await import("../drizzle/schema");
+
   const db = getDb(c.env.DB);
-  const body = await c.req.json<{ name?: string }>().catch(() => ({}));
+  const body = await c.req
+    .json<{ name?: string }>()
+    .catch(() => ({ name: "New Hotel" }));
   const name = (body.name ?? "New Hotel").trim();
   await db.insert(hotel).values({ name }).run();
   const [created] = await db
@@ -39,8 +93,128 @@ app.post("/hotels", async (c) => {
     .from(hotel)
     .orderBy(desc(hotel.id))
     .limit(1);
-  return c.json(created, 201);
+  return c.json(
+    {
+      success: true,
+      data: created,
+    },
+    201,
+  );
+});
+
+// OpenAPI documentation endpoint
+app.doc("/openapi.json", {
+  openapi: "3.0.0",
+  info: {
+    title: "Raco Hotels API",
+    version: "1.0.0",
+    description:
+      "A comprehensive hotel management API with user management, authentication, and hotel operations. Features JWT authentication with HTTP-only cookies and CSRF protection.",
+    contact: {
+      name: "Raco Hotels Development Team",
+      email: "dev@raco-hotels.com",
+    },
+    license: {
+      name: "MIT",
+      url: "https://opensource.org/licenses/MIT",
+    },
+  },
+  servers: [
+    {
+      url: "http://localhost:8787",
+      description: "Local development server",
+    },
+    {
+      url: "https://api.raco-hotels.com",
+      description: "Production server",
+    },
+  ],
+  tags: [
+    {
+      name: "System",
+      description: "System health and API information endpoints",
+    },
+    {
+      name: "Users",
+      description: "User management operations",
+    },
+    {
+      name: "Authentication",
+      description: "Authentication and authorization operations",
+    },
+    {
+      name: "Hotels",
+      description: "Hotel management operations",
+    },
+  ],
+});
+
+// Swagger UI endpoint
+app.get(
+  "/swagger-ui",
+  swaggerUI({
+    url: "/openapi.json",
+  }),
+);
+
+// Alternative Swagger UI paths for convenience
+app.get("/docs", swaggerUI({ url: "/openapi.json" }));
+app.get("/api-docs", swaggerUI({ url: "/openapi.json" }));
+
+// Environment check endpoint
+app.get("/env", (c) => {
+  const hasDB = Boolean(c.env.DB);
+  const hasKV = Boolean(c.env.KV);
+  const hasR2 = Boolean(c.env.R2_BUCKET);
+  return c.json({
+    success: true,
+    data: {
+      d1: hasDB,
+      kv: hasKV,
+      r2: hasR2,
+      timestamp: new Date().toISOString(),
+    },
+  });
+});
+
+// Global error handler
+app.onError((err, c) => {
+  console.error(`[${new Date().toISOString()}] Global Error:`, err);
+
+  const errorMessage = getLocalizedMessage(c, "system.unexpectedError");
+  const errorCode = getLocalizedMessage(c, "errorCodes.internalError");
+
+  return c.json(
+    {
+      success: false,
+      error: {
+        code: errorCode,
+        message: errorMessage,
+        ...(process.env.NODE_ENV === "development" && { details: err.message }),
+      },
+    },
+    500,
+  );
+});
+
+// 404 handler
+app.notFound((c) => {
+  const errorCode = getLocalizedMessage(c, "errorCodes.notFound");
+  const errorMessage = getLocalizedMessage(c, "system.notFoundEndpoint");
+  const suggestion = getLocalizedMessage(c, "system.checkDocumentation");
+
+  return c.json(
+    {
+      success: false,
+      error: {
+        code: errorCode,
+        message: `${errorMessage}: ${c.req.method} ${c.req.url}`,
+        suggestion,
+      },
+    },
+    404,
+  );
 });
 
 // Mount API under /api for local proxy convenience
-export default app.basePath("/");
+export default app;
