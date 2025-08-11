@@ -9,7 +9,7 @@ import {
 
 import { hotel } from "./hotel";
 import { ratePlan } from "./policy_rate";
-import { roomType } from "./room";
+import { roomType } from "./room_type";
 import { promoCode } from "./tax_promo";
 import { user } from "./user";
 

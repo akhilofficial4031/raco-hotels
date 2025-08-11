@@ -1,8 +1,9 @@
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { eq } from "drizzle-orm";
+import { readdirSync } from "fs";
+
 import { scrypt } from "@noble/hashes/scrypt";
 import { randomBytes } from "@noble/hashes/utils";
-import { readdirSync } from "fs";
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 
 import * as schema from "../drizzle/schema";
 import { user } from "../drizzle/schema/user";
@@ -25,16 +26,20 @@ async function seedAdminUser() {
     // For local development, connect to the SQLite database directly
     // Dynamic import to avoid issues with better-sqlite3 types
     const { default: Database } = await import("better-sqlite3");
-    
+
     // Find the actual database file (it has a hash-based name)
     const dbDir = ".wrangler/state/v3/d1/miniflare-D1DatabaseObject/";
     const files = readdirSync(dbDir);
-    const dbFile = files.find(f => f.endsWith('.sqlite') && f !== 'local-db.sqlite');
-    
+    const dbFile = files.find(
+      (f) => f.endsWith(".sqlite") && f !== "local-db.sqlite",
+    );
+
     if (!dbFile) {
-      throw new Error("Could not find database file. Make sure to run the dev server first to initialize the database.");
+      throw new Error(
+        "Could not find database file. Make sure to run the dev server first to initialize the database.",
+      );
     }
-    
+
     const sqlite = new Database(dbDir + dbFile);
     const db = drizzle(sqlite, { schema });
 
@@ -84,7 +89,9 @@ async function seedAdminUser() {
     console.log("   Email: admin@raco.com");
     console.log("   Password: admin123");
     console.log("");
-    console.log("🚀 You can now login using these credentials in the API or Swagger UI!");
+    console.log(
+      "🚀 You can now login using these credentials in the API or Swagger UI!",
+    );
 
     sqlite.close();
   } catch (error) {

@@ -3,6 +3,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
 
 // Import OpenAPI configuration
+import { apiInfo } from "./lib/api-info";
 import { configureOpenAPI } from "./lib/openapi-config";
 // Import routes
 import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
@@ -10,7 +11,9 @@ import amenityRoutes from "./routes/amenity.route";
 import authRoutes from "./routes/auth.route";
 import featureRoutes from "./routes/feature.route";
 import hotelRoutes from "./routes/hotel.route";
+import roomRoutes from "./routes/room.route";
 import systemRoutes from "./routes/system.route";
+import roomTypeRoutes from "./routes/room_type.route";
 // Import middleware and utilities
 import userRoutes from "./routes/user.route";
 import { i18nMiddleware } from "./utils/i18n";
@@ -65,6 +68,8 @@ app.use("*", async (c, next) => {
 app.route("/api/amenities", amenityRoutes);
 app.route("/api/features", featureRoutes);
 app.route("/api/hotels", hotelRoutes);
+app.route("/api", roomTypeRoutes);
+app.route("/api", roomRoutes);
 app.route("/api/users", userRoutes);
 app.route("/api/auth", authRoutes);
 app.route("/api/system", systemRoutes);
@@ -113,38 +118,7 @@ app.get("/env", (c) => {
 });
 
 // API information endpoint with authentication details
-app.get("/api-info", (c) => {
-  return c.json({
-    success: true,
-    data: {
-      title: "Raco Hotels API",
-      version: "1.0.0",
-      description: "A comprehensive hotel management API with authentication",
-      authentication: {
-        methods: ["JWT Bearer Token", "HTTP-only Cookies"],
-        testCredentials: {
-          email: "admin@raco.com",
-          password: "admin123",
-          note: "Use POST /auth/login to get authentication tokens",
-        },
-        instructions: [
-          "1. Login using POST /api/auth/login with test credentials",
-          "2. Copy the CSRF token from the response",
-          "3. Use 'Authorize' button in Swagger UI",
-          "4. For Bearer token: Extract JWT from browser cookies or use login response",
-          "5. For CSRF token: Use the csrfToken from login response",
-          "6. Test protected endpoints",
-        ],
-      },
-      endpoints: {
-        docs: ["/docs", "/swagger-ui", "/api-docs"],
-        openapi: "/openapi.json",
-        login: "/api/auth/login",
-        logout: "/api/auth/logout",
-      },
-    },
-  });
-});
+app.get("/api-info", apiInfo);
 
 // Global error handler
 app.onError((err, c) => {

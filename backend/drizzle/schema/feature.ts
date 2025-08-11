@@ -17,7 +17,9 @@ export const feature = sqliteTable(
     code: text("code").notNull(),
     name: text("name").notNull(),
     description: text("description"),
-    isVisible: integer("is_visible", { mode: "boolean" }).notNull().default(1),
+    isVisible: integer("is_visible", { mode: "boolean" })
+      .notNull()
+      .default(true),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: text("created_at")
       .notNull()

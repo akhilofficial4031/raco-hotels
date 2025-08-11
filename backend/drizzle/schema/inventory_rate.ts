@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 import { ratePlan } from "./policy_rate";
-import { roomType } from "./room";
+import { roomType } from "./room_type";
 
 export const roomInventory = sqliteTable(
   "room_inventory",

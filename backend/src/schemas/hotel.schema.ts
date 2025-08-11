@@ -41,12 +41,9 @@ export const HotelImageSchema = z
   .object({
     id: z.number().int().positive().openapi({ example: 1 }),
     hotelId: z.number().int().positive().openapi({ example: 1 }),
-    url: z
-      .string()
-      .url()
-      .openapi({
-        example: "https://cdn.example.com/hotels/1/images/photo.jpg",
-      }),
+    url: z.string().url().openapi({
+      example: "https://cdn.example.com/hotels/1/images/photo.jpg",
+    }),
     alt: z.string().nullable().openapi({ example: "Hotel exterior view" }),
     sortOrder: z.number().int().openapi({ example: 0 }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
@@ -77,12 +74,9 @@ export const HotelSchema = z
     starRating: z.number().int().nullable().openapi({ example: 4 }),
     checkInTime: z.string().nullable().openapi({ example: "15:00" }),
     checkOutTime: z.string().nullable().openapi({ example: "11:00" }),
-    locationInfo: z
-      .array(LocationInfoSectionSchema)
-      .nullable()
-      .openapi({
-        description: "Optional rich JSON content about nearby locations",
-      }),
+    locationInfo: z.array(LocationInfoSectionSchema).nullable().openapi({
+      description: "Optional rich JSON content about nearby locations",
+    }),
     isActive: z.number().int().openapi({ example: 1 }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     updatedAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
@@ -112,12 +106,9 @@ export const HotelWithImagesSchema = z
     starRating: z.number().int().nullable().openapi({ example: 4 }),
     checkInTime: z.string().nullable().openapi({ example: "15:00" }),
     checkOutTime: z.string().nullable().openapi({ example: "11:00" }),
-    locationInfo: z
-      .array(LocationInfoSectionSchema)
-      .nullable()
-      .openapi({
-        description: "Optional rich JSON content about nearby locations",
-      }),
+    locationInfo: z.array(LocationInfoSectionSchema).nullable().openapi({
+      description: "Optional rich JSON content about nearby locations",
+    }),
     isActive: z.number().int().openapi({ example: 1 }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     updatedAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
@@ -153,12 +144,9 @@ export const CreateHotelRequestSchema = z
       .openapi({ example: 4 }),
     checkInTime: z.string().optional().openapi({ example: "15:00" }),
     checkOutTime: z.string().optional().openapi({ example: "11:00" }),
-    locationInfo: z
-      .array(LocationInfoSectionSchema)
-      .optional()
-      .openapi({
-        description: "Optional rich JSON content about nearby locations",
-      }),
+    locationInfo: z.array(LocationInfoSectionSchema).optional().openapi({
+      description: "Optional rich JSON content about nearby locations",
+    }),
     isActive: z.number().int().optional().openapi({ example: 1 }),
   })
   .openapi("CreateHotelRequest");

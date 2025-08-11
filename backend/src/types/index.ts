@@ -70,3 +70,10 @@ export type {
   CreateFeatureData,
   UpdateFeatureData,
 } from "./feature.interface";
+
+export type {
+  DatabaseRoomType,
+  DatabaseRoomTypeImage,
+  DatabaseRoomTypeAmenity,
+  DatabaseRoom,
+} from "./room-type.interface";

@@ -53,7 +53,6 @@ export const roomType = sqliteTable(
     ),
   }),
 );
-
 export const roomTypeAmenity = sqliteTable(
   "room_type_amenity",
   {
@@ -77,7 +76,6 @@ export const roomTypeAmenity = sqliteTable(
     pk: primaryKey({ columns: [t.roomTypeId, t.amenityId] }),
   }),
 );
-
 export const roomTypeImage = sqliteTable(
   "room_type_image",
   {

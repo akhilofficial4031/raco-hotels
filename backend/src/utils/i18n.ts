@@ -1,4 +1,3 @@
-import type { Context } from "hono";
 import {
   getMessages,
   getMessage,
@@ -6,6 +5,8 @@ import {
   type SupportedLocale,
   DEFAULT_LOCALE,
 } from "../config/messages";
+
+import type { Context } from "hono";
 
 // Extended context interface with i18n support
 export interface I18nContext {
