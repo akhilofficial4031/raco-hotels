@@ -5,3 +5,7 @@ export * from "./amenity.schema";
 export * from "./feature.schema";
 export * from "./room_type.schema";
 export * from "./room_unit.schema";
+export * from "./review.schema";
+export * from "./content.schema";
+export * from "./tax_fee.schema";
+export * from "./promo_code.schema";

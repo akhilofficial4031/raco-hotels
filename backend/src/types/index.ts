@@ -77,3 +77,11 @@ export type {
   DatabaseRoomTypeAmenity,
   DatabaseRoom,
 } from "./room-type.interface";
+
+export type { DatabaseReview } from "./review.interface";
+export type {
+  DatabaseContentBlock,
+  CreateContentBlockData,
+  UpdateContentBlockData,
+} from "./content.interface";
+export type { DatabaseTaxFee, DatabasePromoCode } from "./tax_promo.interface";
