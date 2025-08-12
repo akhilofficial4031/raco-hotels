@@ -5,7 +5,6 @@ import {
   text,
   index,
   uniqueIndex,
-  primaryKey,
 } from "drizzle-orm/sqlite-core";
 
 import { hotel } from "./hotel";
@@ -32,26 +31,5 @@ export const feature = sqliteTable(
     featureCodeUq: uniqueIndex("uq_feature_code").on(t.code),
     featureNameIdx: index("idx_feature_name").on(t.name),
     featureVisibleIdx: index("idx_feature_visible").on(t.isVisible),
-  }),
-);
-
-export const hotelFeature = sqliteTable(
-  "hotel_feature",
-  {
-    hotelId: integer("hotel_id")
-      .notNull()
-      .references(() => hotel.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    featureId: integer("feature_id")
-      .notNull()
-      .references(() => feature.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (t) => ({
-    pk: primaryKey({ columns: [t.hotelId, t.featureId] }),
   }),
 );

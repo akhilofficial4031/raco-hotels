@@ -6,7 +6,6 @@ import {
   index,
   uniqueIndex,
   check,
-  primaryKey,
 } from "drizzle-orm/sqlite-core";
 
 import { amenity } from "./amenity";
@@ -51,49 +50,5 @@ export const roomType = sqliteTable(
       "ck_room_type_base_price",
       sql`${t.basePriceCents} >= 0`,
     ),
-  }),
-);
-export const roomTypeAmenity = sqliteTable(
-  "room_type_amenity",
-  {
-    roomTypeId: integer("room_type_id")
-      .notNull()
-      .references(() => roomType.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    amenityId: integer("amenity_id")
-      .notNull()
-      .references(() => amenity.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (t) => ({
-    pk: primaryKey({ columns: [t.roomTypeId, t.amenityId] }),
-  }),
-);
-export const roomTypeImage = sqliteTable(
-  "room_type_image",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    roomTypeId: integer("room_type_id")
-      .notNull()
-      .references(() => roomType.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    url: text("url").notNull(),
-    alt: text("alt"),
-    sortOrder: integer("sort_order").notNull().default(0),
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (t) => ({
-    roomImageRoomIdx: index("idx_room_image_room").on(t.roomTypeId),
   }),
 );
