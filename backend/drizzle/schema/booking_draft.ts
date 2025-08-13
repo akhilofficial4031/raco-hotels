@@ -8,8 +8,8 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 import { hotel } from "./hotel";
-import { roomType } from "./room_type";
 import { ratePlan } from "./rate_plan";
+import { roomType } from "./room_type";
 
 // Guest draft bookings for unauthenticated users
 export const bookingDraft = sqliteTable(

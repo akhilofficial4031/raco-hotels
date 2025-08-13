@@ -1,14 +1,7 @@
 import { sql } from "drizzle-orm";
-import {
-  sqliteTable,
-  integer,
-  text,
-  index,
-  uniqueIndex,
-} from "drizzle-orm/sqlite-core";
+import { sqliteTable, integer, text, index } from "drizzle-orm/sqlite-core";
 
 import { hotel } from "./hotel";
-import { roomType } from "./room_type";
 
 export const cancellationPolicy = sqliteTable(
   "cancellation_policy",

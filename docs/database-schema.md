@@ -1,186 +1,202 @@
-## Database schema and rationale (Drizzle ORM on Cloudflare D1)
+## Database schema (Drizzle ORM on Cloudflare D1)
 
-This document explains what each table is intended for and why each column exists, aligned with the current Drizzle schema under `backend/drizzle/schema/*` (aggregated by `backend/drizzle/schema/index.ts`) and the project scope described in `frontend/.cursor/rules/010-project-requirement-description.mdc`.
+One-by-one listing of all tables with purpose, columns (plus example values), and key constraints/indexes. Schema source: `backend/drizzle/schema/*` (aggregated by `backend/drizzle/schema/index.ts`).
 
-## Principles and conventions
+Conventions
 
-- **Storage**: Cloudflare D1 (SQLite) with Drizzle ORM.
-- **Money**: Stored as integer cents to avoid floating-point issues.
-- **Booleans**: Stored as integers 0/1 for SQLite compatibility.
-- **Soft enums**: Validated with checks in schema or in the application layer.
-- **Timestamps**: Most tables include `createdAt` and `updatedAt` for auditability.
-- **Indexes**: Added for common filters/sorts used in the admin UI.
-- **FK semantics**: `onDelete`/`onUpdate` reflect business needs (cascade where dependent data must go, restrict to protect important references, set null for optional relations).
-- **JSON text**: Some display-only, free-form fields use JSON text columns.
+- Money: integer cents (e.g., 12999 => $129.99)
+- Booleans: 0/1 integers
+- Dates: `YYYY-MM-DD` (TEXT)
+- Timestamps: TEXT with `CURRENT_TIMESTAMP`
+- FKs use cascade/restrict/set null per business rule
 
-## 1) Hotels and media
+Table: amenity
 
-Table: `hotel` (file: `backend/drizzle/schema/hotel.ts`)
+- Purpose: Catalog of reusable amenities.
+- Columns: id PK; code UNIQUE ("wifi"); name ("Wi‑Fi"); icon ("wifi"); createdAt; updatedAt.
+- Indexes: unique code; index name.
 
-- Purpose: Master record for each hotel (central join point across the system).
-- Columns:
-  - `id` INTEGER PK AUTOINCREMENT: Surrogate key.
-  - `name` TEXT NOT NULL: Display/search name.
-  - `slug` TEXT NULL, unique: SEO-friendly identifier; nullable to allow staged rollout.
-  - `description` TEXT NULL: Marketing description.
-  - `email` TEXT NULL, `phone` TEXT NULL: Contact details.
-  - `addressLine1`, `addressLine2`, `city`, `state`, `postalCode`, `countryCode` TEXT: Structured address for filtering and location info.
-  - `latitude`, `longitude` REAL: Map display/proximity features.
-  - `timezone` TEXT: Localize check-in/out and pricing windows.
-  - `starRating` INTEGER NULL: 1–5; protected by a check constraint.
-  - `checkInTime`, `checkOutTime` TEXT: Property defaults.
-  - `locationInfo` TEXT(JSON) NULL: Optional JSON for nearby points of interest; display-only.
-  - `isActive` INTEGER NOT NULL DEFAULT 1: Visibility toggle.
-  - `createdAt`, `updatedAt` TEXT NOT NULL DEFAULT `CURRENT_TIMESTAMP`.
-- Indexes: `name`, unique `slug`, `city`, `countryCode`, `isActive`.
+Table: audit_log
 
-Table: `hotel_image` (file: `backend/drizzle/schema/hotel_image.ts`)
+- Purpose: Immutable record of admin actions/data changes.
+- Columns: id PK; actorUserId FK->user NULL; entityType ("booking"); entityId (555); action ("update"); oldValue/newValue JSON text; createdAt.
+- Indexes: (entityType,entityId); actorUserId; action.
 
-- Purpose: Gallery images for a hotel.
-- Columns: `id`, `hotelId` FK->`hotel` (cascade), `url`, `alt`, `sortOrder`, `createdAt`.
-- Indexes: `hotelId`.
+Table: booking
 
-## 2) Features (hotel-level)
+- Purpose: Reservation header with lifecycle, totals, and context.
+- Columns: id PK; referenceCode UNIQUE ("RACO-8Y3P2K"); hotelId FK->hotel; userId FK->user NULL; status ("confirmed"); source ("web"); checkInDate ("2025-02-12"); checkOutDate ("2025-02-15"); numAdults (2); numChildren (1); totalAmountCents (78900); currencyCode ("USD"); taxAmountCents (6900); feeAmountCents (1500); discountAmountCents (-10000); balanceDueCents (0); notes; cancelledAt; cancellationReason; createdAt; updatedAt.
+- Indexes: hotelId; userId; status; (checkInDate,checkOutDate); totalAmountCents.
 
-Tables: `feature`, `hotel_feature` (files: `feature.ts`, `hotel_feature.ts`)
+Table: booking_item
 
-- Purpose: Catalog of hotel-level features and the many-to-many mapping to hotels.
-- `feature` columns:
-  - `id` PK, `code` TEXT unique (programmatic key), `name` TEXT, `description` TEXT, `isVisible` 0/1, `sortOrder` INT, timestamps.
-  - Indexes: unique `code`, `name`, `isVisible`.
-- `hotel_feature` columns:
-  - `hotelId` FK->`hotel` (cascade), `featureId` FK->`feature` (cascade), `createdAt`.
-  - PK: composite (`hotelId`, `featureId`).
+- Purpose: Per-night line items (pricing breakdown) under a booking.
+- Columns: id PK; bookingId FK->booking; roomTypeId FK->room_type; ratePlanId FK->rate_plan NULL; date ("2025-02-13"); priceCents (25900); taxAmountCents (2300); feeAmountCents (500); createdAt.
+- Constraints: UNIQUE (bookingId,roomTypeId,date). Indexes: bookingId; date.
 
-## 3) Amenities (catalog + assignments)
+Table: booking_promotion (junction)
 
-Tables: `amenity`, `hotel_amenity`, `room_type_amenity` (files: `amenity.ts`, `hotel_amenity.ts`, `room_type_amenity.ts`)
+- Purpose: Map applied promo codes to a booking; stores actual discount amount.
+- Columns: bookingId FK->booking; promoCodeId FK->promo_code; amountCents (-10000); createdAt.
 
-- Purpose: Shared amenity catalog and relationships to hotels and room types.
-- `amenity` columns: `id`, `code` unique, `name` NOT NULL, `icon` optional, timestamps. Indexes: unique `code`, `name`.
-- `hotel_amenity` columns: composite PK (`hotelId`, `amenityId`), `createdAt`.
-- `room_type_amenity` columns: composite PK (`roomTypeId`, `amenityId`), `createdAt`.
+Table: booking_draft
 
-## 4) Room catalog and media
+- Purpose: Guest cart/draft state prior to confirmed booking.
+- Columns: id PK; sessionId UNIQUE ("sess_8c8e..."); referenceCode ("RACO-DRAFT-2FQ7"); hotelId FK->hotel; roomTypeId FK->room_type; ratePlanId FK->rate_plan NULL; status ("draft"); checkInDate ("2025-03-10"); checkOutDate ("2025-03-13"); numAdults (2); numChildren (0); petsCount (1); baseAmountCents (74700); taxAmountCents (6700); feeAmountCents (1200); discountAmountCents (-5000); totalAmountCents (76200); balanceDueCents (76200); currencyCode ("USD"); promoCode ("SPRING10"); contactEmail ("guest@example.com"); contactPhone (+1-555-0198); addOnsJson (e.g., [{"code":"parking","qty":1}]); createdAt; updatedAt.
+- Indexes: sessionId UNIQUE; hotelId; (checkInDate,checkOutDate).
 
-Tables: `room_type`, `room_type_image`, `room` (files: `room_type.ts`, `room_type_image.ts`, `room_unit.ts`)
+Table: booking_draft_item
 
-- Purpose: Define sellable categories (`room_type`), related images, and physical room units (`room`).
-- `room_type` columns:
-  - `id` PK, `hotelId` FK->`hotel` (cascade), `name` NOT NULL, `slug` NOT NULL (unique per hotel), `description` TEXT,
-    `baseOccupancy` INT >= 1, `maxOccupancy` INT with check `max >= base`,
-    `basePriceCents` INT >= 0, `currencyCode` TEXT, `sizeSqft` INT, `bedType` TEXT,
-    `smokingAllowed` 0/1, `totalRooms` INT, `isActive` 0/1, timestamps.
-  - Indexes: `hotelId`, `basePriceCents`, `isActive`; unique (`hotelId`, `slug`).
-- `room_type_image` columns: `id`, `roomTypeId` FK->`room_type` (cascade), `url`, `alt`, `sortOrder`, `createdAt`. Index: `roomTypeId`.
-- `room` columns:
-  - Physical units for allocation/frontdesk. `id`, `hotelId` FK->`hotel` (cascade), `roomTypeId` FK->`room_type` (restrict delete),
-    `roomNumber` TEXT NOT NULL, `floor` TEXT, `description` TEXT, `status` TEXT (available|occupied|maintenance|out_of_order), `isActive` 0/1, timestamps.
-  - Indexes: `hotelId`, `roomTypeId`, `status`; unique (`hotelId`, `roomNumber`).
+- Purpose: Per-night items for a booking draft.
+- Columns: id PK; bookingDraftId FK->booking_draft; date ("2025-03-11"); priceCents (24900); taxAmountCents (2200); feeAmountCents (400); createdAt.
+- Indexes: date.
 
-## 5) Policies and rate plans
+Table: content_block
 
-Tables: `cancellation_policy`, `rate_plan` (files: `policy_rate.ts`, `rate_plan.ts`)
+- Purpose: Simple CMS blocks for site pages; optionally hotel-scoped.
+- Columns: id PK; hotelId FK->hotel NULL; page ("home"); section ("hero"); title; body (Markdown/HTML); mediaUrl; sortOrder (10); isVisible (1); createdAt; updatedAt.
+- Indexes: page; section; hotelId.
 
-- Purpose: Reusable cancellation rules and rate plans.
-- `cancellation_policy` columns: `id`, `hotelId` FK->`hotel` (cascade), `name`, `description`, `freeCancelUntilHours` INT, `penaltyType` TEXT, `penaltyValue` INT, timestamps. Index: `hotelId`.
-- `rate_plan` columns: `id`, `hotelId` FK->`hotel` (cascade), `roomTypeId` nullable FK->`room_type` (set null), `code` unique per hotel, `name`, `description`, `mealPlan`, `minStay`, `maxStay`, `advancePurchaseDays`, `cancellationPolicyId` nullable FK->`cancellation_policy` (set null), `isActive` 0/1, timestamps. Indexes: unique (`hotelId`, `code`), `hotelId`, `roomTypeId`.
+Table: feature
 
-## 6) Availability and nightly pricing
+- Purpose: Catalog of hotel-level features (discoverability/filters).
+- Columns: id PK; code UNIQUE ("free_breakfast"); name ("Free Breakfast"); description; isVisible (1); sortOrder (10); createdAt; updatedAt.
+- Indexes: unique code; index name; index isVisible.
 
-Tables: `room_inventory`, `room_rate` (files: `inventory_rate.ts`, `room_rate.ts`)
+Table: hotel
 
-- Purpose: Date-granular sellable inventory and nightly prices.
-- `room_inventory` columns: composite PK (`roomTypeId`, `date`), `availableRooms` INT >= 0, `overbookLimit` INT >= 0, `closed` 0/1, `updatedAt`. Index: `date`.
-- `room_rate` columns: composite PK (`roomTypeId`, `date`, `ratePlanId`), `ratePlanId` nullable FK->`rate_plan` (set null), `priceCents` INT >= 0, `currencyCode`, `minStay`, `maxStay`, `closed` 0/1, `updatedAt`. Indexes: `date`, `priceCents`.
+- Purpose: Master record for each hotel/property.
+- Columns: id PK; name ("Raco Grand Resort"); slug UNIQUE ("raco-grand-resort"); description; email (info@racoresort.com); phone (+1-555-0199); addressLine1 (123 Ocean Ave); addressLine2 (Tower B); city (Miami); state (FL); postalCode (33101); countryCode (US); latitude (25.7617); longitude (-80.1918); timezone (America/New_York); starRating (5); checkInTime (15:00); checkOutTime (11:00); locationInfo JSON; isActive (1); createdAt; updatedAt.
+- Indexes: name; slug UNIQUE; city; countryCode; isActive.
 
-## 7) Taxes and promotions
+Table: hotel_amenity (junction)
 
-Tables: `tax_fee`, `promo_code` (files: `tax_promo.ts`, `promo_code.ts`)
+- Purpose: Assign amenities to a hotel (many-to-many).
+- Columns: hotelId FK->hotel; amenityId FK->amenity; createdAt.
+- Constraint: PK (hotelId,amenityId).
 
-- Purpose: Apply statutory/property fees and promotional discounts.
-- `tax_fee` columns: `id`, `hotelId` FK->`hotel` (cascade), `name`, `type` TEXT (percent|fixed), `value` INT (percent 0..100 or cents), `scope` TEXT (per_stay|per_night|per_person), `includedInPrice` 0/1, `isActive` 0/1, timestamps. Index: `hotelId`.
-- `promo_code` columns: `id`, `hotelId` FK->`hotel` (cascade), `code` unique per hotel, `type` TEXT (percent|fixed), `value` INT, `startDate`, `endDate`, `minNights`, `minAmountCents`, `maxDiscountCents`, `usageLimit`, `usageCount`, `isActive` 0/1, timestamps. Indexes: unique (`hotelId`, `code`), `isActive`, `(startDate, endDate)`.
+Table: hotel_feature (junction)
 
-## 8) Users and RBAC
+- Purpose: Assign features to a hotel (many-to-many).
+- Columns: hotelId FK->hotel; featureId FK->feature; createdAt.
+- Constraint: PK (hotelId,featureId).
 
-Tables: `user`, `role`, `permission`, `role_permission` (files: `user.ts`, `permission.ts`, `role_permission.ts`)
+Table: hotel_image
 
-- Purpose: Admin users and coarse RBAC primitives.
-- `user` columns: `id`, `email` unique NOT NULL, `passwordHash` TEXT, `fullName` TEXT, `phone` TEXT, `role` TEXT (guest|staff|admin), `status` TEXT (active|disabled), timestamps. Indexes: unique+index on `email`, checks for `role` and `status` values.
-- `role` columns: `id`, `name` unique (e.g., admin, staff, guest), `displayName` TEXT, indexes on `name`.
-- `permission` columns: `id`, `key` unique (e.g., users.read), `description` TEXT, indexes on `key`.
-- `role_permission` columns: unique (`roleId`, `permissionId`) to map roles to permissions.
+- Purpose: Image gallery for hotels.
+- Columns: id PK; hotelId FK->hotel; url; alt; sortOrder (1); createdAt.
+- Indexes: hotelId.
 
-Note: Current app logic primarily uses the `user.role` soft-enum; `role`/`permission` tables exist for future granular RBAC.
+Table: permission
 
-## 9) Booking lifecycle and transactions
+- Purpose: Fine-grained capability keys (future RBAC granularity).
+- Columns: id PK; key UNIQUE ("users.read"); description.
+- Indexes: unique key; index key.
 
-Tables: `booking`, `booking_item`, `booking_promotion`, `payment`, `refund` (files: `booking.ts`, `booking_item.ts`, `booking_promotion.ts`, `payment.ts`, `refund.ts`)
+Table: role
 
-- Purpose: Capture reservations, nightly line items, applied promos, and financial transactions.
-- `booking` columns: `id`, `referenceCode` unique, `hotelId` FK->`hotel` (restrict), `userId` nullable FK->`user` (set null), `status` (reserved|confirmed|checked_in|checked_out|cancelled|no_show), `source` (web|phone|ota), dates, occupancy counts, totals (`totalAmountCents`, `currencyCode`, `taxAmountCents`, `feeAmountCents`, `discountAmountCents`, `balanceDueCents`), `notes`, cancellation metadata, timestamps. Indexes: `hotelId`, `userId`, `status`, `(checkInDate, checkOutDate)`, `totalAmountCents`.
-- `booking_item` columns: `id`, `bookingId` FK->`booking` (cascade), `roomTypeId` FK->`room_type` (restrict), `ratePlanId` nullable FK->`rate_plan` (set null), `date`, `priceCents`, `taxAmountCents`, `feeAmountCents`, `createdAt`. Unique: (`bookingId`, `roomTypeId`, `date`). Indexes: `bookingId`, `date`.
-- `booking_promotion` columns: `bookingId` FK->`booking` (cascade), `promoCodeId` FK->`promo_code` (restrict), `amountCents`, `createdAt`.
-- `payment` columns: `id`, `bookingId` FK->`booking` (cascade), `amountCents`, `currencyCode`, `status`, `method`, `processor`, `processorPaymentId` (unique per processor), timestamps. Indexes: `bookingId`, `status`, unique (`processor`, `processorPaymentId`).
-- `refund` columns: `id`, `paymentId` FK->`payment` (cascade), `amountCents`, `status`, `processorRefundId` unique, `createdAt`. Indexes: `paymentId`, unique `processorRefundId`.
+- Purpose: Named roles for RBAC.
+- Columns: id PK; name UNIQUE ("admin"); displayName ("Administrator").
+- Indexes: unique name; index name.
 
-## 10) Draft bookings (guest flow)
+Table: role_permission (junction)
 
-Tables: `booking_draft`, `booking_draft_item` (files: `booking_draft.ts`, `booking_draft_item.ts`)
+- Purpose: Map roles to permissions.
+- Columns: roleId; permissionId.
+- Constraint: UNIQUE (roleId,permissionId).
 
-- Purpose: Persist unauthenticated guest cart/draft data during the booking flow.
-- `booking_draft` columns: `id`, `sessionId` unique, `referenceCode`, `hotelId` (restrict), `roomTypeId` (restrict), `ratePlanId` nullable (set null), `status` (draft), `checkInDate`, `checkOutDate`, occupancy, amounts (`baseAmountCents`, `taxAmountCents`, `feeAmountCents`, `discountAmountCents`, `totalAmountCents`, `balanceDueCents`), `currencyCode`, contact (`promoCode`, `contactEmail`, `contactPhone`), `addOnsJson` TEXT, timestamps. Indexes: unique `sessionId`, `hotelId`, `(checkInDate, checkOutDate)`.
-- `booking_draft_item` columns: `id`, `bookingDraftId` FK->`booking_draft` (cascade), `date`, `priceCents`, `taxAmountCents`, `feeAmountCents`, `createdAt`. Index: `date`.
+Table: rate_plan
 
-## 11) Reviews
+- Purpose: Marketable offers/rules; optional room-type specificity.
+- Columns: id PK; hotelId FK->hotel; roomTypeId FK->room_type NULL; code ("BAR"); name ("Best Available Rate"); description; mealPlan ("Room Only"); minStay (1); maxStay (14); advancePurchaseDays (7); cancellationPolicyId FK->cancellation_policy NULL; isActive (1); createdAt; updatedAt.
+- Indexes: UNIQUE (hotelId,code); hotelId; roomTypeId.
 
-Table: `review` (file: `review.ts`)
+Table: room
 
-- Purpose: Optional UGC tied to hotels and optionally users/bookings.
-- Columns: `id`, `hotelId` FK->`hotel` (cascade), `userId` nullable FK->`user` (set null), `bookingId` nullable FK->`booking` (set null), `rating` 1..5 with check, `title`, `body`, `status` (pending|published|rejected), `createdAt`, `publishedAt`. Indexes: `hotelId`, `status`, `rating`.
+- Purpose: Physical room units used for allocation/front desk.
+- Columns: id PK; hotelId FK->hotel; roomTypeId FK->room_type RESTRICT; roomNumber ("1203A"); floor ("12"); description; status ("available"); isActive (1); createdAt; updatedAt.
+- Indexes: hotelId; roomTypeId; status; UNIQUE (hotelId,roomNumber).
 
-## 12) Content blocks (CMS)
+Table: room_inventory
 
-Table: `content_block` (file: `content.ts`)
+- Purpose: Date-level sellable inventory per room type.
+- Columns: roomTypeId FK->room_type; date ("2025-01-15"); availableRooms (8); overbookLimit (1); closed (0); updatedAt.
+- Constraint: PK (roomTypeId,date). Index: date.
 
-- Purpose: Simple CMS for homepage/about sections (optionally hotel-scoped).
-- Columns: `id`, `hotelId` nullable FK->`hotel` (set null), `page` TEXT, `section` TEXT, `title`, `body` (Markdown/HTML), `mediaUrl`, `sortOrder`, `isVisible` 0/1, timestamps. Indexes: `page`, `section`, `hotelId`.
+Table: room_rate
 
-## 13) Audit log
+- Purpose: Date-level prices per room type and optional rate plan.
+- Columns: roomTypeId FK->room_type; date ("2025-01-15"); ratePlanId FK->rate_plan NULL; priceCents (27900); currencyCode ("USD"); minStay (1); maxStay (14); closed (0); updatedAt.
+- Constraint: PK (roomTypeId,date,ratePlanId). Indexes: date; priceCents.
 
-Table: `audit_log` (file: `audit.ts`)
+Table: room_type
 
-- Purpose: Immutable log of admin actions or data changes.
-- Columns: `id`, `actorUserId` nullable FK->`user` (set null), `entityType` TEXT, `entityId` INT, `action` TEXT (create|update|delete|status_change), `oldValue` TEXT, `newValue` TEXT, `createdAt`. Indexes: `(entityType, entityId)`, `actorUserId`, `action`.
+- Purpose: Sellable room categories for pricing/availability/bookings.
+- Columns: id PK; hotelId FK->hotel; name ("Deluxe King Ocean View"); slug ("deluxe-king-ocean-view"); description; baseOccupancy (2); maxOccupancy (3); basePriceCents (24900); currencyCode ("USD"); sizeSqft (380); bedType ("King"); smokingAllowed (0); totalRooms (20); isActive (1); createdAt; updatedAt.
+- Indexes: hotelId; basePriceCents; isActive; UNIQUE (hotelId,slug).
 
-## Indexing strategy summary
+Table: room_type_amenity (junction)
 
-- Hotels: `hotel.name`, `hotel.city`, `hotel.countryCode`, `hotel.isActive`.
-- Rooms: `room_type.hotelId`, `room_type.basePriceCents`, `room_type.isActive`; `room.roomTypeId`, `room.status`.
-- Amenities/features: `amenity.name`, `feature.name`, `feature.isVisible`.
-- Promotions/taxes: `promo_code.isActive`, `(promo_code.startDate, promo_code.endDate)`, `tax_fee.hotelId`.
-- Bookings: `booking.hotelId`, `booking.userId`, `booking.status`, `(booking.checkInDate, booking.checkOutDate)`, `booking.totalAmountCents`.
-- Payments/refunds: `payment.bookingId`, `payment.status`, unique (`processor`, `processorPaymentId`); `refund.paymentId`, unique `refund.processorRefundId`.
-- Reviews: `review.hotelId`, `review.status`, `review.rating`.
-- Content: `content_block.page`, `content_block.section`, `content_block.hotelId`.
-- Availability/pricing: `room_inventory.date`, `room_rate.date`, `room_rate.priceCents`.
+- Purpose: Assign amenities to room types (many-to-many).
+- Columns: roomTypeId FK->room_type; amenityId FK->amenity; createdAt.
+- Constraint: PK (roomTypeId,amenityId).
 
-## File locations
+Table: room_type_image
 
-- Schema modules: `backend/drizzle/schema/*.ts`
-- Aggregator: `backend/drizzle/schema/index.ts`
-- App re-export shim: `backend/drizzle/schema.ts`
+- Purpose: Image gallery for room types.
+- Columns: id PK; roomTypeId FK->room_type; url; alt; sortOrder (1); createdAt.
+- Indexes: roomTypeId.
 
-## Migrations and local usage
+Table: tax_fee
 
-- Generate SQL from schema: `yarn --cwd backend db:generate`
-- Apply locally: `yarn --cwd backend db:migrate:apply`
-- Migration directory: `backend/drizzle/migrations` (wired in `drizzle.config.ts` and `wrangler.toml`).
+- Purpose: Hotel taxes/fees applied to bookings.
+- Columns: id PK; hotelId FK->hotel; name ("City Tax"); type ("percent"); value (10); scope ("per_night"); includedInPrice (0); isActive (1); createdAt; updatedAt.
+- Index: hotelId.
 
-## Rationale highlights
+Table: promo_code
 
-- Separation between relatively static metadata (e.g., `hotel`, `room_type`) and time-variant data (`room_inventory`, `room_rate`) keeps writes efficient and queries predictable.
-- Many-to-many maps (`hotel_feature`, `hotel_amenity`, `room_type_amenity`, `booking_promotion`) enforce uniqueness and maintain clean relationships.
-- Financial rigor through integer cents and unique processor IDs eases reconciliation and avoids rounding errors.
-- Operational safety via `isActive` flags, status columns, and FK `onDelete` policies to prevent orphaned data.
+- Purpose: Discount codes with validity and limits.
+- Columns: id PK; hotelId FK->hotel; code ("SUMMER25"); type ("percent"); value (25); startDate ("2025-06-01"); endDate ("2025-09-01"); minNights (2); minAmountCents (30000); maxDiscountCents (15000); usageLimit (1000); usageCount (12); isActive (1); createdAt; updatedAt.
+- Indexes: UNIQUE (hotelId,code); isActive; (startDate,endDate).
+
+Table: payment
+
+- Purpose: Payments made for a booking.
+- Columns: id PK; bookingId FK->booking; amountCents (78900); currencyCode ("USD"); status ("succeeded"); method ("card"); processor ("stripe"); processorPaymentId ("pi_3Nc..."); createdAt; updatedAt.
+- Indexes: bookingId; status; UNIQUE (processor,processorPaymentId).
+
+Table: refund
+
+- Purpose: Refunds linked to payments.
+- Columns: id PK; paymentId FK->payment; amountCents (10000); status ("succeeded"); processorRefundId ("re_1Qx..."); createdAt.
+- Indexes: paymentId; UNIQUE processorRefundId.
+
+Table: review
+
+- Purpose: User-generated reviews tied to hotels and optionally users/bookings.
+- Columns: id PK; hotelId FK->hotel; userId FK->user NULL; bookingId FK->booking NULL; rating (5); title ("Amazing stay!"); body ("Clean rooms..."); status ("published"); createdAt; publishedAt.
+- Indexes: hotelId; status; rating.
+
+Table: user
+
+- Purpose: Admin users (and future guests/customers) with role/status.
+- Columns: id PK; email UNIQUE ("admin@raco.dev"); passwordHash; fullName ("Ava Patel"); phone ("+44 7700 900123"); role ("admin"); status ("active"); createdAt; updatedAt.
+- Indexes: unique+index on email; checks for role/status.
+
+Table: cancellation_policy
+
+- Purpose: Reusable cancellation rules per hotel.
+- Columns: id PK; hotelId FK->hotel; name ("Flexible 24h"); description; freeCancelUntilHours (24); penaltyType ("nights"); penaltyValue (1); createdAt; updatedAt.
+- Index: hotelId.
+
+Indexing summary
+
+- Hotels: `hotel.name`, `hotel.city`, `hotel.countryCode`, `hotel.isActive`
+- Rooms: `room_type.hotelId`, `room_type.basePriceCents`, `room_type.isActive`; `room.roomTypeId`, `room.status`
+- Availability/Pricing: `room_inventory.date`, `room_rate.date`, `room_rate.priceCents`
+- Amenities/Features: `amenity.name`, `feature.name`, `feature.isVisible`
+- Promotions/Taxes: `promo_code.isActive`, `(promo_code.startDate, promo_code.endDate)`, `tax_fee.hotelId`
+- Bookings: `booking.hotelId`, `booking.userId`, `booking.status`, `(booking.checkInDate, booking.checkOutDate)`, `booking.totalAmountCents`
+- Payments/Refunds: `payment.bookingId`, `payment.status`, unique `(processor, processorPaymentId)`; `refund.paymentId`, unique `refund.processorRefundId`
+- Reviews: `review.hotelId`, `review.status`, `review.rating`
+- Content: `content_block.page`, `content_block.section`, `content_block.hotelId`

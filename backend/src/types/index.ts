@@ -85,3 +85,8 @@ export type {
   UpdateContentBlockData,
 } from "./content.interface";
 export type { DatabaseTaxFee, DatabasePromoCode } from "./tax_promo.interface";
+export type {
+  DatabaseCancellationPolicy,
+  CreateCancellationPolicyData,
+  UpdateCancellationPolicyData,
+} from "./cancellation_policy.interface";
