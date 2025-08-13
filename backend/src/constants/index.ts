@@ -31,6 +31,18 @@ export const API_TAGS = {
   USERS: "Users",
   AUTH: "Authentication",
   HOTELS: "Hotels",
+  AMENITIES: "Amenities",
+  FEATURES: "Features",
+  ROOMS: "Rooms",
+  BOOKINGS: "Bookings",
+  REVIEWS: "Reviews",
+  CONTENT: "Content",
+  TAXES: "Taxes",
+  PROMOTIONS: "Promotions",
+  PAYMENTS: "Payments",
+  NOTIFICATIONS: "Notifications",
+  SETTINGS: "Settings",
+  REPORTS: "Reports",
 } as const;
 
 // Error Codes

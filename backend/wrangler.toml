@@ -3,6 +3,13 @@ main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+# Optional: expose public URL config to runtime
+[vars]
+# Base URL for accessing public R2 objects (no trailing slash).
+# Example (custom domain): https://assets.example.com
+# Example (R2 public bucket): https://pub-xxxxxx.r2.dev
+R2_PUBLIC_BASE_URL = ""
+
 [[kv_namespaces]]
 binding = "KV"
 id = "local-kv"

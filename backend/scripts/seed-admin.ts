@@ -1,8 +1,9 @@
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { eq } from "drizzle-orm";
+import { readdirSync } from "fs";
+
 import { scrypt } from "@noble/hashes/scrypt";
 import { randomBytes } from "@noble/hashes/utils";
-import { readdirSync } from "fs";
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 
 import * as schema from "../drizzle/schema";
 import { user } from "../drizzle/schema/user";
@@ -30,34 +31,18 @@ async function seedAdminUser() {
 
     // Find the actual database file (it has a hash-based name)
     const dbDir = ".wrangler/state/v3/d1/miniflare-D1DatabaseObject/";
-
-    console.log(`📁 Checking directory: ${dbDir}`);
-
-    let files: string[] = [];
-    try {
-      files = readdirSync(dbDir);
-    } catch (error) {
-      throw new Error(
-        `Could not read database directory: ${dbDir}. Make sure to run 'yarn dev' first to initialize the database. Error: ${error}`,
-      );
-    }
-
-    console.log(`📄 Found files: ${files.join(", ")}`);
-
-    // Look for any .sqlite file (remove the exclusion condition)
-    const dbFile = files.find((f) => f.endsWith(".sqlite"));
+    const files = readdirSync(dbDir);
+    const dbFile = files.find(
+      (f) => f.endsWith(".sqlite") && f !== "local-db.sqlite",
+    );
 
     if (!dbFile) {
-      console.log("❌ Available files:", files);
       throw new Error(
-        `Could not find any .sqlite database file in ${dbDir}. Make sure to run 'yarn dev' first to initialize the database.`,
+        "Could not find database file. Make sure to run the dev server first to initialize the database.",
       );
     }
 
-    const dbPath = dbDir + dbFile;
-    console.log(`✅ Found database file: ${dbPath}`);
-
-    const sqlite = new Database(dbPath);
+    const sqlite = new Database(dbDir + dbFile);
     const db = drizzle(sqlite, { schema });
 
     console.log("🌱 Starting admin user seeding...");

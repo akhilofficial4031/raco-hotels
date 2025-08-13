@@ -6,6 +6,8 @@ export interface AppBindings {
   DB: D1Database;
   R2_BUCKET: R2Bucket;
   KV: KVNamespace;
+  // Optional vars from wrangler [vars]
+  R2_PUBLIC_BASE_URL?: string;
 }
 
 // Context variables
@@ -47,3 +49,44 @@ export type {
   PaginationParams,
   PaginatedResponse,
 } from "./user.interface";
+
+export type {
+  DatabaseHotel,
+  HotelFilters,
+  CreateHotelData,
+  UpdateHotelData,
+  DatabaseHotelImage,
+  CreateHotelImageData,
+} from "./hotel.interface";
+
+export type {
+  DatabaseAmenity,
+  CreateAmenityData,
+  UpdateAmenityData,
+} from "./amenity.interface";
+
+export type {
+  DatabaseFeature,
+  CreateFeatureData,
+  UpdateFeatureData,
+} from "./feature.interface";
+
+export type {
+  DatabaseRoomType,
+  DatabaseRoomTypeImage,
+  DatabaseRoomTypeAmenity,
+  DatabaseRoom,
+} from "./room-type.interface";
+
+export type { DatabaseReview } from "./review.interface";
+export type {
+  DatabaseContentBlock,
+  CreateContentBlockData,
+  UpdateContentBlockData,
+} from "./content.interface";
+export type { DatabaseTaxFee, DatabasePromoCode } from "./tax_promo.interface";
+export type {
+  DatabaseCancellationPolicy,
+  CreateCancellationPolicyData,
+  UpdateCancellationPolicyData,
+} from "./cancellation_policy.interface";

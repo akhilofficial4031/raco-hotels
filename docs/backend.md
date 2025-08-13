@@ -22,8 +22,12 @@ Wrangler is configured to persist local KV/R2/D1 storage (`persist = true`).
 
 - `GET /` → health check and metadata
 - `GET /env` → shows whether DB, KV, and R2 are bound
-- `GET /hotels` → list hotels (ordered desc by id)
-- `POST /hotels` → create a hotel with `{ name?: string }`
+- `GET /api/rooms/availability` → public room availability search
+- `GET /api/rooms/{id}` → public room details
+- `POST /api/booking/draft` → create draft booking (guest or logged-in)
+- `POST /api/booking/{id}/payment` → process payment (auth required; mocked)
+- `POST /api/booking/{id}/confirm` → confirm booking (auth required)
+- `POST /api/booking/convert-draft` → convert guest draft to booking (auth required)
 
 ## Adding a route
 

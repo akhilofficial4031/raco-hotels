@@ -30,6 +30,9 @@ export const hotel = sqliteTable(
     starRating: integer("star_rating"),
     checkInTime: text("check_in_time"),
     checkOutTime: text("check_out_time"),
+    // Optional JSON array with rich location-related info (nearest tourist centers, bars, restaurants, etc.)
+    // Stored as JSON text in SQLite; not intended for querying, only retrieval
+    locationInfo: text("location_info", { mode: "json" }),
     isActive: integer("is_active").notNull().default(1),
     createdAt: text("created_at")
       .notNull()
@@ -48,24 +51,5 @@ export const hotel = sqliteTable(
       "ck_hotel_star_rating",
       sql`${t.starRating} IS NULL OR (${t.starRating} >= 1 AND ${t.starRating} <= 5)`,
     ),
-  }),
-);
-
-export const hotelImage = sqliteTable(
-  "hotel_image",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    hotelId: integer("hotel_id")
-      .notNull()
-      .references(() => hotel.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    url: text("url").notNull(),
-    alt: text("alt"),
-    sortOrder: integer("sort_order").notNull().default(0),
-    createdAt: text("created_at")
-      .notNull()
-      .default(sql`CURRENT_TIMESTAMP`),
-  },
-  (t) => ({
-    hotelImageHotelIdx: index("idx_hotel_image_hotel").on(t.hotelId),
   }),
 );

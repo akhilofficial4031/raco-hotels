@@ -248,8 +248,139 @@ export class HotelResponse {
       "hotel.listRetrieved",
     );
   }
+
+  // Hotel with images responses
+  static hotelWithImagesRetrieved(c: Context, hotel: any, images: any[]) {
+    return createLocalizedResponse(
+      c,
+      { hotel: { ...hotel, images } },
+      "hotel.retrievedWithImages",
+    );
+  }
+
+  static hotelWithImagesCreated(c: Context, hotel: any, images: any[]) {
+    return createLocalizedResponse(
+      c,
+      { hotel: { ...hotel, images } },
+      "hotel.createdWithImages",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static hotelWithImagesUpdated(c: Context, hotel: any, images: any[]) {
+    return createLocalizedResponse(
+      c,
+      { hotel: { ...hotel, images } },
+      "hotel.updatedWithImages",
+    );
+  }
+
+  // Hotel image responses
+  static hotelImageAdded(c: Context, image: any) {
+    return createLocalizedResponse(
+      c,
+      { image },
+      "hotel.imageAdded",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static hotelImageUpdated(c: Context, image: any) {
+    return createLocalizedResponse(c, { image }, "hotel.imageUpdated");
+  }
+
+  static hotelImageDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "hotel.imageDeleted");
+  }
+
+  static hotelImagesRetrieved(c: Context, images: any[]) {
+    return createLocalizedResponse(c, { images }, "hotel.imagesRetrieved");
+  }
 }
 
+// Amenity-specific response helpers
+
+export class AmenityResponse {
+  static amenityNotFound(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.notFound",
+      "amenity.notFound",
+      HTTP_STATUS.NOT_FOUND,
+    );
+  }
+
+  static amenityCreated(c: Context, amenity: any) {
+    return createLocalizedResponse(
+      c,
+      { amenity },
+      "amenity.created",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static amenityUpdated(c: Context, amenity: any) {
+    return createLocalizedResponse(c, { amenity }, "amenity.updated");
+  }
+
+  static amenityDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "amenity.deleted");
+  }
+
+  static amenityRetrieved(c: Context, amenity: any) {
+    return createLocalizedResponse(c, { amenity }, "amenity.retrieved");
+  }
+
+  static amenitiesList(c: Context, amenities: any[], pagination?: any) {
+    return createLocalizedResponse(
+      c,
+      { amenities, ...(pagination && { pagination }) },
+      "amenity.listRetrieved",
+    );
+  }
+}
+
+// Feature-specific response helpers
+
+export class FeatureResponse {
+  static featureNotFound(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.notFound",
+      "feature.notFound",
+      HTTP_STATUS.NOT_FOUND,
+    );
+  }
+
+  static featureCreated(c: Context, feature: any) {
+    return createLocalizedResponse(
+      c,
+      { feature },
+      "feature.created",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static featureUpdated(c: Context, feature: any) {
+    return createLocalizedResponse(c, { feature }, "feature.updated");
+  }
+
+  static featureDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "feature.deleted");
+  }
+
+  static featureRetrieved(c: Context, feature: any) {
+    return createLocalizedResponse(c, { feature }, "feature.retrieved");
+  }
+
+  static featuresList(c: Context, features: any[], pagination?: any) {
+    return createLocalizedResponse(
+      c,
+      { features, ...(pagination && { pagination }) },
+      "feature.listRetrieved",
+    );
+  }
+}
 // Async route handler wrapper for error handling
 export async function handleAsyncRoute(
   c: Context,
