@@ -5,6 +5,8 @@ import App from "./App";
 import { RouterProvider } from "react-router";
 import router from "./routes";
 import { SidebarProvider } from "./shared/providers/SidebarProvider";
+import { fetcher } from "./utils/swrFetcher";
+import { SWRConfig } from "swr";
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
@@ -14,7 +16,9 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <React.StrictMode>
     <SidebarProvider>
-      <RouterProvider router={router} />
+      <SWRConfig value={{ fetcher }}>
+        <RouterProvider router={router} />
+      </SWRConfig>
     </SidebarProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

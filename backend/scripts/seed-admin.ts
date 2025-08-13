@@ -22,25 +22,65 @@ async function hashPassword(password: string): Promise<string> {
 
 async function seedAdminUser() {
   try {
+    console.log("🔍 Looking for database file...");
+
     // For local development, connect to the SQLite database directly
     // Dynamic import to avoid issues with better-sqlite3 types
     const { default: Database } = await import("better-sqlite3");
-    
+
     // Find the actual database file (it has a hash-based name)
     const dbDir = ".wrangler/state/v3/d1/miniflare-D1DatabaseObject/";
-    const files = readdirSync(dbDir);
-    const dbFile = files.find(f => f.endsWith('.sqlite') && f !== 'local-db.sqlite');
-    
-    if (!dbFile) {
-      throw new Error("Could not find database file. Make sure to run the dev server first to initialize the database.");
+
+    console.log(`📁 Checking directory: ${dbDir}`);
+
+    let files: string[] = [];
+    try {
+      files = readdirSync(dbDir);
+    } catch (error) {
+      throw new Error(
+        `Could not read database directory: ${dbDir}. Make sure to run 'yarn dev' first to initialize the database. Error: ${error}`,
+      );
     }
-    
-    const sqlite = new Database(dbDir + dbFile);
+
+    console.log(`📄 Found files: ${files.join(", ")}`);
+
+    // Look for any .sqlite file (remove the exclusion condition)
+    const dbFile = files.find((f) => f.endsWith(".sqlite"));
+
+    if (!dbFile) {
+      console.log("❌ Available files:", files);
+      throw new Error(
+        `Could not find any .sqlite database file in ${dbDir}. Make sure to run 'yarn dev' first to initialize the database.`,
+      );
+    }
+
+    const dbPath = dbDir + dbFile;
+    console.log(`✅ Found database file: ${dbPath}`);
+
+    const sqlite = new Database(dbPath);
     const db = drizzle(sqlite, { schema });
 
     console.log("🌱 Starting admin user seeding...");
 
+    // First, let's check if the user table exists
+    try {
+      const tableCheck = sqlite
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='user'",
+        )
+        .get();
+      if (!tableCheck) {
+        throw new Error(
+          "User table does not exist. Make sure to run database migrations first: 'yarn db:migrate:apply'",
+        );
+      }
+      console.log("✅ User table exists");
+    } catch (error) {
+      throw new Error(`Failed to check if user table exists: ${error}`);
+    }
+
     // Check if admin user already exists
+    console.log("🔍 Checking if admin user already exists...");
     const existingAdmin = await db
       .select()
       .from(user)
@@ -84,7 +124,9 @@ async function seedAdminUser() {
     console.log("   Email: admin@raco.com");
     console.log("   Password: admin123");
     console.log("");
-    console.log("🚀 You can now login using these credentials in the API or Swagger UI!");
+    console.log(
+      "🚀 You can now login using these credentials in the API or Swagger UI!",
+    );
 
     sqlite.close();
   } catch (error) {
@@ -93,9 +135,23 @@ async function seedAdminUser() {
   }
 }
 
-// Check if running directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seedAdminUser();
+// Check if running directly (improved condition)
+if (
+  import.meta.url.startsWith("file:") &&
+  process.argv[1] &&
+  import.meta.url.includes(process.argv[1].replace(/\\/g, "/"))
+) {
+  seedAdminUser().catch((error) => {
+    console.error("❌ Fatal error:", error);
+    process.exit(1);
+  });
+} else {
+  // If we can't detect if this is the main module, just run it anyway for seeding purposes
+  console.log("🚀 Running seed script...");
+  seedAdminUser().catch((error) => {
+    console.error("❌ Fatal error:", error);
+    process.exit(1);
+  });
 }
 
 export { seedAdminUser };

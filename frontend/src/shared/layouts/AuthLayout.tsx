@@ -16,7 +16,7 @@ export default function AuthLayout() {
       >
         <Sidebar />
         <Header />
-        <div className="mt-16">
+        <div className="mt-16 p-3">
           <Outlet />
         </div>
       </main>

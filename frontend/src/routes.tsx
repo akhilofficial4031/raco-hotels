@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import App from "./App";
 import { AuthLayout, UnAuthLayout } from "./shared/layouts";
-import { Login, NotFound } from "./pages";
+import { Login, NotFound, Users } from "./pages";
 
 const router = createBrowserRouter([
   {
@@ -17,9 +17,18 @@ const router = createBrowserRouter([
         Component: App,
       },
       {
+        path: "users",
+        children: [
+          {
+            index: true,
+            Component: Users,
+          },
+        ],
+      },
+      {
         path: "*",
         Component: NotFound,
-      }
+      },
     ],
   },
   {
@@ -31,7 +40,6 @@ const router = createBrowserRouter([
       },
     ],
   },
- 
 ]);
 
 export default router;
