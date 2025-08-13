@@ -1,4 +1,4 @@
-import { and, between, count, eq, inArray, sql, sum } from "drizzle-orm";
+import { and, between, count, eq, inArray, sql } from "drizzle-orm";
 
 import {
   roomInventory,

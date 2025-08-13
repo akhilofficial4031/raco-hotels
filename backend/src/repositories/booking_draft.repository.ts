@@ -1,4 +1,5 @@
-import { and, between, eq } from "drizzle-orm";
+import { and, between, eq, desc } from "drizzle-orm";
+
 import {
   bookingDraft as bookingDraftTable,
   bookingDraftItem as bookingDraftItemTable,
@@ -154,6 +155,17 @@ export class BookingDraftRepository {
       .select()
       .from(bookingDraftTable)
       .where(eq(bookingDraftTable.sessionId, sessionId))
+      .limit(1);
+    return (rows as any)[0] || null;
+  }
+
+  static async findLatestByEmail(db: D1Database, contactEmail: string) {
+    const database = getDb(db);
+    const rows = await database
+      .select()
+      .from(bookingDraftTable)
+      .where(eq(bookingDraftTable.contactEmail, contactEmail))
+      .orderBy(desc(bookingDraftTable.updatedAt))
       .limit(1);
     return (rows as any)[0] || null;
   }

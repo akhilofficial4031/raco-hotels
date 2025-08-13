@@ -121,10 +121,22 @@ export class BookingDraftService {
 
   static async convertToBooking(
     db: D1Database,
-    sessionId: string,
+    identifier: { sessionId?: string; email?: string },
     userId: number,
   ) {
-    const draft = await BookingDraftRepository.findBySession(db, sessionId);
+    let draft = null as any;
+    if (identifier.sessionId) {
+      draft = await BookingDraftRepository.findBySession(
+        db,
+        identifier.sessionId,
+      );
+    }
+    if (!draft && identifier.email) {
+      draft = await BookingDraftRepository.findLatestByEmail(
+        db,
+        identifier.email,
+      );
+    }
     if (!draft) throw new Error("draft not found");
 
     // Use booking repository to create a genuine booking and copy totals

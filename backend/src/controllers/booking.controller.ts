@@ -42,10 +42,10 @@ export class BookingController {
         if (!user || !user.userId) {
           return ApiResponse.unauthorized(c, "Authentication required");
         }
-        const { sessionId } = await c.req.json();
+        const { sessionId, email } = await c.req.json();
         const booking = await BookingDraftService.convertToBooking(
           c.env.DB,
-          sessionId,
+          { sessionId, email: email ?? user.email },
           user.userId,
         );
         return ApiResponse.success(c, {
