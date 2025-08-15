@@ -1,10 +1,11 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { PERMISSIONS } from "../config/permissions";
+import { isPublicRoute, normalizePath } from "../config/routes";
 import { UserController } from "../controllers/user.controller";
 import { UserRouteDefinitions } from "../definitions/user.definition";
-import { authMiddleware, csrfMiddleware } from "../middleware";
 import { assertPermission } from "../middleware/permissions";
+import { globalAuthMiddleware } from "../middleware/public-routes";
 
 import type { AppBindings, AppVariables } from "../types";
 
@@ -15,22 +16,19 @@ const userRoutes = new OpenAPIHono<{
 }>();
 
 // Authentication + CSRF wrapper; permissions are enforced per-route (Option C)
-userRoutes.use("*", async (c, next) => {
-  const method = c.req.method;
-  await authMiddleware(c, async () => {
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      await csrfMiddleware(c, next);
-    } else {
-      await next();
-    }
-  });
-});
+// Use globalAuthMiddleware to properly handle public routes
+userRoutes.use("*", globalAuthMiddleware());
 
 // Authentication routes moved to auth.ts
 
 // Admin-only routes with single-route permission guards (Option C)
 userRoutes.openapi(UserRouteDefinitions.getUsers, async (c) => {
-  await assertPermission(c, PERMISSIONS.USERS_READ);
+  // Check if this is a public route - if not, require permissions
+  const normalizedPath = normalizePath(c.req.path);
+  const method = c.req.method;
+  if (!isPublicRoute(normalizedPath, method)) {
+    await assertPermission(c, PERMISSIONS.USERS_READ);
+  }
   return UserController.getUsers(c as any);
 });
 userRoutes.openapi(UserRouteDefinitions.getUserById, async (c) => {

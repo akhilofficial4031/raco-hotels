@@ -1,16 +1,13 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
+import { HTTPException } from "hono/http-exception";
 
 // Import OpenAPI configuration
 import { apiInfo } from "./lib/api-info";
 import { configureOpenAPI } from "./lib/openapi-config";
 // Import routes
-import {
-  securityHeadersMiddleware,
-  rateLimitMiddleware,
-  globalAuthMiddleware,
-} from "./middleware";
+import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
 import amenityRoutes from "./routes/amenity.route";
 import authRoutes from "./routes/auth.route";
 import availabilityRoutes from "./routes/availability.route";
@@ -106,20 +103,6 @@ app.get(
     url: "/openapi.json",
     persistAuthorization: true,
     tryItOutEnabled: true,
-    customfavIcon: "",
-    customSiteTitle: "Raco Hotels API Documentation",
-    customHeadContent: `
-      <style>
-        .auth-wrapper .auth-container .auth-btn-wrapper { margin-bottom: 10px; }
-        .swagger-ui .info { margin-bottom: 20px; }
-        .swagger-ui .info .description { 
-          background: #f7f7f7; 
-          padding: 15px; 
-          border-radius: 5px; 
-          margin-top: 10px;
-        }
-      </style>
-    `,
   }),
 );
 
@@ -130,7 +113,6 @@ app.get(
     url: "/openapi.json",
     persistAuthorization: true,
     tryItOutEnabled: true,
-    customSiteTitle: "Raco Hotels API Documentation",
   }),
 );
 app.get(
@@ -139,7 +121,6 @@ app.get(
     url: "/openapi.json",
     persistAuthorization: true,
     tryItOutEnabled: true,
-    customSiteTitle: "Raco Hotels API Documentation",
   }),
 );
 
@@ -166,6 +147,12 @@ app.get("/api-info", apiInfo);
 app.onError((err, c) => {
   console.error(`[${new Date().toISOString()}] Global Error:`, err);
 
+  // If it's an HTTPException with a proper status code, preserve it
+  if (err instanceof HTTPException) {
+    return err.getResponse();
+  }
+
+  // For other errors, return 500
   const errorMessage = getLocalizedMessage(c, "system.unexpectedError");
   const errorCode = getLocalizedMessage(c, "errorCodes.internalError");
 

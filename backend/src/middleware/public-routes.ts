@@ -18,7 +18,7 @@ export function globalAuthMiddleware() {
     const method = c.req.method;
 
     // Skip authentication for public routes
-    if (isPublicRoute(normalizedPath)) {
+    if (isPublicRoute(normalizedPath, method)) {
       return next();
     }
     // Apply authentication middleware for protected routes

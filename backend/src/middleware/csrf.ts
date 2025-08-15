@@ -16,7 +16,7 @@ export const csrfMiddleware = createMiddleware(async (c, next) => {
 
   // Skip CSRF for public routes
   const normalizedPath = normalizePath(c.req.path);
-  if (isPublicRoute(normalizedPath)) {
+  if (isPublicRoute(normalizedPath, method)) {
     return next();
   }
 

@@ -1,4 +1,8 @@
-import { createAuthenticatedRoute, ApiTags } from "../lib/openapi";
+import {
+  createAuthenticatedRoute,
+  createPublicRoute,
+  ApiTags,
+} from "../lib/openapi";
 import {
   UserResponseSchema,
   UsersListResponseSchema,
@@ -12,8 +16,8 @@ import {
 } from "../schemas";
 
 export const UserRouteDefinitions = {
-  // GET /users - Get all users (Admin only)
-  getUsers: createAuthenticatedRoute({
+  // GET /users - Get all users (Public route, but POST/PUT/DELETE handled by middleware)
+  getUsers: createPublicRoute({
     method: "get",
     path: "/users",
     summary: "Get all users",

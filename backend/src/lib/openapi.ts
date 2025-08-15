@@ -151,5 +151,27 @@ export function createAuthenticatedRoute(config: BaseRouteConfig) {
   });
 }
 
+export function createConditionalRoute(config: BaseRouteConfig) {
+  const route = createPublicRoute(config);
+
+  // Add unauthorized response but no security requirement
+  // (let middleware handle authentication based on method)
+  const responses = { ...route.responses };
+  responses[HTTP_STATUS.UNAUTHORIZED] = {
+    description: "Unauthorized access",
+    content: {
+      "application/json": {
+        schema: ErrorResponseSchema,
+      },
+    },
+  };
+
+  return createRoute({
+    ...route,
+    responses,
+    // No security requirement - handled by middleware
+  });
+}
+
 // Export API tags for consistency
 export { API_TAGS as ApiTags };

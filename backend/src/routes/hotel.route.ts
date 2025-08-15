@@ -3,8 +3,9 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { PERMISSIONS } from "../config/permissions";
 import { HotelController } from "../controllers/hotel.controller";
 import { HotelRouteDefinitions } from "../definitions/hotel.definition";
-import { authMiddleware, csrfMiddleware } from "../middleware";
 import { assertPermission } from "../middleware/permissions";
+import { globalAuthMiddleware } from "../middleware/public-routes";
+import { isPublicRoute, normalizePath } from "../config/routes";
 
 import type { AppBindings, AppVariables, AppContext } from "../types";
 import type { RouteConfigToTypedResponse } from "@hono/zod-openapi";
@@ -14,19 +15,16 @@ const hotelRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-hotelRoutes.use("*", async (c, next) => {
-  const method = c.req.method;
-  await authMiddleware(c, async () => {
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      await csrfMiddleware(c, next);
-    } else {
-      await next();
-    }
-  });
-});
+// Use globalAuthMiddleware to properly handle public routes
+hotelRoutes.use("*", globalAuthMiddleware());
 
 hotelRoutes.openapi(HotelRouteDefinitions.getHotels, async (c) => {
-  await assertPermission(c, PERMISSIONS.HOTELS_READ);
+  // Check if this is a public route - if not, require permissions
+  const normalizedPath = normalizePath(c.req.path);
+  const method = c.req.method;
+  if (!isPublicRoute(normalizedPath, method)) {
+    await assertPermission(c, PERMISSIONS.HOTELS_READ);
+  }
   return HotelController.getHotels(c as AppContext);
 });
 

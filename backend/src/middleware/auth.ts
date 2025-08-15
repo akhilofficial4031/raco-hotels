@@ -4,9 +4,9 @@ import { HTTPException } from "hono/http-exception";
 
 import { verifyToken, type JWTPayload } from "../config/jwt";
 import { COOKIE_CONFIG } from "../config/jwt";
+import { isPublicRoute, normalizePath } from "../config/routes";
 import { HTTP_STATUS, ERROR_CODES } from "../constants";
 import { AuthService } from "../services/auth.service";
-import { isPublicRoute, normalizePath } from "../config/routes";
 
 // Extend the context to include user information
 declare module "hono" {
@@ -23,7 +23,8 @@ export const authMiddleware = createMiddleware(async (c, next) => {
   try {
     // Check if this is a public route - if so, skip authentication
     const normalizedPath = normalizePath(c.req.path);
-    if (isPublicRoute(normalizedPath)) {
+    const method = c.req.method;
+    if (isPublicRoute(normalizedPath, method)) {
       return next();
     }
     // Get access token from HTTP-only cookie

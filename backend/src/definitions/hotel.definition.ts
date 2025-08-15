@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createAuthenticatedRoute, ApiTags } from "../lib/openapi";
+import { createAuthenticatedRoute, createPublicRoute, ApiTags } from "../lib/openapi";
 import {
   HotelResponseSchema,
   HotelsListResponseSchema,
@@ -15,7 +15,7 @@ import {
 } from "../schemas";
 
 export const HotelRouteDefinitions = {
-  getHotels: createAuthenticatedRoute({
+  getHotels: createPublicRoute({
     method: "get",
     path: "/hotels",
     summary: "Get all hotels",
