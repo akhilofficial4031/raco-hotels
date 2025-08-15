@@ -8,8 +8,8 @@ import {
 
 // Request schemas
 const LoginRequestSchema = z.object({
-  email: z.string().email().openapi({ example: "admin@racohotels.com" }),
-  password: z.string().min(1).openapi({ example: "password123" }),
+  email: z.string().email().openapi({ example: "admin@raco.com" }),
+  password: z.string().min(1).openapi({ example: "admin123" }),
 });
 
 const ChangePasswordRequestSchema = z.object({

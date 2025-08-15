@@ -4,6 +4,7 @@ import { HTTPException } from "hono/http-exception";
 
 import { verifyCSRFToken } from "../config/jwt";
 import { COOKIE_CONFIG } from "../config/jwt";
+import { isPublicRoute, normalizePath } from "../config/routes";
 import { HTTP_STATUS, ERROR_CODES } from "../constants";
 
 /**
@@ -12,6 +13,12 @@ import { HTTP_STATUS, ERROR_CODES } from "../constants";
  */
 export const csrfMiddleware = createMiddleware(async (c, next) => {
   const method = c.req.method.toUpperCase();
+
+  // Skip CSRF for public routes
+  const normalizedPath = normalizePath(c.req.path);
+  if (isPublicRoute(normalizedPath)) {
+    return next();
+  }
 
   // Only check CSRF for state-changing methods
   if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {

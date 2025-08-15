@@ -6,7 +6,11 @@ import { cors } from "hono/cors";
 import { apiInfo } from "./lib/api-info";
 import { configureOpenAPI } from "./lib/openapi-config";
 // Import routes
-import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
+import {
+  securityHeadersMiddleware,
+  rateLimitMiddleware,
+  globalAuthMiddleware,
+} from "./middleware";
 import amenityRoutes from "./routes/amenity.route";
 import authRoutes from "./routes/auth.route";
 import availabilityRoutes from "./routes/availability.route";
