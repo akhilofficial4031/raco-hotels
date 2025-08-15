@@ -142,6 +142,10 @@ export function createAuthenticatedRoute(config: BaseRouteConfig) {
     security: [
       {
         bearerAuth: [],
+        csrfToken: [], // Add CSRF token requirement for authenticated routes
+      },
+      {
+        bypassCsrf: [], // Alternative: allow development bypass
       },
     ],
   });

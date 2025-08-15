@@ -54,6 +54,16 @@ const AuthResponseSchema = z.object({
     .optional(),
 });
 
+const CsrfTokenResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    csrfToken: z.string(),
+    note: z.string(),
+    expiresIn: z.number(),
+  }),
+});
+
 export const AuthRouteDefinitions = {
   // POST /auth/login
   login: createPublicRoute({
@@ -127,5 +137,17 @@ export const AuthRouteDefinitions = {
     description: "Verify current authentication status and get user info",
     successSchema: AuthResponseSchema,
     successDescription: "Authentication verified",
+  }),
+
+  // GET /auth/csrf-token
+  getCsrfToken: createPublicRoute({
+    method: "get",
+    path: "/auth/csrf-token",
+    tags: [ApiTags.AUTH],
+    summary: "Get CSRF token",
+    description:
+      "Get a CSRF token for API testing and development. Use this token in the X-CSRF-Token header for POST/PUT/PATCH/DELETE requests.",
+    successSchema: CsrfTokenResponseSchema,
+    successDescription: "CSRF token generated successfully",
   }),
 };

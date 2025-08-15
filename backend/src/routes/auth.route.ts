@@ -16,6 +16,10 @@ const authRoutes = new OpenAPIHono<{
 authRoutes.openapi(AuthRouteDefinitions.login, AuthController.login);
 authRoutes.openapi(AuthRouteDefinitions.logout, AuthController.logout);
 authRoutes.openapi(AuthRouteDefinitions.refresh, AuthController.refresh);
+authRoutes.openapi(
+  AuthRouteDefinitions.getCsrfToken,
+  AuthController.getCsrfToken,
+);
 
 // Apply auth middleware to protected routes
 authRoutes.use("/auth/change-password", authMiddleware);

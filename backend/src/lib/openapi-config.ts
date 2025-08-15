@@ -22,8 +22,25 @@ export const baseOpenAPIConfig: OpenAPISpec = {
   info: {
     title: "Raco Hotels API",
     version: "1.0.0",
-    description:
-      "A comprehensive hotel management API with user management, authentication, and hotel operations. Features JWT authentication with HTTP-only cookies and CSRF protection.",
+    description: `A comprehensive hotel management API with user management, authentication, and hotel operations.
+
+**🔐 Authentication & CSRF Protection**
+
+This API requires both JWT authentication and CSRF tokens for protected operations. 
+
+**Quick Start for Testing:**
+
+1. **Login**: Use POST /api/auth/login with credentials: \`admin@raco.com\` / \`admin123\`
+2. **Get CSRF Token**: Copy the \`csrfToken\` from the login response
+3. **Authorize**: Click the "Authorize" button below and enter:
+   - **csrfToken**: Paste the CSRF token here
+   - **bypassCsrf**: For development, enter \`development\` to skip CSRF
+
+**Alternative Testing Methods:**
+- Use GET /api/auth/csrf-token to get a CSRF token without logging in
+- Set header \`X-Bypass-CSRF: development\` to bypass CSRF in development mode
+
+All POST/PUT/PATCH/DELETE operations require either a valid CSRF token or the bypass header.`,
     contact: {
       name: "Raco Hotels Development Team",
       email: "dev@raco-hotels.com",
@@ -89,7 +106,15 @@ export const securitySchemes = {
     type: "apiKey" as const,
     in: "header" as const,
     name: "X-CSRF-Token",
-    description: "CSRF token for additional security",
+    description:
+      "CSRF token for additional security. Get from /api/auth/csrf-token or login response.",
+  },
+  bypassCsrf: {
+    type: "apiKey" as const,
+    in: "header" as const,
+    name: "X-Bypass-CSRF",
+    description:
+      "Development only: Set to 'development' to bypass CSRF protection (NODE_ENV != production)",
   },
 } as const;
 

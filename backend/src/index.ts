@@ -104,6 +104,22 @@ app.get(
   "/swagger-ui",
   swaggerUI({
     url: "/openapi.json",
+    persistAuthorization: true,
+    tryItOutEnabled: true,
+    customfavIcon: "",
+    customSiteTitle: "Raco Hotels API Documentation",
+    customHeadContent: `
+      <style>
+        .auth-wrapper .auth-container .auth-btn-wrapper { margin-bottom: 10px; }
+        .swagger-ui .info { margin-bottom: 20px; }
+        .swagger-ui .info .description { 
+          background: #f7f7f7; 
+          padding: 15px; 
+          border-radius: 5px; 
+          margin-top: 10px;
+        }
+      </style>
+    `,
   }),
 );
 
@@ -112,12 +128,18 @@ app.get(
   "/docs",
   swaggerUI({
     url: "/openapi.json",
+    persistAuthorization: true,
+    tryItOutEnabled: true,
+    customSiteTitle: "Raco Hotels API Documentation",
   }),
 );
 app.get(
   "/api-docs",
   swaggerUI({
     url: "/openapi.json",
+    persistAuthorization: true,
+    tryItOutEnabled: true,
+    customSiteTitle: "Raco Hotels API Documentation",
   }),
 );
 

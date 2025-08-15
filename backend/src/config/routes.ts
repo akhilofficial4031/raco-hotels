@@ -7,6 +7,7 @@ export const PUBLIC_ROUTES = [
   "/auth/login",
   "/auth/logout",
   "/auth/refresh",
+  "/auth/csrf-token",
 
   // System/health routes
   "/health",

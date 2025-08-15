@@ -14,6 +14,34 @@ import { getLocalizedMessage } from "../utils/i18n";
 import type { AppContext } from "../types";
 
 export class AuthController {
+  // GET /auth/csrf-token - Get CSRF token for development/testing
+  static async getCsrfToken(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const csrfToken = generateCSRFToken();
+
+        // Set CSRF token in cookie for validation
+        setCookie(c, COOKIE_CONFIG.CSRF_TOKEN_NAME, csrfToken, {
+          ...COOKIE_CONFIG.OPTIONS,
+          httpOnly: false, // CSRF token needs to be accessible to JavaScript
+          maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
+        });
+
+        return c.json({
+          success: true,
+          message: getLocalizedMessage(c, "auth.csrfTokenGenerated"),
+          data: {
+            csrfToken,
+            note: "Use this token in the X-CSRF-Token header for POST/PUT/PATCH/DELETE requests",
+            expiresIn: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
+          },
+        });
+      },
+      "operation.csrfTokenFailed",
+    );
+  }
+
   // POST /auth/login - Authenticate user
   static async login(c: AppContext) {
     return handleAsyncRoute(
