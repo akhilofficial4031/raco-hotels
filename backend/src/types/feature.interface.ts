@@ -1,18 +1,36 @@
-export interface DatabaseFeature {
-  id: number;
+import type { BaseEntity, BaseFilters } from "./common.interface";
+
+/**
+ * Database representation of a feature
+ */
+export interface DatabaseFeature extends BaseEntity {
   code: string;
   name: string;
   description: string | null;
   isVisible: boolean;
   sortOrder: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
-export interface CreateFeatureData extends Partial<DatabaseFeature> {
+/**
+ * Data required to create a new feature
+ */
+export interface CreateFeatureData {
+  code: string;
   name: string;
+  description?: string | null;
+  isVisible?: boolean;
+  sortOrder?: number;
 }
 
-export interface UpdateFeatureData extends Partial<DatabaseFeature> {
-  name: string;
+/**
+ * Data that can be updated for a feature
+ */
+export interface UpdateFeatureData extends Partial<CreateFeatureData> {}
+
+/**
+ * Filters for querying features
+ */
+export interface FeatureFilters extends BaseFilters {
+  code?: string;
+  isVisible?: boolean;
 }

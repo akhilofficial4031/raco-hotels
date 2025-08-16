@@ -1,34 +1,43 @@
-export interface DatabaseHotel {
-  id: number;
+import type {
+  BaseEntity,
+  AddressInfo,
+  GeoCoordinates,
+  ContactInfo,
+  BaseFilters,
+  ActiveStatusFilter,
+  DatabaseMediaReference,
+} from "./common.interface";
+
+/**
+ * Database representation of a hotel
+ */
+export interface DatabaseHotel
+  extends BaseEntity,
+    AddressInfo,
+    GeoCoordinates,
+    ContactInfo {
   name: string;
   slug: string | null;
   description: string | null;
-  email: string | null;
-  phone: string | null;
-  addressLine1: string | null;
-  addressLine2: string | null;
-  city: string | null;
-  state: string | null;
-  postalCode: string | null;
-  countryCode: string | null;
-  latitude: number | null;
-  longitude: number | null;
   timezone: string | null;
   starRating: number | null;
   checkInTime: string | null;
   checkOutTime: string | null;
-  // Optional JSON array with information about nearby locations, attractions, etc.
   locationInfo: LocationInfoSection[] | null;
   isActive: number;
-  createdAt: string;
-  updatedAt: string;
 }
 
+/**
+ * Image reference for location info sections
+ */
 export interface LocationInfoImage {
   url: string;
   alt?: string | null;
 }
 
+/**
+ * Location information section for hotel details
+ */
 export interface LocationInfoSection {
   heading: string;
   subHeading?: string | null;
@@ -37,28 +46,51 @@ export interface LocationInfoSection {
   images?: LocationInfoImage[] | null;
 }
 
-export interface HotelFilters {
+/**
+ * Filters for querying hotels
+ */
+export interface HotelFilters extends BaseFilters, ActiveStatusFilter {
   city?: string;
+  state?: string;
   countryCode?: string;
-  isActive?: number;
-  search?: string;
+  starRating?: number;
+  minStarRating?: number;
+  maxStarRating?: number;
 }
 
-export interface CreateHotelData extends Partial<DatabaseHotel> {
+/**
+ * Data required to create a new hotel
+ */
+export interface CreateHotelData
+  extends Partial<AddressInfo>,
+    Partial<GeoCoordinates>,
+    Partial<ContactInfo> {
   name: string;
+  slug?: string | null;
+  description?: string | null;
+  timezone?: string | null;
+  starRating?: number | null;
+  checkInTime?: string | null;
+  checkOutTime?: string | null;
+  locationInfo?: LocationInfoSection[] | null;
+  isActive?: number;
 }
 
-export type UpdateHotelData = Partial<DatabaseHotel>;
+/**
+ * Data that can be updated for a hotel
+ */
+export interface UpdateHotelData extends Partial<CreateHotelData> {}
 
-export interface DatabaseHotelImage {
-  id: number;
+/**
+ * Database representation of a hotel image
+ */
+export interface DatabaseHotelImage extends DatabaseMediaReference {
   hotelId: number;
-  url: string;
-  alt: string | null;
-  sortOrder: number;
-  createdAt: string;
 }
 
+/**
+ * Data required to create a new hotel image
+ */
 export interface CreateHotelImageData {
   hotelId: number;
   url: string;

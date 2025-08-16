@@ -1,15 +1,33 @@
-export interface DatabaseAmenity {
-  id: number;
+import type {
+  BaseEntity,
+  BaseFilters,
+  ActiveStatusFilter,
+} from "./common.interface";
+
+/**
+ * Database representation of an amenity
+ */
+export interface DatabaseAmenity extends BaseEntity {
   name: string;
   icon: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
-export interface CreateAmenityData extends Partial<DatabaseAmenity> {
+/**
+ * Data required to create a new amenity
+ */
+export interface CreateAmenityData {
   name: string;
+  icon: string;
 }
 
-export interface UpdateAmenityData extends Partial<DatabaseAmenity> {
-  name: string;
+/**
+ * Data that can be updated for an amenity
+ */
+export interface UpdateAmenityData extends Partial<CreateAmenityData> {}
+
+/**
+ * Filters for querying amenities
+ */
+export interface AmenityFilters extends BaseFilters, ActiveStatusFilter {
+  name?: string;
 }

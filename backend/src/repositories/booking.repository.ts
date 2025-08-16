@@ -7,19 +7,10 @@ import {
   roomRate,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
+import { type CreateBookingData } from "../types";
 
-export interface CreateDraftBookingData {
-  referenceCode: string;
-  hotelId: number;
-  userId?: number | null;
-  checkInDate: string;
-  checkOutDate: string;
-  numAdults: number;
-  numChildren: number;
-  currencyCode: string;
-}
 export class BookingRepository {
-  static async createDraft(db: D1Database, data: CreateDraftBookingData) {
+  static async createDraft(db: D1Database, data: CreateBookingData) {
     const database = getDb(db);
     const nowIso = new Date().toISOString();
     const [created] = await database

@@ -1,16 +1,17 @@
 import { and, between, eq } from "drizzle-orm";
-import { getDb } from "../db";
-import { BookingRepository } from "../repositories/booking.repository";
+
 import {
   booking as bookingTable,
   roomInventory,
   roomRate,
   taxFee as taxFeeTable,
 } from "../../drizzle/schema";
+import { getDb } from "../db";
+import { BookingRepository } from "../repositories/booking.repository";
+
 import type {
   CreateDraftBookingRequestSchema,
   ProcessPaymentRequestSchema,
-  BookingFeedbackRequestSchema,
 } from "../schemas";
 import type { z } from "zod";
 
@@ -96,11 +97,21 @@ export class BookingService {
       referenceCode: ref,
       hotelId: payload.hotelId,
       userId: userId ?? null,
+      roomTypeId: payload.roomTypeId,
       checkInDate: payload.checkInDate,
       checkOutDate: payload.checkOutDate,
       numAdults: payload.numAdults,
       numChildren: payload.numChildren,
       currencyCode: "USD",
+      // contactEmail will be added later when available
+      amounts: {
+        baseAmountCents: baseTotal,
+        taxAmountCents: taxAmount,
+        feeAmountCents: feeAmount,
+        discountAmountCents: discountAmount,
+        totalAmountCents: totalAmount,
+        balanceDueCents: totalAmount,
+      },
     });
 
     await BookingRepository.addLineItems(

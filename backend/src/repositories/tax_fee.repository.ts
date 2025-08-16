@@ -3,28 +3,13 @@ import { and, count, desc, eq, like } from "drizzle-orm";
 import { taxFee as taxFeeTable } from "../../drizzle/schema";
 import { getDb } from "../db";
 
-import type { DatabaseTaxFee } from "../types";
-
-export interface TaxFeeFilters {
-  hotelId?: number;
-  isActive?: number;
-  name?: string;
-}
-
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-}
-
-export interface CreateTaxFeeData extends Partial<DatabaseTaxFee> {
-  hotelId: number;
-  name: string;
-  type: "percent" | "fixed";
-  value: number;
-  scope: string;
-}
-
-export type UpdateTaxFeeData = Partial<CreateTaxFeeData>;
+import type {
+  DatabaseTaxFee,
+  TaxFeeFilters,
+  PaginationParams,
+  CreateTaxFeeData,
+  UpdateTaxFeeData,
+} from "../types";
 
 export class TaxFeeRepository {
   static async findAll(

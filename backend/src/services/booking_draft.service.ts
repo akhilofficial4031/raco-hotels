@@ -144,11 +144,13 @@ export class BookingDraftService {
       referenceCode: draft.referenceCode,
       hotelId: draft.hotelId,
       userId,
+      roomTypeId: draft.roomTypeId,
       checkInDate: draft.checkInDate,
       checkOutDate: draft.checkOutDate,
       numAdults: draft.numAdults,
       numChildren: draft.numChildren,
       currencyCode: draft.currencyCode,
+      amounts: draft.amounts,
     });
 
     await BookingRepository.addLineItems(

@@ -6,35 +6,10 @@ import {
   roomRate,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
-
-export interface CreateDraftData {
-  sessionId: string;
-  referenceCode: string;
-  hotelId: number;
-  roomTypeId: number;
-  ratePlanId?: number | null;
-  checkInDate: string;
-  checkOutDate: string;
-  numAdults: number;
-  numChildren: number;
-  petsCount?: number;
-  currencyCode: string;
-  promoCode?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  addOnsJson?: string;
-  amounts: {
-    baseAmountCents: number;
-    taxAmountCents: number;
-    feeAmountCents: number;
-    discountAmountCents: number;
-    totalAmountCents: number;
-    balanceDueCents: number;
-  };
-}
+import { type CreateBookingDraftData } from "../types";
 
 export class BookingDraftRepository {
-  static async upsertDraft(db: D1Database, data: CreateDraftData) {
+  static async upsertDraft(db: D1Database, data: CreateBookingDraftData) {
     const database = getDb(db);
     const nowIso = new Date().toISOString();
     // If a draft exists for session, update; else create
