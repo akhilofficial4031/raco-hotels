@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-import {
-  createRoute,
-  ApiTags,
-} from "../lib/route-wrapper";
+import { createRoute, ApiTags } from "../lib/route-wrapper";
 
 // Request schemas
 const LoginRequestSchema = z.object({
@@ -66,7 +63,7 @@ const CsrfTokenResponseSchema = z.object({
 export const AuthRouteDefinitions = {
   // All routes now use createRoute() - it automatically determines public vs authenticated
   // based on PUBLIC_ROUTES configuration in config/routes.ts
-  
+
   // POST /auth/login - Automatically determined based on PUBLIC_ROUTES
   login: createRoute({
     method: "post",

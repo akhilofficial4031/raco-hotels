@@ -10,15 +10,26 @@ import z from "zod";
  */
 const LocationInfoImageSchema = z
   .object({
-    url: z.string().url().openapi({ example: "https://cdn.example.com/img.jpg" }),
-    alt: z.string().nullable().optional().openapi({ example: "Golden Gate Bridge" }),
+    url: z
+      .string()
+      .url()
+      .openapi({ example: "https://cdn.example.com/img.jpg" }),
+    alt: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "Golden Gate Bridge" }),
   })
   .openapi("LocationInfoImage");
 
 export const LocationInfoSectionSchema = z
   .object({
     heading: z.string().openapi({ example: "Nearby Attractions" }),
-    subHeading: z.string().nullable().optional().openapi({ example: "Top picks" }),
+    subHeading: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "Top picks" }),
     bulletPoints: z
       .array(z.string())
       .nullable()
@@ -32,5 +43,3 @@ export const LocationInfoSectionSchema = z
     images: z.array(LocationInfoImageSchema).nullable().optional(),
   })
   .openapi("LocationInfoSection");
-
-

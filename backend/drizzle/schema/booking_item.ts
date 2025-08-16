@@ -8,8 +8,8 @@ import {
 } from "drizzle-orm/sqlite-core";
 
 import { booking } from "./booking";
-import { roomType } from "./room_type";
 import { ratePlan } from "./rate_plan";
+import { roomType } from "./room_type";
 
 export const bookingItem = sqliteTable(
   "booking_item",

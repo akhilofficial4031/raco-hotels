@@ -1,7 +1,4 @@
-import {
-  ApiTags,
-  createRoute,
-} from "../lib/route-wrapper";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   CreateDraftBookingRequestSchema,
   DraftBookingResponseSchema,

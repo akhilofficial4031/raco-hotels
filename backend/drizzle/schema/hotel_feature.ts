@@ -6,8 +6,8 @@ import {
   primaryKey,
 } from "drizzle-orm/sqlite-core";
 
-import { hotel } from "./hotel";
 import { feature } from "./feature";
+import { hotel } from "./hotel";
 
 export const hotelFeature = sqliteTable(
   "hotel_feature",

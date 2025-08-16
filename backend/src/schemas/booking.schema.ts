@@ -20,12 +20,9 @@ export const CreateDraftBookingRequestSchema = z
       .array(z.object({ code: z.string(), quantity: z.number().int().min(1) }))
       .optional(),
     promoCode: z.string().optional(),
-    sessionId: z
-      .string()
-      .optional()
-      .openapi({
-        description: "Opaque ID to link guest sessions across login",
-      }),
+    sessionId: z.string().optional().openapi({
+      description: "Opaque ID to link guest sessions across login",
+    }),
   })
   .openapi("CreateDraftBookingRequest");
 

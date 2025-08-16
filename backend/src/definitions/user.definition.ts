@@ -1,7 +1,4 @@
-import {
-  createRoute,
-  ApiTags,
-} from "../lib/route-wrapper";
+import { createRoute, ApiTags } from "../lib/route-wrapper";
 import {
   UserResponseSchema,
   UsersListResponseSchema,
@@ -17,7 +14,7 @@ import {
 export const UserRouteDefinitions = {
   // All routes now use createRoute() - it automatically determines public vs authenticated
   // based on PUBLIC_ROUTES configuration in config/routes.ts
-  
+
   // GET /users - Automatically determined based on PUBLIC_ROUTES
   getUsers: createRoute({
     method: "get",
