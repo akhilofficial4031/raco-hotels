@@ -53,4 +53,18 @@ bookingRoutes.openapi(
   ),
 );
 
+bookingRoutes.openapi(
+  BookingRouteDefinitions.confirmFromDraft,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
+    BookingController.confirmFromDraft(c as AppContext),
+  ),
+);
+
+bookingRoutes.openapi(
+  BookingRouteDefinitions.getPendingBookings,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_READ, (c) =>
+    BookingController.getPendingBookings(c as AppContext),
+  ),
+);
+
 export default bookingRoutes;

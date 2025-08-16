@@ -1,3 +1,4 @@
+import { BOOKING_SOURCES } from "../constants";
 import { ApiResponse, handleAsyncRoute } from "../lib/responses";
 import { BookingService } from "../services/booking.service";
 import { BookingDraftService } from "../services/booking_draft.service";
@@ -89,6 +90,83 @@ export class BookingController {
         });
       },
       "operation.confirmBookingFailed",
+    );
+  }
+
+  static async confirmFromDraft(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const payload = await c.req.json();
+
+        // Get current user context if available
+        const user = c.get("user");
+
+        // If the request doesn't specify a userId but user is authenticated,
+        // use the authenticated user's ID
+        if (!payload.userId && user?.userId) {
+          payload.userId = user.userId;
+        }
+
+        // Default source based on context if not provided
+        if (!payload.source) {
+          // If user is authenticated staff, assume front_office source
+          // Otherwise default to web
+          payload.source =
+            user?.role === "staff" || user?.role === "admin"
+              ? BOOKING_SOURCES.FRONT_OFFICE
+              : BOOKING_SOURCES.WEB;
+        }
+
+        try {
+          const confirmedBooking =
+            await BookingService.confirmBookingFromDraftWithTransaction(
+              c.env.DB,
+              payload,
+            );
+
+          return ApiResponse.success(c, {
+            booking: {
+              id: confirmedBooking.id,
+              referenceCode: confirmedBooking.referenceCode,
+              status: confirmedBooking.status,
+              checkInDate: confirmedBooking.checkInDate,
+              checkOutDate: confirmedBooking.checkOutDate,
+              totalAmountCents: confirmedBooking.totalAmountCents,
+              currencyCode: confirmedBooking.currencyCode,
+            },
+            message: "booking.confirmed",
+          });
+        } catch (error: any) {
+          // Handle specific booking errors
+          if (error.message.startsWith("booking.")) {
+            return ApiResponse.badRequest(c, error.message);
+          }
+          throw error;
+        }
+      },
+      "operation.confirmBookingFailed",
+    );
+  }
+
+  static async getPendingBookings(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        // Query parameters are already validated by the OpenAPI middleware
+        const query = c.req.valid("query");
+
+        const result = await BookingService.getPendingBookings(c.env.DB, query);
+
+        return ApiResponse.success(c, {
+          ...result,
+          message:
+            result.bookings.length > 0
+              ? "booking.pendingRetrieved"
+              : "booking.noPendingFound",
+        });
+      },
+      "operation.fetchPendingBookingsFailed",
     );
   }
 }

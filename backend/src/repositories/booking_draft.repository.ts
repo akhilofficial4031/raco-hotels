@@ -1,8 +1,10 @@
-import { and, between, eq, desc } from "drizzle-orm";
+import { and, between, eq, desc, gte, lte, asc, count, sql } from "drizzle-orm";
 
 import {
   bookingDraft as bookingDraftTable,
   bookingDraftItem as bookingDraftItemTable,
+  hotel as hotelTable,
+  roomType as roomTypeTable,
   roomRate,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
@@ -150,5 +152,144 @@ export class BookingDraftRepository {
     await database
       .delete(bookingDraftTable)
       .where(eq(bookingDraftTable.id, id));
+  }
+
+  static async findPendingBookings(
+    db: D1Database,
+    filters: {
+      hotelId?: number;
+      olderThan?: string;
+      checkInAfter?: string;
+      checkInBefore?: string;
+      page?: number;
+      limit?: number;
+      sortBy?: "created_at" | "check_in_date" | "total_amount";
+      sortOrder?: "asc" | "desc";
+    } = {},
+  ) {
+    const database = getDb(db);
+    const {
+      hotelId,
+      olderThan,
+      checkInAfter,
+      checkInBefore,
+      page = 1,
+      limit = 20,
+      sortBy = "created_at",
+      sortOrder = "desc",
+    } = filters;
+
+    const offset = (page - 1) * limit;
+
+    // Build conditions array
+    const conditions: any[] = [
+      eq(bookingDraftTable.status, "draft"), // Only draft bookings
+    ];
+
+    if (hotelId) {
+      conditions.push(eq(bookingDraftTable.hotelId, hotelId));
+    }
+
+    if (olderThan) {
+      conditions.push(lte(bookingDraftTable.createdAt, olderThan));
+    }
+
+    if (checkInAfter) {
+      conditions.push(gte(bookingDraftTable.checkInDate, checkInAfter));
+    }
+
+    if (checkInBefore) {
+      conditions.push(lte(bookingDraftTable.checkInDate, checkInBefore));
+    }
+
+    const whereClause = conditions.length ? and(...conditions) : undefined;
+
+    // Get total count for pagination
+    const totalResult = await database
+      .select({ count: count() })
+      .from(bookingDraftTable)
+      .where(whereClause);
+
+    const total = totalResult[0]?.count || 0;
+
+    // Determine sort field and order
+    let orderByClause;
+    const orderFn = sortOrder === "asc" ? asc : desc;
+
+    switch (sortBy) {
+      case "check_in_date":
+        orderByClause = orderFn(bookingDraftTable.checkInDate);
+        break;
+      case "total_amount":
+        orderByClause = orderFn(bookingDraftTable.totalAmountCents);
+        break;
+      default:
+        orderByClause = orderFn(bookingDraftTable.createdAt);
+        break;
+    }
+
+    // Get paginated results with joins
+    const results = await database
+      .select({
+        // Draft fields
+        id: bookingDraftTable.id,
+        sessionId: bookingDraftTable.sessionId,
+        referenceCode: bookingDraftTable.referenceCode,
+        hotelId: bookingDraftTable.hotelId,
+        roomTypeId: bookingDraftTable.roomTypeId,
+        checkInDate: bookingDraftTable.checkInDate,
+        checkOutDate: bookingDraftTable.checkOutDate,
+        numAdults: bookingDraftTable.numAdults,
+        numChildren: bookingDraftTable.numChildren,
+        totalAmountCents: bookingDraftTable.totalAmountCents,
+        currencyCode: bookingDraftTable.currencyCode,
+        contactEmail: bookingDraftTable.contactEmail,
+        contactPhone: bookingDraftTable.contactPhone,
+        promoCode: bookingDraftTable.promoCode,
+        createdAt: bookingDraftTable.createdAt,
+        updatedAt: bookingDraftTable.updatedAt,
+        // Hotel name
+        hotelName: hotelTable.name,
+        // Room type name
+        roomTypeName: roomTypeTable.name,
+      })
+      .from(bookingDraftTable)
+      .leftJoin(hotelTable, eq(bookingDraftTable.hotelId, hotelTable.id))
+      .leftJoin(
+        roomTypeTable,
+        eq(bookingDraftTable.roomTypeId, roomTypeTable.id),
+      )
+      .where(whereClause)
+      .orderBy(orderByClause)
+      .limit(limit)
+      .offset(offset);
+
+    // Calculate derived fields
+    const now = new Date();
+    const enrichedResults = results.map((item: any) => {
+      const createdDate = new Date(item.createdAt);
+      const daysSinceCreated = Math.floor(
+        (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
+      // Consider booking expiring soon if older than 24 hours
+      const isExpiringSoon = daysSinceCreated >= 1;
+
+      return {
+        ...item,
+        daysSinceCreated,
+        isExpiringSoon,
+      };
+    });
+
+    return {
+      items: enrichedResults,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNext: page * limit < total,
+      hasPrev: page > 1,
+    };
   }
 }

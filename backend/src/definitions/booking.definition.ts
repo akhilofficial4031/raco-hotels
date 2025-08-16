@@ -6,7 +6,11 @@ import {
   ProcessPaymentRequestSchema,
   BookingResponseSchema,
   ConfirmBookingRequestSchema,
+  ConfirmBookingFromDraftRequestSchema,
+  BookingConfirmationResponseSchema,
   BookingFeedbackRequestSchema,
+  PendingBookingsQuerySchema,
+  PendingBookingsResponseSchema,
 } from "../schemas";
 
 export const BookingRouteDefinitions = {
@@ -71,6 +75,33 @@ export const BookingRouteDefinitions = {
     tags: [ApiTags.BOOKINGS],
     successSchema: BookingResponseSchema,
     successDescription: "Draft converted",
+    includeBadRequest: true,
+  }),
+
+  confirmFromDraft: createRoute({
+    method: "post",
+    path: "/booking/confirm-from-draft",
+    summary: "Confirm booking from draft",
+    description:
+      "Confirm booking from guest session draft with full validation and inventory management",
+    tags: [ApiTags.BOOKINGS],
+    successSchema: BookingConfirmationResponseSchema,
+    successDescription: "Booking confirmed from draft",
+    requestSchema: ConfirmBookingFromDraftRequestSchema,
+    includeBadRequest: true,
+    includeNotFound: true,
+  }),
+
+  getPendingBookings: createRoute({
+    method: "get",
+    path: "/booking/pending",
+    summary: "Get pending booking drafts",
+    description:
+      "Retrieve pending booking drafts for admin follow-up and abandoned cart recovery",
+    tags: [ApiTags.BOOKINGS],
+    successSchema: PendingBookingsResponseSchema,
+    successDescription: "Pending bookings retrieved successfully",
+    querySchema: PendingBookingsQuerySchema,
     includeBadRequest: true,
   }),
 };
