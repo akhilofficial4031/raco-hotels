@@ -1,4 +1,4 @@
-import { ApiTags, createAuthenticatedRoute } from "../lib/openapi";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   RoomTypesListResponseSchema,
   RoomTypePathParamsSchema,
@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 export const RoomTypeRouteDefinitions = {
-  getRoomTypes: createAuthenticatedRoute({
+  getRoomTypes: createRoute({
     method: "get",
     path: "/room-types",
     summary: "Get all room types",
@@ -20,7 +20,7 @@ export const RoomTypeRouteDefinitions = {
     querySchema: RoomTypeQueryParamsSchema,
     includeBadRequest: true,
   }),
-  getRoomTypeById: createAuthenticatedRoute({
+  getRoomTypeById: createRoute({
     method: "get",
     path: "/room-types/{id}",
     summary: "Get room type by ID",
@@ -31,7 +31,7 @@ export const RoomTypeRouteDefinitions = {
     paramsSchema: RoomTypePathParamsSchema,
     includeNotFound: true,
   }),
-  createRoomType: createAuthenticatedRoute({
+  createRoomType: createRoute({
     method: "post",
     path: "/room-types",
     summary: "Create room type",
@@ -43,7 +43,7 @@ export const RoomTypeRouteDefinitions = {
     includeBadRequest: true,
     includeConflict: true,
   }),
-  updateRoomType: createAuthenticatedRoute({
+  updateRoomType: createRoute({
     method: "put",
     path: "/room-types/{id}",
     summary: "Update room type",
@@ -58,7 +58,7 @@ export const RoomTypeRouteDefinitions = {
     includeNotFound: true,
     includeConflict: true,
   }),
-  deleteRoomType: createAuthenticatedRoute({
+  deleteRoomType: createRoute({
     method: "delete",
     path: "/room-types/{id}",
     summary: "Delete room type",

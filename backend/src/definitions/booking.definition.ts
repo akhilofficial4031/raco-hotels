@@ -1,8 +1,7 @@
 import {
   ApiTags,
-  createAuthenticatedRoute,
-  createPublicRoute,
-} from "../lib/openapi";
+  createRoute,
+} from "../lib/route-wrapper";
 import {
   CreateDraftBookingRequestSchema,
   DraftBookingResponseSchema,
@@ -14,7 +13,7 @@ import {
 } from "../schemas";
 
 export const BookingRouteDefinitions = {
-  createDraft: createPublicRoute({
+  createDraft: createRoute({
     method: "post",
     path: "/booking/draft",
     summary: "Create draft booking",
@@ -26,7 +25,7 @@ export const BookingRouteDefinitions = {
     includeBadRequest: true,
   }),
 
-  processPayment: createAuthenticatedRoute({
+  processPayment: createRoute({
     method: "post",
     path: "/booking/{id}/payment",
     summary: "Process payment (mock)",
@@ -40,7 +39,7 @@ export const BookingRouteDefinitions = {
     includeNotFound: true,
   }),
 
-  confirm: createAuthenticatedRoute({
+  confirm: createRoute({
     method: "post",
     path: "/booking/{id}/confirm",
     summary: "Confirm booking",
@@ -53,7 +52,7 @@ export const BookingRouteDefinitions = {
     includeNotFound: true,
   }),
 
-  feedback: createAuthenticatedRoute({
+  feedback: createRoute({
     method: "post",
     path: "/booking/{id}/feedback",
     summary: "Submit feedback",
@@ -66,7 +65,7 @@ export const BookingRouteDefinitions = {
     includeNotFound: true,
   }),
 
-  convertDraft: createAuthenticatedRoute({
+  convertDraft: createRoute({
     method: "post",
     path: "/booking/convert-draft",
     summary: "Convert guest draft to booking",

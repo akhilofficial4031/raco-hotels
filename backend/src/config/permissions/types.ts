@@ -26,6 +26,41 @@ export const PERMISSIONS = {
   BOOKINGS_CREATE: "bookings.create",
   BOOKINGS_UPDATE: "bookings.update",
   BOOKINGS_DELETE: "bookings.delete",
+
+  ROOMS_READ: "rooms.read",
+  ROOMS_CREATE: "rooms.create",
+  ROOMS_UPDATE: "rooms.update",
+  ROOMS_DELETE: "rooms.delete",
+
+  ROOM_TYPES_READ: "room_types.read",
+  ROOM_TYPES_CREATE: "room_types.create",
+  ROOM_TYPES_UPDATE: "room_types.update",
+  ROOM_TYPES_DELETE: "room_types.delete",
+
+  CANCELLATION_POLICIES_READ: "cancellation_policies.read",
+  CANCELLATION_POLICIES_CREATE: "cancellation_policies.create",
+  CANCELLATION_POLICIES_UPDATE: "cancellation_policies.update",
+  CANCELLATION_POLICIES_DELETE: "cancellation_policies.delete",
+
+  AVAILABILITY_READ: "availability.read",
+  AVAILABILITY_CREATE: "availability.create",
+  AVAILABILITY_UPDATE: "availability.update",
+  AVAILABILITY_DELETE: "availability.delete",
+
+  CONTENT_READ: "content.read",
+  CONTENT_CREATE: "content.create",
+  CONTENT_UPDATE: "content.update",
+  CONTENT_DELETE: "content.delete",
+
+  PROMO_CODES_READ: "promo_codes.read",
+  PROMO_CODES_CREATE: "promo_codes.create",
+  PROMO_CODES_UPDATE: "promo_codes.update",
+  PROMO_CODES_DELETE: "promo_codes.delete",
+
+  REVIEWS_READ: "reviews.read",
+  REVIEWS_CREATE: "reviews.create",
+  REVIEWS_UPDATE: "reviews.update",
+  REVIEWS_DELETE: "reviews.delete",
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

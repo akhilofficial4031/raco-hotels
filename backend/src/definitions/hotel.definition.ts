@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { createAuthenticatedRoute, createPublicRoute, ApiTags } from "../lib/openapi";
+import { createRoute, ApiTags } from "../lib/route-wrapper";
 import {
   HotelResponseSchema,
   HotelsListResponseSchema,
@@ -15,7 +15,9 @@ import {
 } from "../schemas";
 
 export const HotelRouteDefinitions = {
-  getHotels: createPublicRoute({
+  // All routes now use createRoute() - it automatically determines public vs authenticated
+  // based on PUBLIC_ROUTES configuration in config/routes.ts
+  getHotels: createRoute({
     method: "get",
     path: "/hotels",
     summary: "Get all hotels",
@@ -28,7 +30,7 @@ export const HotelRouteDefinitions = {
     includeBadRequest: true,
   }),
 
-  getHotelById: createAuthenticatedRoute({
+  getHotelById: createRoute({
     method: "get",
     path: "/hotels/{id}",
     summary: "Get hotel by ID",
@@ -40,7 +42,7 @@ export const HotelRouteDefinitions = {
     includeNotFound: true,
   }),
 
-  createHotel: createAuthenticatedRoute({
+  createHotel: createRoute({
     method: "post",
     path: "/hotels",
     summary: "Create hotel",
@@ -53,7 +55,7 @@ export const HotelRouteDefinitions = {
     includeConflict: true,
   }),
 
-  updateHotel: createAuthenticatedRoute({
+  updateHotel: createRoute({
     method: "put",
     path: "/hotels/{id}",
     summary: "Update hotel",
@@ -68,7 +70,7 @@ export const HotelRouteDefinitions = {
     includeConflict: true,
   }),
 
-  deleteHotel: createAuthenticatedRoute({
+  deleteHotel: createRoute({
     method: "delete",
     path: "/hotels/{id}",
     summary: "Delete hotel",
@@ -81,7 +83,7 @@ export const HotelRouteDefinitions = {
   }),
 
   // Hotel with images routes
-  getHotelWithImages: createAuthenticatedRoute({
+  getHotelWithImages: createRoute({
     method: "get",
     path: "/hotels/{id}/with-images",
     summary: "Get hotel with images",
@@ -231,7 +233,7 @@ export const HotelRouteDefinitions = {
   },
 
   // Hotel image management routes
-  getHotelImages: createAuthenticatedRoute({
+  getHotelImages: createRoute({
     method: "get",
     path: "/hotels/{id}/images",
     summary: "Get hotel images",
@@ -302,7 +304,7 @@ export const HotelRouteDefinitions = {
     },
   },
 
-  deleteHotelImage: createAuthenticatedRoute({
+  deleteHotelImage: createRoute({
     method: "delete",
     path: "/hotels/images/{imageId}",
     summary: "Delete hotel image",
@@ -326,7 +328,7 @@ export const HotelRouteDefinitions = {
     includeNotFound: true,
   }),
 
-  updateImageSortOrder: createAuthenticatedRoute({
+  updateImageSortOrder: createRoute({
     method: "patch",
     path: "/hotels/images/{imageId}/sort-order",
     summary: "Update image sort order",

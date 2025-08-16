@@ -1,10 +1,9 @@
 import { z } from "zod";
 
 import {
-  createPublicRoute,
-  createAuthenticatedRoute,
+  createRoute,
   ApiTags,
-} from "../lib/openapi";
+} from "../lib/route-wrapper";
 
 // Request schemas
 const LoginRequestSchema = z.object({
@@ -65,8 +64,11 @@ const CsrfTokenResponseSchema = z.object({
 });
 
 export const AuthRouteDefinitions = {
-  // POST /auth/login
-  login: createPublicRoute({
+  // All routes now use createRoute() - it automatically determines public vs authenticated
+  // based on PUBLIC_ROUTES configuration in config/routes.ts
+  
+  // POST /auth/login - Automatically determined based on PUBLIC_ROUTES
+  login: createRoute({
     method: "post",
     path: "/auth/login",
     tags: [ApiTags.AUTH],
@@ -80,8 +82,8 @@ export const AuthRouteDefinitions = {
     includeUnauthorized: true,
   }),
 
-  // POST /auth/logout
-  logout: createPublicRoute({
+  // POST /auth/logout - Automatically determined based on PUBLIC_ROUTES
+  logout: createRoute({
     method: "post",
     path: "/auth/logout",
     tags: [ApiTags.AUTH],
@@ -91,8 +93,8 @@ export const AuthRouteDefinitions = {
     successDescription: "Logout successful",
   }),
 
-  // POST /auth/refresh
-  refresh: createPublicRoute({
+  // POST /auth/refresh - Automatically determined based on PUBLIC_ROUTES
+  refresh: createRoute({
     method: "post",
     path: "/auth/refresh",
     tags: [ApiTags.AUTH],
@@ -104,7 +106,7 @@ export const AuthRouteDefinitions = {
   }),
 
   // POST /auth/change-password
-  changePassword: createAuthenticatedRoute({
+  changePassword: createRoute({
     method: "post",
     path: "/auth/change-password",
     tags: [ApiTags.AUTH],
@@ -118,7 +120,7 @@ export const AuthRouteDefinitions = {
   }),
 
   // POST /auth/revoke-all-sessions
-  revokeAllSessions: createAuthenticatedRoute({
+  revokeAllSessions: createRoute({
     method: "post",
     path: "/auth/revoke-all-sessions",
     tags: [ApiTags.AUTH],
@@ -129,7 +131,7 @@ export const AuthRouteDefinitions = {
   }),
 
   // GET /auth/verify
-  verify: createAuthenticatedRoute({
+  verify: createRoute({
     method: "get",
     path: "/auth/verify",
     tags: [ApiTags.AUTH],
@@ -140,7 +142,7 @@ export const AuthRouteDefinitions = {
   }),
 
   // GET /auth/csrf-token
-  getCsrfToken: createPublicRoute({
+  getCsrfToken: createRoute({
     method: "get",
     path: "/auth/csrf-token",
     tags: [ApiTags.AUTH],

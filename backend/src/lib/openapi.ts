@@ -173,5 +173,18 @@ export function createConditionalRoute(config: BaseRouteConfig) {
   });
 }
 
+/**
+ * Smart route creator that automatically determines whether to create a public or authenticated route
+ * based on the PUBLIC_ROUTES configuration. This is the main function developers should use.
+ *
+ * @param config - Route configuration
+ * @returns Automatically configured route (public or authenticated)
+ */
+export function createSmartRoute(config: BaseRouteConfig) {
+  // We'll determine the route type at runtime to avoid circular dependencies
+  // The actual check happens in a separate module
+  return createConditionalRoute(config);
+}
+
 // Export API tags for consistency
 export { API_TAGS as ApiTags };

@@ -1,4 +1,4 @@
-import { ApiTags, createAuthenticatedRoute } from "../lib/openapi";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   AmenitiesListResponseSchema,
   AmenityPathParamsSchema,
@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 export const AmenityRouteDefinitions = {
-  getAmenities: createAuthenticatedRoute({
+  getAmenities: createRoute({
     method: "get",
     path: "/amenities",
     summary: "Get all amenities",
@@ -21,7 +21,7 @@ export const AmenityRouteDefinitions = {
     querySchema: AmenityQueryParamsSchema,
     includeBadRequest: true,
   }),
-  getAmenityById: createAuthenticatedRoute({
+  getAmenityById: createRoute({
     method: "get",
     path: "/amenities/{id}",
     summary: "Get amenity by ID",
@@ -32,7 +32,7 @@ export const AmenityRouteDefinitions = {
     paramsSchema: AmenityPathParamsSchema,
     includeNotFound: true,
   }),
-  createAmenity: createAuthenticatedRoute({
+  createAmenity: createRoute({
     method: "post",
     path: "/amenities",
     summary: "Create amenity",
@@ -45,7 +45,7 @@ export const AmenityRouteDefinitions = {
     includeConflict: true,
   }),
 
-  updateAmenity: createAuthenticatedRoute({
+  updateAmenity: createRoute({
     method: "put",
     path: "/amenities/{id}",
     summary: "Update amenity",
@@ -60,7 +60,7 @@ export const AmenityRouteDefinitions = {
     includeConflict: true,
   }),
 
-  deleteAmenity: createAuthenticatedRoute({
+  deleteAmenity: createRoute({
     method: "delete",
     path: "/amenities/{id}",
     summary: "Delete amenity",

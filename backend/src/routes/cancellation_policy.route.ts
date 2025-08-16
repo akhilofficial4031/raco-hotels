@@ -3,65 +3,53 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { PERMISSIONS } from "../config/permissions";
 import { CancellationPolicyController } from "../controllers/cancellation_policy.controller";
 import { CancellationPolicyRouteDefinitions } from "../definitions/cancellation_policy.definition";
-import { authMiddleware, csrfMiddleware } from "../middleware";
-import { assertPermission } from "../middleware/permissions";
+import {
+  smartAuthMiddleware,
+  smartPermissionHandler,
+} from "../middleware/smart-auth";
 
-import type { AppBindings, AppVariables } from "../types";
+import type { AppBindings, AppContext, AppVariables } from "../types";
 
 const cancellationPolicyRoutes = new OpenAPIHono<{
   Bindings: AppBindings;
   Variables: AppVariables;
 }>();
 
-cancellationPolicyRoutes.use("*", async (c, next) => {
-  const method = c.req.method;
-  await authMiddleware(c, async () => {
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      await csrfMiddleware(c, next);
-    } else {
-      await next();
-    }
-  });
-});
+cancellationPolicyRoutes.use("*", smartAuthMiddleware());
 
 cancellationPolicyRoutes.openapi(
   CancellationPolicyRouteDefinitions.getPolicies,
-  async (c) => {
-    await assertPermission(c, PERMISSIONS.HOTELS_READ);
-    return CancellationPolicyController.getPolicies(c as any);
-  },
+  smartPermissionHandler(PERMISSIONS.CANCELLATION_POLICIES_READ, (c) =>
+    CancellationPolicyController.getPolicies(c as AppContext),
+  ),
 );
 
 cancellationPolicyRoutes.openapi(
   CancellationPolicyRouteDefinitions.getPolicyById,
-  async (c) => {
-    await assertPermission(c, PERMISSIONS.HOTELS_READ);
-    return CancellationPolicyController.getPolicyById(c as any);
-  },
+  smartPermissionHandler(PERMISSIONS.CANCELLATION_POLICIES_READ, (c) =>
+    CancellationPolicyController.getPolicyById(c as AppContext),
+  ),
 );
 
 cancellationPolicyRoutes.openapi(
   CancellationPolicyRouteDefinitions.createPolicy,
-  async (c) => {
-    await assertPermission(c, PERMISSIONS.HOTELS_CREATE);
-    return CancellationPolicyController.createPolicy(c as any);
-  },
+  smartPermissionHandler(PERMISSIONS.CANCELLATION_POLICIES_CREATE, (c) =>
+    CancellationPolicyController.createPolicy(c as AppContext),
+  ),
 );
 
 cancellationPolicyRoutes.openapi(
   CancellationPolicyRouteDefinitions.updatePolicy,
-  async (c) => {
-    await assertPermission(c, PERMISSIONS.HOTELS_UPDATE);
-    return CancellationPolicyController.updatePolicy(c as any);
-  },
+  smartPermissionHandler(PERMISSIONS.CANCELLATION_POLICIES_UPDATE, (c) =>
+    CancellationPolicyController.updatePolicy(c as AppContext),
+  ),
 );
 
 cancellationPolicyRoutes.openapi(
   CancellationPolicyRouteDefinitions.deletePolicy,
-  async (c) => {
-    await assertPermission(c, PERMISSIONS.HOTELS_DELETE);
-    return CancellationPolicyController.deletePolicy(c as any);
-  },
+  smartPermissionHandler(PERMISSIONS.CANCELLATION_POLICIES_DELETE, (c) =>
+    CancellationPolicyController.deletePolicy(c as AppContext),
+  ),
 );
 
 export default cancellationPolicyRoutes;

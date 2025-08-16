@@ -1,4 +1,4 @@
-import { ApiTags, createAuthenticatedRoute } from "../lib/openapi";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   CancellationPoliciesListResponseSchema,
   CancellationPolicyPathParamsSchema,
@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 export const CancellationPolicyRouteDefinitions = {
-  getPolicies: createAuthenticatedRoute({
+  getPolicies: createRoute({
     method: "get",
     path: "/cancellation-policies",
     summary: "Get cancellation policies",
@@ -21,7 +21,7 @@ export const CancellationPolicyRouteDefinitions = {
     querySchema: CancellationPolicyQueryParamsSchema,
     includeBadRequest: true,
   }),
-  getPolicyById: createAuthenticatedRoute({
+  getPolicyById: createRoute({
     method: "get",
     path: "/cancellation-policies/{id}",
     summary: "Get cancellation policy by ID",
@@ -32,7 +32,7 @@ export const CancellationPolicyRouteDefinitions = {
     paramsSchema: CancellationPolicyPathParamsSchema,
     includeNotFound: true,
   }),
-  createPolicy: createAuthenticatedRoute({
+  createPolicy: createRoute({
     method: "post",
     path: "/cancellation-policies",
     summary: "Create cancellation policy",
@@ -43,7 +43,7 @@ export const CancellationPolicyRouteDefinitions = {
     requestSchema: CreateCancellationPolicyRequestSchema,
     includeBadRequest: true,
   }),
-  updatePolicy: createAuthenticatedRoute({
+  updatePolicy: createRoute({
     method: "put",
     path: "/cancellation-policies/{id}",
     summary: "Update cancellation policy",
@@ -56,7 +56,7 @@ export const CancellationPolicyRouteDefinitions = {
     includeBadRequest: true,
     includeNotFound: true,
   }),
-  deletePolicy: createAuthenticatedRoute({
+  deletePolicy: createRoute({
     method: "delete",
     path: "/cancellation-policies/{id}",
     summary: "Delete cancellation policy",

@@ -1,4 +1,4 @@
-import { ApiTags, createAuthenticatedRoute } from "../lib/openapi";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   ReviewsListResponseSchema,
   ReviewPathParamsSchema,
@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 export const ReviewRouteDefinitions = {
-  getReviews: createAuthenticatedRoute({
+  getReviews: createRoute({
     method: "get",
     path: "/reviews",
     summary: "Get all reviews",
@@ -20,7 +20,7 @@ export const ReviewRouteDefinitions = {
     querySchema: ReviewQueryParamsSchema,
     includeBadRequest: true,
   }),
-  getReviewById: createAuthenticatedRoute({
+  getReviewById: createRoute({
     method: "get",
     path: "/reviews/{id}",
     summary: "Get review by ID",
@@ -31,7 +31,7 @@ export const ReviewRouteDefinitions = {
     paramsSchema: ReviewPathParamsSchema,
     includeNotFound: true,
   }),
-  createReview: createAuthenticatedRoute({
+  createReview: createRoute({
     method: "post",
     path: "/reviews",
     summary: "Create review",
@@ -42,7 +42,7 @@ export const ReviewRouteDefinitions = {
     requestSchema: CreateReviewRequestSchema,
     includeBadRequest: true,
   }),
-  updateReview: createAuthenticatedRoute({
+  updateReview: createRoute({
     method: "put",
     path: "/reviews/{id}",
     summary: "Update review",
@@ -55,7 +55,7 @@ export const ReviewRouteDefinitions = {
     includeBadRequest: true,
     includeNotFound: true,
   }),
-  deleteReview: createAuthenticatedRoute({
+  deleteReview: createRoute({
     method: "delete",
     path: "/reviews/{id}",
     summary: "Delete review",
