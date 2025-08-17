@@ -70,7 +70,10 @@ export class HotelController {
           // Extract image files
           const imageFiles: File[] = [];
           for (const [key, value] of formData.entries()) {
-            if (key.startsWith("images[") && value instanceof File) {
+            if (
+              (key.startsWith("images[") || key === "images") &&
+              value instanceof File
+            ) {
               imageFiles.push(value);
             }
           }
@@ -144,7 +147,10 @@ export class HotelController {
           // Extract image files
           const imageFiles: File[] = [];
           for (const [key, value] of formData.entries()) {
-            if (key.startsWith("images[") && value instanceof File) {
+            if (
+              (key.startsWith("images[") || key === "images") &&
+              value instanceof File
+            ) {
               imageFiles.push(value);
             }
           }

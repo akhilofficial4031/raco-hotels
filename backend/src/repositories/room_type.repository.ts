@@ -186,6 +186,42 @@ export class RoomTypeRepository {
     return rows.length > 0;
   }
 
+  static async findImageById(
+    db: D1Database,
+    imageId: number,
+  ): Promise<DatabaseRoomTypeImage | null> {
+    const database = getDb(db);
+    const rows = await database
+      .select()
+      .from(roomTypeImageTable)
+      .where(eq(roomTypeImageTable.id, imageId))
+      .limit(1);
+    return (rows[0] as any) || null;
+  }
+
+  static async deleteImage(db: D1Database, imageId: number): Promise<boolean> {
+    const database = getDb(db);
+    const rows = await database
+      .delete(roomTypeImageTable)
+      .where(eq(roomTypeImageTable.id, imageId))
+      .returning();
+    return rows.length > 0;
+  }
+
+  static async updateImageSortOrder(
+    db: D1Database,
+    imageId: number,
+    sortOrder: number,
+  ): Promise<DatabaseRoomTypeImage | null> {
+    const database = getDb(db);
+    const rows = await database
+      .update(roomTypeImageTable)
+      .set({ sortOrder })
+      .where(eq(roomTypeImageTable.id, imageId))
+      .returning();
+    return (rows[0] as any) || null;
+  }
+
   // Amenities
   static async setAmenities(
     db: D1Database,

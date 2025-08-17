@@ -54,13 +54,24 @@ export const HotelRouteDefinitions = {
             schema: CreateHotelRequestSchema,
           },
           "multipart/form-data": {
-            schema: z.object({
-              hotelData: z.string().describe("Hotel data as JSON string"),
-              "images[]": z
-                .array(z.any())
-                .optional()
-                .describe("Hotel image files (JPEG, PNG, WebP)"),
-            }),
+            schema: {
+              type: "object",
+              properties: {
+                hotelData: {
+                  type: "string",
+                  description: "Hotel data as JSON string",
+                },
+                images: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                    format: "binary",
+                  },
+                  description: "Hotel image files (JPEG, PNG, WebP)",
+                },
+              },
+              required: ["hotelData"],
+            },
           },
         },
       },
@@ -120,21 +131,30 @@ export const HotelRouteDefinitions = {
             schema: UpdateHotelRequestSchema,
           },
           "multipart/form-data": {
-            schema: z.object({
-              hotelData: z
-                .string()
-                .describe("Updated hotel data as JSON string"),
-              replaceImages: z
-                .string()
-                .optional()
-                .describe(
-                  "Whether to replace all existing images (true/false)",
-                ),
-              "images[]": z
-                .array(z.any())
-                .optional()
-                .describe("New hotel image files"),
-            }),
+            schema: {
+              type: "object",
+              properties: {
+                hotelData: {
+                  type: "string",
+                  description: "Updated hotel data as JSON string",
+                },
+                replaceImages: {
+                  type: "string",
+                  enum: ["true", "false"],
+                  description:
+                    "Whether to replace all existing images (true/false)",
+                },
+                images: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                    format: "binary",
+                  },
+                  description: "New hotel image files",
+                },
+              },
+              required: ["hotelData"],
+            },
           },
         },
       },

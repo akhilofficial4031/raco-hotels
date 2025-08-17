@@ -52,4 +52,26 @@ roomTypeRoutes.openapi(
   ),
 );
 
+// Image management routes
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.uploadRoomTypeImages,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_UPDATE, (c) =>
+    RoomTypeController.uploadRoomTypeImages(c as AppContext),
+  ),
+);
+
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.deleteRoomTypeImage,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_DELETE, (c) =>
+    RoomTypeController.deleteRoomTypeImage(c as AppContext),
+  ),
+);
+
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.updateRoomTypeImageSortOrder,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_UPDATE, (c) =>
+    RoomTypeController.updateRoomTypeImageSortOrder(c as AppContext),
+  ),
+);
+
 export default roomTypeRoutes;

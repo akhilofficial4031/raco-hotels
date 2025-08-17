@@ -28,19 +28,26 @@ export const baseOpenAPIConfig: OpenAPISpec = {
 
 This API requires both JWT authentication and CSRF tokens for protected operations. 
 
-**Quick Start for Testing:**
+**🚀 Quick Start for Testing in Swagger:**
 
+**Method 1 - CSRF Bypass (Recommended for Testing):**
+1. Click the "Authorize" button below
+2. In the **bypassCsrf** field, enter: \`development\`
+3. In the **bearerAuth** field, login first with POST /api/auth/login (\`admin@raco.com\` / \`admin123\`)
+4. Copy the \`accessToken\` from login response and paste it in bearerAuth field
+
+**Method 2 - Full CSRF Protection:**
 1. **Login**: Use POST /api/auth/login with credentials: \`admin@raco.com\` / \`admin123\`
-2. **Get CSRF Token**: Copy the \`csrfToken\` from the login response
-3. **Authorize**: Click the "Authorize" button below and enter:
+2. **Get Tokens**: Copy both \`accessToken\` and \`csrfToken\` from the login response
+3. **Authorize**: Click the "Authorize" button and enter:
+   - **bearerAuth**: Paste the access token (with "Bearer " prefix if required)
    - **csrfToken**: Paste the CSRF token here
-   - **bypassCsrf**: For development, enter \`development\` to skip CSRF
 
 **Alternative Testing Methods:**
 - Use GET /api/auth/csrf-token to get a CSRF token without logging in
-- Set header \`X-Bypass-CSRF: development\` to bypass CSRF in development mode
+- For command line testing: Add header \`X-Bypass-CSRF: development\`
 
-All POST/PUT/PATCH/DELETE operations require either a valid CSRF token or the bypass header.`,
+⚠️ All POST/PUT/PATCH/DELETE operations require authentication + either CSRF token OR bypass header.`,
     contact: {
       name: "Raco Hotels Development Team",
       email: "dev@raco-hotels.com",
@@ -122,27 +129,29 @@ export const securitySchemes = {
     type: "http" as const,
     scheme: "bearer" as const,
     bearerFormat: "JWT",
-    description: "JWT access token from login response or browser cookies",
+    description:
+      "JWT access token from login response or browser cookies. Get this from POST /api/auth/login response.",
   },
   cookieAuth: {
     type: "apiKey" as const,
     in: "cookie" as const,
     name: "access_token",
-    description: "JWT access token stored in HTTP-only cookie",
+    description:
+      "JWT access token stored in HTTP-only cookie (automatically set after login)",
   },
   csrfToken: {
     type: "apiKey" as const,
     in: "header" as const,
     name: "X-CSRF-Token",
     description:
-      "CSRF token for additional security. Get from /api/auth/csrf-token or login response.",
+      "🔒 REQUIRED: CSRF token for POST/PUT/PATCH/DELETE operations. Get from /api/auth/csrf-token or login response 'csrfToken' field.",
   },
   bypassCsrf: {
     type: "apiKey" as const,
     in: "header" as const,
     name: "X-Bypass-CSRF",
     description:
-      "Development only: Set to 'development' to bypass CSRF protection (NODE_ENV != production)",
+      "🔧 DEV ONLY: Set to 'development' to bypass CSRF protection. Use this for testing instead of CSRF token.",
   },
 } as const;
 
@@ -156,17 +165,39 @@ export function createEnhancedOpenAPIHandler(
     c: Context<{ Bindings: AppBindings; Variables: AppVariables }>,
   ) => {
     try {
-      // Get the base OpenAPI spec from the framework
-      const baseResponse = await app.request("/openapi-base.json");
-      const baseSpec = (await baseResponse.json()) as OpenAPISpec;
+      // Get the generated OpenAPI spec from the framework
+      const generatedSpec = app.getOpenAPIDocument(baseOpenAPIConfig as any);
 
       // Enhance with security schemes and other custom configurations
       const enhancedSpec = {
-        ...baseSpec,
+        ...generatedSpec,
+        openapi: baseOpenAPIConfig.openapi, // Ensure openapi version is set
+        info: baseOpenAPIConfig.info,
+        servers: baseOpenAPIConfig.servers,
+        tags: baseOpenAPIConfig.tags,
         components: {
-          ...baseSpec.components,
+          ...generatedSpec.components,
           securitySchemes,
         },
+        // Set global security requirements that apply to most endpoints
+        security: [
+          {
+            bearerAuth: [],
+            csrfToken: [],
+          },
+          {
+            cookieAuth: [],
+            csrfToken: [],
+          },
+          {
+            bearerAuth: [],
+            bypassCsrf: [],
+          },
+          {
+            cookieAuth: [],
+            bypassCsrf: [],
+          },
+        ],
       };
 
       return c.json(enhancedSpec);
@@ -183,7 +214,7 @@ export function createEnhancedOpenAPIHandler(
 export function configureOpenAPI(
   app: OpenAPIHono<{ Bindings: AppBindings; Variables: AppVariables }>,
 ) {
-  // Basic OpenAPI documentation endpoint
+  // Basic OpenAPI documentation endpoint (with proper config)
   app.doc("/openapi-base.json", baseOpenAPIConfig as any);
 
   // Enhanced OpenAPI endpoint with security schemes
