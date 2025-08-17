@@ -8,6 +8,7 @@ import {
   HotelPathParamsSchema,
   HotelQueryParamsSchema,
   HotelWithImagesResponseSchema,
+  HotelWithAllRelationsResponseSchema,
   HotelImageResponseSchema,
   UpdateImageSortOrderSchema,
 } from "../schemas";
@@ -16,12 +17,12 @@ export const HotelRouteDefinitions = {
   getHotels: createRoute({
     method: "get",
     path: "/hotels",
-    summary: "Get all hotels with images",
+    summary: "Get all hotels with all relations",
     description:
-      "Retrieve a paginated list of hotels with optional filters including city, country, active status, and text search. Each hotel includes its associated images sorted by display order. Supports advanced filtering for location-based searches and hotel discovery. Query parameters: page (pagination), limit (results per page), city, countryCode (ISO codes like US, CA), isActive (1/0), and search (text across name/description/address). Use cases include booking websites, admin panels, mobile apps, and public hotel discovery APIs.",
+      "Retrieve a paginated list of hotels with optional filters including city, country, active status, and text search. Each hotel includes its associated images sorted by display order, all connected features, and all amenities. Supports advanced filtering for location-based searches and hotel discovery. Query parameters: page (pagination), limit (results per page), city, countryCode (ISO codes like US, CA), isActive (1/0), and search (text across name/description/address). Use cases include booking websites, admin panels, mobile apps, and public hotel discovery APIs.",
     tags: [ApiTags.HOTELS],
     successSchema: HotelsListResponseSchema,
-    successDescription: "Hotels with images retrieved successfully",
+    successDescription: "Hotels with all relations retrieved successfully",
     querySchema: HotelQueryParamsSchema,
     includeBadRequest: true,
   }),
@@ -29,12 +30,12 @@ export const HotelRouteDefinitions = {
   getHotelById: createRoute({
     method: "get",
     path: "/hotels/{id}",
-    summary: "Get hotel by ID with images",
+    summary: "Get hotel by ID with all relations",
     description:
-      "Retrieve detailed information about a specific hotel including all associated images, amenities, location data, and metadata. Returns comprehensive hotel data suitable for booking interfaces and hotel management systems. Response includes complete property details, location information, all hotel images with metadata (URLs, alt text, sort order), and location-specific information about nearby attractions. Perfect for hotel detail pages, mobile app details, admin views, and third-party booking system integrations.",
+      "Retrieve detailed information about a specific hotel including all associated images, features, amenities, location data, and metadata. Returns comprehensive hotel data suitable for booking interfaces and hotel management systems. Response includes complete property details, location information, all hotel images with metadata (URLs, alt text, sort order), all associated features, all amenities, and location-specific information about nearby attractions. Perfect for hotel detail pages, mobile app details, admin views, and third-party booking system integrations.",
     tags: [ApiTags.HOTELS],
-    successSchema: HotelWithImagesResponseSchema,
-    successDescription: "Hotel with images retrieved successfully",
+    successSchema: HotelWithAllRelationsResponseSchema,
+    successDescription: "Hotel with all relations retrieved successfully",
     paramsSchema: HotelPathParamsSchema,
     includeNotFound: true,
   }),

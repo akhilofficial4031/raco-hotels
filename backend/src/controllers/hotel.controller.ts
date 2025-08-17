@@ -33,13 +33,12 @@ export class HotelController {
       c,
       async () => {
         const id = parseInt(c.req.param("id"), 10);
-        const result = await HotelService.getHotelWithImages(c.env.DB, id);
-        if (!result) return HotelResponse.hotelNotFound(c);
-        return HotelResponse.hotelWithImagesRetrieved(
-          c,
-          result.hotel,
-          result.images,
+        const result = await HotelService.getHotelWithAllRelations(
+          c.env.DB,
+          id,
         );
+        if (!result) return HotelResponse.hotelNotFound(c);
+        return HotelResponse.hotelWithAllRelationsRetrieved(c, result);
       },
       "operation.fetchHotelFailed",
     );

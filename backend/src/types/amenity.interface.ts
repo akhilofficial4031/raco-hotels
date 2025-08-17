@@ -8,6 +8,7 @@ import type {
  * Database representation of an amenity
  */
 export interface DatabaseAmenity extends BaseEntity {
+  code: string;
   name: string;
   icon: string;
 }
@@ -16,6 +17,7 @@ export interface DatabaseAmenity extends BaseEntity {
  * Data required to create a new amenity
  */
 export interface CreateAmenityData {
+  code: string;
   name: string;
   icon: string;
 }

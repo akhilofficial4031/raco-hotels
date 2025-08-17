@@ -7,6 +7,8 @@ import type {
   ActiveStatusFilter,
   DatabaseMediaReference,
 } from "./common.interface";
+import type { DatabaseFeature } from "./feature.interface";
+import type { DatabaseAmenity } from "./amenity.interface";
 
 /**
  * Database representation of a hotel
@@ -96,4 +98,13 @@ export interface CreateHotelImageData {
   url: string;
   alt?: string | null;
   sortOrder?: number;
+}
+
+/**
+ * Extended hotel with all related data for detailed views
+ */
+export interface DatabaseHotelWithRelations extends DatabaseHotel {
+  images: DatabaseHotelImage[];
+  features: DatabaseFeature[];
+  amenities: DatabaseAmenity[];
 }
