@@ -62,28 +62,56 @@ All POST/PUT/PATCH/DELETE operations require either a valid CSRF token or the by
   ] as object[],
   tags: [
     {
-      name: "System",
-      description: "System health and API information endpoints",
-    },
-    {
-      name: "Users",
-      description: "User management operations",
-    },
-    {
       name: "Authentication",
       description: "Authentication and authorization operations",
-    },
-    {
-      name: "Hotels",
-      description: "Hotel management operations",
     },
     {
       name: "Amenities",
       description: "Amenity management operations",
     },
     {
+      name: "Bookings",
+      description: "Hotel booking and reservation management",
+    },
+    {
+      name: "Content",
+      description: "Content management operations",
+    },
+    {
       name: "Features",
       description: "Feature management operations",
+    },
+    {
+      name: "Hotels",
+      description: "Hotel management operations",
+    },
+    {
+      name: "Policies",
+      description: "Cancellation policy management operations",
+    },
+    {
+      name: "Promotions",
+      description: "Promotional codes and discount management",
+    },
+    {
+      name: "Reviews",
+      description: "Hotel and booking review management",
+    },
+    {
+      name: "Rooms",
+      description: "Room type and availability management",
+    },
+    {
+      name: "System",
+      description: "System health and API information endpoints",
+    },
+    {
+      name: "Taxes",
+      description: "Tax and fee management operations",
+    },
+    {
+      name: "Users",
+      description: "User management operations",
     },
   ] as object[],
 } as const;

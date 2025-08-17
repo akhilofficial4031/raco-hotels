@@ -1,3 +1,4 @@
+import { RoomRepository } from "../repositories/room.repository";
 import { RoomTypeRepository } from "../repositories/room_type.repository";
 
 import type {
@@ -45,7 +46,8 @@ export class RoomTypeService {
       created.id,
     );
     const amenities = await RoomTypeRepository.getAmenities(db, created.id);
-    return { ...created, images, amenities } as any;
+    const rooms = await RoomRepository.findByRoomTypeId(db, created.id);
+    return { ...created, images, amenities, rooms } as any;
   }
 
   static async updateRoomType(
@@ -93,7 +95,8 @@ export class RoomTypeService {
 
     const images = await RoomTypeRepository.findImagesByRoomTypeId(db, id);
     const amenities = await RoomTypeRepository.getAmenities(db, id);
-    return { ...updated, images, amenities } as any;
+    const rooms = await RoomRepository.findByRoomTypeId(db, id);
+    return { ...updated, images, amenities, rooms } as any;
   }
 
   static async getRoomTypeById(db: D1Database, id: number) {
@@ -101,7 +104,8 @@ export class RoomTypeService {
     if (!rt) return null;
     const images = await RoomTypeRepository.findImagesByRoomTypeId(db, id);
     const amenities = await RoomTypeRepository.getAmenities(db, id);
-    return { ...rt, images, amenities } as any;
+    const rooms = await RoomRepository.findByRoomTypeId(db, id);
+    return { ...rt, images, amenities, rooms } as any;
   }
 
   static async getRoomTypes(
@@ -118,9 +122,22 @@ export class RoomTypeService {
       },
       { page, limit },
     );
+
+    // Fetch all related data for each room type
+    const roomTypesWithRelations = await Promise.all(
+      roomTypes.map(async (roomType) => {
+        const [images, amenities, rooms] = await Promise.all([
+          RoomTypeRepository.findImagesByRoomTypeId(db, roomType.id),
+          RoomTypeRepository.getAmenities(db, roomType.id),
+          RoomRepository.findByRoomTypeId(db, roomType.id),
+        ]);
+        return { ...roomType, images, amenities, rooms };
+      }),
+    );
+
     const totalPages = Math.ceil(total / limit);
     return {
-      items: roomTypes,
+      items: roomTypesWithRelations,
       pagination: { page, limit, total, totalPages },
     };
   }

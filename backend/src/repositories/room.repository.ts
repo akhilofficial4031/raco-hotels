@@ -131,4 +131,17 @@ export class RoomRepository {
       .returning();
     return rows.length > 0;
   }
+
+  static async findByRoomTypeId(
+    db: D1Database,
+    roomTypeId: number,
+  ): Promise<DatabaseRoom[]> {
+    const database = getDb(db);
+    const rows = await database
+      .select()
+      .from(roomTable)
+      .where(eq(roomTable.roomTypeId, roomTypeId))
+      .orderBy(roomTable.roomNumber);
+    return rows as any;
+  }
 }

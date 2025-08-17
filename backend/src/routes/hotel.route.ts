@@ -36,15 +36,27 @@ hotelRoutes.openapi(
 
 hotelRoutes.openapi(
   HotelRouteDefinitions.createHotel,
-  smartPermissionHandler(PERMISSIONS.HOTELS_CREATE, (c) =>
-    HotelController.createHotel(c as AppContext),
+  smartPermissionHandler(
+    PERMISSIONS.HOTELS_CREATE,
+    async (c) =>
+      (await HotelController.createHotel(
+        c as AppContext,
+      )) as unknown as RouteConfigToTypedResponse<
+        typeof HotelRouteDefinitions.createHotel
+      >,
   ),
 );
 
 hotelRoutes.openapi(
   HotelRouteDefinitions.updateHotel,
-  smartPermissionHandler(PERMISSIONS.HOTELS_UPDATE, (c) =>
-    HotelController.updateHotel(c as AppContext),
+  smartPermissionHandler(
+    PERMISSIONS.HOTELS_UPDATE,
+    async (c) =>
+      (await HotelController.updateHotel(
+        c as AppContext,
+      )) as unknown as RouteConfigToTypedResponse<
+        typeof HotelRouteDefinitions.updateHotel
+      >,
   ),
 );
 
@@ -55,60 +67,7 @@ hotelRoutes.openapi(
   ),
 );
 
-// Hotel with images routes
-hotelRoutes.openapi(
-  HotelRouteDefinitions.getHotelWithImages,
-  smartPermissionHandler(PERMISSIONS.HOTELS_READ, (c) =>
-    HotelController.getHotelWithImages(c as AppContext),
-  ),
-);
-
-hotelRoutes.openapi(
-  HotelRouteDefinitions.createHotelWithImages,
-  smartPermissionHandler(
-    PERMISSIONS.HOTELS_CREATE,
-    async (c) =>
-      (await HotelController.createHotelWithImages(
-        c as AppContext,
-      )) as unknown as RouteConfigToTypedResponse<
-        typeof HotelRouteDefinitions.createHotelWithImages
-      >,
-  ),
-);
-
-hotelRoutes.openapi(
-  HotelRouteDefinitions.updateHotelWithImages,
-  smartPermissionHandler(
-    PERMISSIONS.HOTELS_UPDATE,
-    async (c) =>
-      (await HotelController.updateHotelWithImages(
-        c as AppContext,
-      )) as unknown as RouteConfigToTypedResponse<
-        typeof HotelRouteDefinitions.updateHotelWithImages
-      >,
-  ),
-);
-
-// Hotel image management routes
-hotelRoutes.openapi(
-  HotelRouteDefinitions.getHotelImages,
-  smartPermissionHandler(PERMISSIONS.HOTELS_READ, (c) =>
-    HotelController.getHotelImages(c as AppContext),
-  ),
-);
-
-hotelRoutes.openapi(
-  HotelRouteDefinitions.addHotelImage,
-  smartPermissionHandler(
-    PERMISSIONS.HOTELS_UPDATE,
-    async (c) =>
-      (await HotelController.addHotelImage(
-        c as AppContext,
-      )) as unknown as RouteConfigToTypedResponse<
-        typeof HotelRouteDefinitions.addHotelImage
-      >,
-  ),
-);
+// Individual image management routes (for advanced operations)
 
 hotelRoutes.openapi(
   HotelRouteDefinitions.deleteHotelImage,

@@ -31,6 +31,7 @@ export const API_TAGS = {
   USERS: "Users",
   AUTH: "Authentication",
   HOTELS: "Hotels",
+  POLICIES: "Policies",
   AMENITIES: "Amenities",
   FEATURES: "Features",
   ROOMS: "Rooms",

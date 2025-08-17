@@ -33,9 +33,13 @@ export class HotelController {
       c,
       async () => {
         const id = parseInt(c.req.param("id"), 10);
-        const item = await HotelService.getHotelById(c.env.DB, id);
-        if (!item) return HotelResponse.hotelNotFound(c);
-        return HotelResponse.hotelRetrieved(c, item);
+        const result = await HotelService.getHotelWithImages(c.env.DB, id);
+        if (!result) return HotelResponse.hotelNotFound(c);
+        return HotelResponse.hotelWithImagesRetrieved(
+          c,
+          result.hotel,
+          result.images,
+        );
       },
       "operation.fetchHotelFailed",
     );
@@ -45,86 +49,10 @@ export class HotelController {
     return handleAsyncRoute(
       c,
       async () => {
-        const payload = await c.req.json();
-        try {
-          const created = await HotelService.createHotel(c.env.DB, payload);
-          return HotelResponse.hotelCreated(c, created);
-        } catch (e) {
-          if (e instanceof Error && e.message.includes("slug")) {
-            return ApiResponse.conflict(c, e.message);
-          }
-          throw e;
-        }
-      },
-      "operation.createHotelFailed",
-    );
-  }
+        const contentType = c.req.header("content-type") || "";
 
-  static async updateHotel(c: AppContext) {
-    return handleAsyncRoute(
-      c,
-      async () => {
-        const id = parseInt(c.req.param("id"), 10);
-        const payload = await c.req.json();
-        try {
-          const updated = await HotelService.updateHotel(c.env.DB, id, payload);
-          return HotelResponse.hotelUpdated(c, updated);
-        } catch (e) {
-          if (e instanceof Error) {
-            if (e.message === "Hotel not found")
-              return HotelResponse.hotelNotFound(c);
-            if (e.message.includes("slug")) {
-              return ApiResponse.conflict(c, e.message);
-            }
-          }
-          throw e;
-        }
-      },
-      "operation.updateHotelFailed",
-    );
-  }
-  static async deleteHotel(c: AppContext) {
-    return handleAsyncRoute(
-      c,
-      async () => {
-        const id = parseInt(c.req.param("id"), 10);
-        try {
-          const deleted = await HotelService.deleteHotel(c.env.DB, id);
-          if (!deleted) return HotelResponse.hotelNotFound(c);
-          return HotelResponse.hotelDeleted(c);
-        } catch (e) {
-          if (e instanceof Error && e.message === "Hotel not found") {
-            return HotelResponse.hotelNotFound(c);
-          }
-          throw e;
-        }
-      },
-      "operation.deleteHotelFailed",
-    );
-  }
-
-  static async getHotelWithImages(c: AppContext) {
-    return handleAsyncRoute(
-      c,
-      async () => {
-        const id = parseInt(c.req.param("id"), 10);
-        const result = await HotelService.getHotelWithImages(c.env.DB, id);
-        if (!result) return HotelResponse.hotelNotFound(c);
-        return HotelResponse.hotelWithImagesRetrieved(
-          c,
-          result.hotel,
-          result.images,
-        );
-      },
-      "operation.fetchHotelWithImagesFailed",
-    );
-  }
-
-  static async createHotelWithImages(c: AppContext) {
-    return handleAsyncRoute(
-      c,
-      async () => {
-        try {
+        if (contentType.includes("multipart/form-data")) {
+          // Handle multipart form data (hotel with images)
           const formData = await c.req.formData();
 
           // Extract hotel data from form
@@ -148,36 +76,54 @@ export class HotelController {
             }
           }
 
-          const result = await HotelService.createHotelWithImages(
-            c.env.DB,
-            c.env.R2_BUCKET,
-            hotelData,
-            imageFiles,
-            c.env.R2_PUBLIC_BASE_URL || "",
-          );
+          try {
+            const result = await HotelService.createHotelWithImages(
+              c.env.DB,
+              c.env.R2_BUCKET,
+              hotelData,
+              imageFiles,
+              c.env.R2_PUBLIC_BASE_URL || "",
+            );
 
-          return HotelResponse.hotelWithImagesCreated(
-            c,
-            result.hotel,
-            result.images,
-          );
-        } catch (e) {
-          if (e instanceof Error && e.message.includes("slug")) {
-            return ApiResponse.conflict(c, e.message);
+            return HotelResponse.hotelWithImagesCreated(
+              c,
+              result.hotel,
+              result.images,
+            );
+          } catch (e) {
+            if (e instanceof Error && e.message.includes("slug")) {
+              return ApiResponse.conflict(c, e.message);
+            }
+            throw e;
           }
-          throw e;
+        } else {
+          // Handle JSON payload (hotel only)
+          const payload = await c.req.json();
+          try {
+            const created = await HotelService.createHotel(c.env.DB, payload);
+            // Return as hotel with images format but with empty images array
+            return HotelResponse.hotelWithImagesCreated(c, created, []);
+          } catch (e) {
+            if (e instanceof Error && e.message.includes("slug")) {
+              return ApiResponse.conflict(c, e.message);
+            }
+            throw e;
+          }
         }
       },
-      "operation.createHotelWithImagesFailed",
+      "operation.createHotelFailed",
     );
   }
 
-  static async updateHotelWithImages(c: AppContext) {
+  static async updateHotel(c: AppContext) {
     return handleAsyncRoute(
       c,
       async () => {
         const id = parseInt(c.req.param("id"), 10);
-        try {
+        const contentType = c.req.header("content-type") || "";
+
+        if (contentType.includes("multipart/form-data")) {
+          // Handle multipart form data (hotel with image management)
           const formData = await c.req.formData();
 
           // Extract hotel data from form
@@ -204,90 +150,68 @@ export class HotelController {
             }
           }
 
-          const result = await HotelService.updateHotelWithImages(
-            c.env.DB,
-            c.env.R2_BUCKET,
-            id,
-            hotelData,
-            imageFiles.length > 0 ? imageFiles : undefined,
-            replaceImages,
-            c.env.R2_PUBLIC_BASE_URL || "",
-          );
+          try {
+            const result = await HotelService.updateHotelWithImages(
+              c.env.DB,
+              c.env.R2_BUCKET,
+              id,
+              hotelData,
+              imageFiles.length > 0 ? imageFiles : undefined,
+              replaceImages,
+              c.env.R2_PUBLIC_BASE_URL || "",
+            );
 
-          return HotelResponse.hotelWithImagesUpdated(
-            c,
-            result.hotel,
-            result.images,
-          );
-        } catch (e) {
-          if (e instanceof Error) {
-            if (e.message === "Hotel not found")
-              return HotelResponse.hotelNotFound(c);
-            if (e.message.includes("slug")) {
-              return ApiResponse.conflict(c, e.message);
+            return HotelResponse.hotelWithImagesUpdated(
+              c,
+              result.hotel,
+              result.images,
+            );
+          } catch (e) {
+            if (e instanceof Error) {
+              if (e.message === "Hotel not found")
+                return HotelResponse.hotelNotFound(c);
+              if (e.message.includes("slug")) {
+                return ApiResponse.conflict(c, e.message);
+              }
             }
+            throw e;
           }
-          throw e;
+        } else {
+          // Handle JSON payload (hotel data only)
+          const payload = await c.req.json();
+          try {
+            const updated = await HotelService.updateHotel(
+              c.env.DB,
+              id,
+              payload,
+            );
+            // Get current images to return complete hotel with images
+            const images = await HotelService.getHotelImages(c.env.DB, id);
+            return HotelResponse.hotelWithImagesUpdated(c, updated, images);
+          } catch (e) {
+            if (e instanceof Error) {
+              if (e.message === "Hotel not found")
+                return HotelResponse.hotelNotFound(c);
+              if (e.message.includes("slug")) {
+                return ApiResponse.conflict(c, e.message);
+              }
+            }
+            throw e;
+          }
         }
       },
-      "operation.updateHotelWithImagesFailed",
+      "operation.updateHotelFailed",
     );
   }
-
-  static async addHotelImage(c: AppContext) {
+  static async deleteHotel(c: AppContext) {
     return handleAsyncRoute(
       c,
       async () => {
-        const hotelId = parseInt(c.req.param("id"), 10);
+        const id = parseInt(c.req.param("id"), 10);
         try {
-          const formData = await c.req.formData();
-
-          // Extract image file
-          const imageFile = formData.get("image");
-          if (!imageFile || !(imageFile instanceof File)) {
-            return ApiResponse.badRequest(c, "Image file is required");
-          }
-
-          // Extract alt text
-          const alt = formData.get("alt");
-          const altText = alt && typeof alt === "string" ? alt : undefined;
-
-          const image = await HotelService.addHotelImage(
-            c.env.DB,
-            c.env.R2_BUCKET,
-            hotelId,
-            imageFile,
-            altText,
-            c.env.R2_PUBLIC_BASE_URL || "",
-          );
-
-          return HotelResponse.hotelImageAdded(c, image);
-        } catch (e) {
-          if (e instanceof Error) {
-            if (e.message === "Hotel not found")
-              return HotelResponse.hotelNotFound(c);
-            if (
-              e.message.includes("Invalid image type") ||
-              e.message.includes("File size too large")
-            ) {
-              return ApiResponse.badRequest(c, e.message);
-            }
-          }
-          throw e;
-        }
-      },
-      "operation.addHotelImageFailed",
-    );
-  }
-
-  static async getHotelImages(c: AppContext) {
-    return handleAsyncRoute(
-      c,
-      async () => {
-        const hotelId = parseInt(c.req.param("id"), 10);
-        try {
-          const images = await HotelService.getHotelImages(c.env.DB, hotelId);
-          return HotelResponse.hotelImagesRetrieved(c, images);
+          const deleted = await HotelService.deleteHotel(c.env.DB, id);
+          if (!deleted) return HotelResponse.hotelNotFound(c);
+          return HotelResponse.hotelDeleted(c);
         } catch (e) {
           if (e instanceof Error && e.message === "Hotel not found") {
             return HotelResponse.hotelNotFound(c);
@@ -295,7 +219,7 @@ export class HotelController {
           throw e;
         }
       },
-      "operation.fetchHotelImagesFailed",
+      "operation.deleteHotelFailed",
     );
   }
 
