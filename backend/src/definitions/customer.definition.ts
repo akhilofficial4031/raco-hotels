@@ -1,10 +1,9 @@
-import { ApiTags, createRoute } from "../lib/route-wrapper";
+import { z } from "zod";
+
+import { createRoute } from "../lib/route-wrapper";
 import {
   CreateCustomerRequestSchema,
   UpdateCustomerRequestSchema,
-  CustomerPathParamsSchema,
-  CustomerSearchQuerySchema,
-  FindCustomerByEmailQuerySchema,
   CustomerResponseSchema,
   CustomerWithStatsResponseSchema,
   CustomersListResponseSchema,
@@ -88,7 +87,6 @@ export const CustomerRouteDefinitions = {
 - Display in booking forms for existing customers
 - Show in customer search results`,
     tags: ["Customers"],
-    pathParamsSchema: CustomerPathParamsSchema,
     successSchema: CustomerResponseSchema,
     successDescription: "Customer retrieved successfully",
     includeNotFound: true,
@@ -131,7 +129,6 @@ export const CustomerRouteDefinitions = {
 - Show confirmation for status changes
 - Handle partial updates appropriately`,
     tags: ["Customers"],
-    pathParamsSchema: CustomerPathParamsSchema,
     requestSchema: UpdateCustomerRequestSchema,
     successSchema: CustomerResponseSchema,
     successDescription: "Customer updated successfully",
@@ -175,8 +172,10 @@ export const CustomerRouteDefinitions = {
 - Provide option to reactivate customers
 - Update UI to reflect inactive status`,
     tags: ["Customers"],
-    pathParamsSchema: CustomerPathParamsSchema,
-    successSchema: { message: "string" },
+    successSchema: z.object({
+      success: z.boolean(),
+      message: z.string(),
+    }),
     successDescription: "Customer deleted successfully",
     includeNotFound: true,
   }),
@@ -225,7 +224,6 @@ export const CustomerRouteDefinitions = {
 - Handle pagination appropriately
 - Export functionality for marketing`,
     tags: ["Customers"],
-    queryParamsSchema: CustomerSearchQuerySchema,
     successSchema: CustomersListResponseSchema,
     successDescription: "Customers retrieved successfully",
   }),
@@ -262,7 +260,6 @@ export const CustomerRouteDefinitions = {
 - Calculate customer lifetime value
 - Identify booking patterns and preferences`,
     tags: ["Customers"],
-    pathParamsSchema: CustomerPathParamsSchema,
     successSchema: CustomerBookingHistoryResponseSchema,
     successDescription: "Customer booking history retrieved successfully",
     includeNotFound: true,
@@ -311,7 +308,7 @@ export const CustomerRouteDefinitions = {
 - Generate customer reports
 - Support loyalty program features`,
     tags: ["Customers"],
-    pathParamsSchema: CustomerPathParamsSchema,
+    successSchema: CustomerWithStatsResponseSchema,
     successDescription: "Customer statistics retrieved successfully",
     includeNotFound: true,
   }),
@@ -352,7 +349,6 @@ export const CustomerRouteDefinitions = {
 - Handle new vs returning customer flows
 - Show customer booking history when relevant`,
     tags: ["Customers"],
-    queryParamsSchema: FindCustomerByEmailQuerySchema,
     successSchema: FindCustomerByEmailResponseSchema,
     successDescription: "Customer search completed",
   }),
@@ -402,6 +398,14 @@ export const CustomerRouteDefinitions = {
 - Reduce friction in booking process`,
     tags: ["Customers"],
     requestSchema: CreateCustomerRequestSchema,
+    successSchema: z.object({
+      success: z.boolean(),
+      message: z.string(),
+      data: z.object({
+        customer: CustomerResponseSchema,
+        isNew: z.boolean(),
+      }),
+    }),
     successDescription: "Customer found or created successfully",
     includeBadRequest: true,
   }),

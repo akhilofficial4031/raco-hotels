@@ -74,7 +74,7 @@ app.use("*", async (c, next) => {
   );
 });
 
-// Register API routes
+// Register API routes - adding back in groups to identify problematic route
 app.route("/api", amenityRoutes);
 app.route("/api", featureRoutes);
 app.route("/api", hotelRoutes);
@@ -95,8 +95,7 @@ app.route("/api", systemRoutes);
 
 // Legacy hotel routes removed in favor of /api/hotels router
 
-// Configure OpenAPI documentation
-configureOpenAPI(app);
+// OpenAPI routes are now properly configured
 
 // Swagger UI endpoint with enhanced configuration
 app.get(
@@ -189,6 +188,9 @@ app.notFound((c) => {
     404,
   );
 });
+
+// Configure OpenAPI documentation AFTER all routes are registered
+configureOpenAPI(app);
 
 // Mount API under /api for local proxy convenience
 export default app;
