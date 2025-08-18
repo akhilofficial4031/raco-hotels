@@ -15,8 +15,10 @@ const bookingRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-bookingRoutes.use("*", smartAuthMiddleware());
+// Apply authentication middleware to all booking routes
+bookingRoutes.use("*", smartAuthMiddleware);
 
+// Create a new booking
 bookingRoutes.openapi(
   BookingRouteDefinitions.createDraft,
   smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>

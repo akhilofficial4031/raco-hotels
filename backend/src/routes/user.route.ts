@@ -23,7 +23,8 @@ const userRoutes = new OpenAPIHono<{
 //   ),
 // );
 
-userRoutes.use("*", smartAuthMiddleware());
+// Apply authentication middleware to all user routes
+userRoutes.use("*", smartAuthMiddleware);
 
 userRoutes.openapi(
   UserRouteDefinitions.getUsers,

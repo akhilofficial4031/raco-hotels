@@ -76,7 +76,7 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
         c.set("user", payload);
         return next();
       }
-    } catch (accessTokenError) {
+    } catch {
       // Access token is invalid/expired, try to refresh it
       if (!refreshToken) {
         throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
@@ -173,7 +173,7 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
 
         // Continue with the request
         return next();
-      } catch (refreshError) {
+      } catch {
         // Refresh token is also invalid, user needs to login again
         throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
           message: "Session expired, please login again",
@@ -218,7 +218,7 @@ export const optionalSmartAuthMiddleware = createMiddleware(async (c, next) => {
             c.set("user", payload);
           }
         }
-      } catch (accessTokenError) {
+      } catch {
         // Try to refresh token if access token is expired
         if (refreshToken) {
           try {
@@ -288,7 +288,7 @@ export const optionalSmartAuthMiddleware = createMiddleware(async (c, next) => {
                 }
               }
             }
-          } catch (refreshError) {
+          } catch {
             // Silently ignore refresh errors for optional auth
           }
         }

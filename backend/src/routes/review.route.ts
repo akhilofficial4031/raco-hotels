@@ -15,7 +15,7 @@ const reviewRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-reviewRoutes.use("*", smartAuthMiddleware());
+reviewRoutes.use("*", smartAuthMiddleware);
 
 reviewRoutes.openapi(
   ReviewRouteDefinitions.getReviews,

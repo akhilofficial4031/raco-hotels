@@ -15,7 +15,7 @@ const contentRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-contentRoutes.use("*", smartAuthMiddleware());
+contentRoutes.use("*", smartAuthMiddleware);
 
 contentRoutes.openapi(
   ContentRouteDefinitions.getContentBlocks,

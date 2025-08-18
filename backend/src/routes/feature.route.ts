@@ -15,7 +15,7 @@ const featureRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-featureRoutes.use("*", smartAuthMiddleware());
+featureRoutes.use("*", smartAuthMiddleware);
 
 featureRoutes.openapi(
   FeatureRouteDefinitions.getFeatures,

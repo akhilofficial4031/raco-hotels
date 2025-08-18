@@ -15,7 +15,7 @@ const availabilityRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-availabilityRoutes.use("*", smartAuthMiddleware());
+availabilityRoutes.use("*", smartAuthMiddleware);
 
 availabilityRoutes.openapi(
   AvailabilityRouteDefinitions.getRoomsAvailability,

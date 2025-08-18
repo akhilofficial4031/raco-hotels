@@ -15,7 +15,7 @@ const amenityRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-amenityRoutes.use("*", smartAuthMiddleware());
+amenityRoutes.use("*", smartAuthMiddleware);
 
 amenityRoutes.openapi(
   AmenityRouteDefinitions.getAmenities,

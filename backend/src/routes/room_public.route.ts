@@ -4,7 +4,7 @@ import { PERMISSIONS } from "../config/permissions";
 import { RoomController } from "../controllers/room.controller";
 import { RoomPublicRouteDefinitions } from "../definitions/room_public.definition";
 import {
-  smartAuthMiddleware,
+  optionalSmartAuthMiddleware,
   smartPermissionHandler,
 } from "../middleware/smart-auth";
 
@@ -15,8 +15,10 @@ const roomPublicRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-roomPublicRoutes.use("*", smartAuthMiddleware());
+// This route can be public, so we use optional middleware
+roomPublicRoutes.use("*", optionalSmartAuthMiddleware);
 
+// Search public room information
 roomPublicRoutes.openapi(
   RoomPublicRouteDefinitions.getRoomDetails,
   smartPermissionHandler(PERMISSIONS.ROOMS_READ, (c) =>

@@ -15,7 +15,7 @@ const roomRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-roomRoutes.use("*", smartAuthMiddleware());
+roomRoutes.use("*", smartAuthMiddleware);
 
 roomRoutes.openapi(
   RoomRouteDefinitions.getRooms,

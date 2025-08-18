@@ -17,7 +17,7 @@ const hotelRoutes = new OpenAPIHono<{
 }>();
 
 // Use smartAuthMiddleware to automatically handle public/protected routes
-hotelRoutes.use("*", smartAuthMiddleware());
+hotelRoutes.use("*", smartAuthMiddleware);
 
 // All route handlers now use smartPermissionHandler for automatic permission checking
 hotelRoutes.openapi(

@@ -15,7 +15,7 @@ const promoCodeRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-promoCodeRoutes.use("*", smartAuthMiddleware());
+promoCodeRoutes.use("*", smartAuthMiddleware);
 
 promoCodeRoutes.openapi(
   PromoCodeRouteDefinitions.getPromoCodes,

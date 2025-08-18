@@ -15,7 +15,7 @@ const taxFeeRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-taxFeeRoutes.use("*", smartAuthMiddleware());
+taxFeeRoutes.use("*", smartAuthMiddleware);
 
 taxFeeRoutes.openapi(
   TaxFeeRouteDefinitions.getTaxFees,

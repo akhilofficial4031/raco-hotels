@@ -15,7 +15,7 @@ const cancellationPolicyRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-cancellationPolicyRoutes.use("*", smartAuthMiddleware());
+cancellationPolicyRoutes.use("*", smartAuthMiddleware);
 
 cancellationPolicyRoutes.openapi(
   CancellationPolicyRouteDefinitions.getPolicies,
