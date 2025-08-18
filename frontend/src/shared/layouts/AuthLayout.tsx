@@ -6,12 +6,7 @@ import { useSidebar } from "../hooks/useSidebar";
 export default function AuthLayout() {
   const { isOpen } = useSidebar();
   return (
-    <div
-      className="min-h-screen"
-      style={{
-        background: `linear-gradient(135deg, var(--color-background) 0%, var(--color-background-secondary) 50%, var(--color-primary-50) 100%)`,
-      }}
-    >
+    <div className="min-h-screen bg-slate-200">
       <main
         className={`${isOpen ? "ml-60" : "ml-14"} transition-all duration-300`}
       >

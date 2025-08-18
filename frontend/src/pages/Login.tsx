@@ -39,8 +39,8 @@ const Login = () => {
       );
 
       // Store user data if needed
-      if (response.user) {
-        localStorage.setItem("user", JSON.stringify(response.user));
+      if (response.data.user) {
+        localStorage.setItem("user", JSON.stringify(response.data.user));
       }
 
       // Navigate to dashboard or home page
