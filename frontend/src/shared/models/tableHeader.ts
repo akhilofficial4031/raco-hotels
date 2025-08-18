@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export interface TableHeaderProps {
   searchPlaceholder?: string;
   showAddButton?: boolean;

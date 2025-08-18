@@ -34,4 +34,4 @@ export interface CreateUserPayload {
   role: string;
 }
 
-export type UpdateUserPayload = Partial<CreateUserPayload>
+export type UpdateUserPayload = Partial<CreateUserPayload>;
