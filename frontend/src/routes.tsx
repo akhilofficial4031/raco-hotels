@@ -1,12 +1,18 @@
-import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
-import App from "./App";
+import { createBrowserRouter, Navigate } from "react-router";
+
+import { Dashboard, Login, NotFound, Users } from "./pages";
 import { AuthLayout, UnAuthLayout } from "./shared/layouts";
-import { Login, NotFound } from "./pages";
 
 const router = createBrowserRouter([
   {
     path: "/",
     Component: AuthLayout,
+    handle: {
+      crumb: () => ({
+        label: "Dashboard",
+        href: "/dashboard",
+      }),
+    },
     children: [
       {
         index: true,
@@ -14,12 +20,53 @@ const router = createBrowserRouter([
       },
       {
         path: "dashboard",
-        Component: App,
+        Component: Dashboard,
+        handle: {
+          crumb: () => ({
+            label: "Dashboard",
+            href: "/dashboard",
+          }),
+        },
+      },
+      {
+        path: "users",
+        handle: {
+          crumb: () => ({
+            label: "Users",
+            href: "/users",
+          }),
+        },
+        children: [
+          {
+            index: true,
+            Component: Users,
+          },
+          {
+            path: "new",
+            Component: Users, // For demo purposes, using same component
+            handle: {
+              crumb: () => ({
+                label: "Add New User",
+                href: "/users/new",
+              }),
+            },
+          },
+          {
+            path: ":id",
+            Component: Users, // For demo purposes, using same component
+            handle: {
+              crumb: () => ({
+                label: "User Details",
+                href: "/users/details",
+              }),
+            },
+          },
+        ],
       },
       {
         path: "*",
         Component: NotFound,
-      }
+      },
     ],
   },
   {
@@ -31,7 +78,6 @@ const router = createBrowserRouter([
       },
     ],
   },
- 
 ]);
 
 export default router;

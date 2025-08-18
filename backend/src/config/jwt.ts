@@ -34,7 +34,7 @@ function parseTimeToSeconds(timeStr: string): number {
 
 // Cookie Configuration
 export const COOKIE_CONFIG = {
-  ACCESS_TOKEN_NAME: "access_token",
+  ACCESS_TOKEN_NAME: "access-token",
   REFRESH_TOKEN_NAME: "refresh_token",
   CSRF_TOKEN_NAME: "csrf_token",
   OPTIONS: {
