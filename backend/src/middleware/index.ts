@@ -1,5 +1,6 @@
 // Export all middleware for easy importing
 export { authMiddleware, optionalAuthMiddleware } from "./auth";
+export { smartAuthMiddleware, optionalSmartAuthMiddleware } from "./smart-auth";
 export {
   requireRole,
   requireAdmin,

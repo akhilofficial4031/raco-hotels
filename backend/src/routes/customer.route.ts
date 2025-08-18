@@ -1,7 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { CustomerController } from "../controllers/customer.controller";
 import { CustomerRouteDefinitions } from "../definitions/customer.definition";
-import { authMiddleware } from "../middleware/auth";
+import { smartAuthMiddleware } from "../middleware/smart-auth";
 import { rbacMiddleware } from "../middleware/rbac";
 import type { AppBindings, AppVariables } from "../types";
 
@@ -11,7 +11,7 @@ const customerRoutes = new OpenAPIHono<{
 }>();
 
 // Apply authentication middleware to all customer routes
-customerRoutes.use("*", authMiddleware);
+customerRoutes.use("*", smartAuthMiddleware);
 
 // Create customer
 customerRoutes.openapi(

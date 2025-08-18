@@ -2,7 +2,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { AuthController } from "../controllers/auth.controller";
 import { AuthRouteDefinitions } from "../definitions/auth.definition";
-import { authMiddleware } from "../middleware";
+import { smartAuthMiddleware } from "../middleware/smart-auth";
 
 import type { AppBindings, AppVariables } from "../types";
 
@@ -22,9 +22,9 @@ authRoutes.openapi(
 );
 
 // Apply auth middleware to protected routes
-authRoutes.use("/auth/change-password", authMiddleware);
-authRoutes.use("/auth/revoke-all-sessions", authMiddleware);
-authRoutes.use("/auth/verify", authMiddleware);
+authRoutes.use("/auth/change-password", smartAuthMiddleware);
+authRoutes.use("/auth/revoke-all-sessions", smartAuthMiddleware);
+authRoutes.use("/auth/verify", smartAuthMiddleware);
 
 // Protected routes (authentication required)
 authRoutes.openapi(

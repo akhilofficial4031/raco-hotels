@@ -6,45 +6,300 @@
  * can use without worrying about public vs protected route logic.
  */
 
+import { getCookie, setCookie } from "hono/cookie";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 
-import { authMiddleware, csrfMiddleware } from "./index";
+import {
+  verifyToken,
+  generateAccessToken,
+  generateRefreshToken,
+  generateCSRFToken,
+  COOKIE_CONFIG,
+  type JWTPayload,
+} from "../config/jwt";
 import { isPublicRoute, normalizePath } from "../config/routes";
 import { HTTP_STATUS, ERROR_CODES } from "../constants";
+import { AuthService } from "../services/auth.service";
 
-import type { AppBindings, AppVariables } from "../types";
-import type { Context, Next } from "hono";
+// Extend the context to include user information
+declare module "hono" {
+  interface ContextVariableMap {
+    user: JWTPayload;
+  }
+}
 
 /**
- * Enhanced global middleware that handles public routes and applies authentication selectively
- * This is an improved version of globalAuthMiddleware that's more robust
+ * Smart JWT Authentication Middleware
+ * Automatically refreshes access tokens when they expire
+ * Uses refresh tokens to generate new access tokens seamlessly
  */
-export function smartAuthMiddleware() {
-  return async (
-    c: Context<{ Bindings: AppBindings; Variables: AppVariables }>,
-    next: Next,
-  ) => {
-    const fullPath = c.req.path;
-    const normalizedPath = normalizePath(fullPath);
+export const smartAuthMiddleware = createMiddleware(async (c, next) => {
+  try {
+    // Check if this is a public route - if so, skip authentication
+    const normalizedPath = normalizePath(c.req.path);
     const method = c.req.method;
-
-    // Skip authentication for public routes
     if (isPublicRoute(normalizedPath, method)) {
       return next();
     }
 
-    // Apply authentication middleware for protected routes
-    await authMiddleware(c, async () => {
-      // Apply CSRF for state-changing operations on protected routes
-      if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-        await csrfMiddleware(c, next);
-      } else {
-        await next();
+    // Get tokens from HTTP-only cookies
+    const accessToken = getCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME);
+    const refreshToken = getCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME);
+
+    if (!accessToken) {
+      throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+        message: "Access token not found",
+        cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+      });
+    }
+
+    try {
+      // First, try to verify the access token
+      const payload = verifyToken(accessToken);
+
+      // If token is valid, proceed normally
+      if (payload) {
+        // Verify user still exists and is active
+        const user = await AuthService.getUserForToken(
+          c.env.DB,
+          payload.userId,
+        );
+        if (!user) {
+          throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+            message: "User not found or inactive",
+            cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+          });
+        }
+
+        // Store user information in context
+        c.set("user", payload);
+        return next();
       }
+    } catch (accessTokenError) {
+      // Access token is invalid/expired, try to refresh it
+      if (!refreshToken) {
+        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+          message: "Refresh token not found",
+          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+        });
+      }
+
+      try {
+        // Verify refresh token
+        const refreshPayload = verifyToken(refreshToken);
+
+        if (!refreshPayload || !refreshPayload.tokenId) {
+          throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+            message: "Invalid refresh token",
+            cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+          });
+        }
+
+        // Check if refresh token exists and is valid in KV
+        const storedToken = await AuthService.getRefreshToken(
+          c.env.KV,
+          refreshPayload.tokenId,
+        );
+
+        if (!storedToken || storedToken.token !== refreshToken) {
+          throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+            message: "Invalid refresh token",
+            cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+          });
+        }
+
+        // Get user to ensure they still exist and are active
+        const user = await AuthService.getUserForToken(
+          c.env.DB,
+          refreshPayload.userId,
+        );
+
+        if (!user) {
+          // Remove invalid token from KV
+          await AuthService.revokeRefreshToken(
+            c.env.KV,
+            refreshPayload.tokenId,
+          );
+          throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+            message: "User not found or inactive",
+            cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+          });
+        }
+
+        // Generate new token ID for security
+        const newTokenId = AuthService.generateTokenId();
+
+        // Generate new tokens
+        const newTokenPayload = {
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+          tokenId: newTokenId,
+        };
+
+        const newAccessToken = generateAccessToken(newTokenPayload);
+        const newRefreshToken = generateRefreshToken(newTokenPayload);
+        const newCsrfToken = generateCSRFToken();
+
+        // Remove old refresh token and store new one
+        await AuthService.revokeRefreshToken(c.env.KV, refreshPayload.tokenId);
+        await AuthService.storeRefreshToken(
+          c.env.KV,
+          newTokenId,
+          newRefreshToken,
+          user.id,
+        );
+
+        // Set new cookies
+        setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, newAccessToken, {
+          ...COOKIE_CONFIG.OPTIONS,
+          maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
+        });
+
+        setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, newRefreshToken, {
+          ...COOKIE_CONFIG.OPTIONS,
+          maxAge: COOKIE_CONFIG.REFRESH_TOKEN_MAX_AGE,
+        });
+
+        setCookie(c, COOKIE_CONFIG.CSRF_TOKEN_NAME, newCsrfToken, {
+          ...COOKIE_CONFIG.OPTIONS,
+          httpOnly: false,
+          maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
+        });
+
+        // Store user information in context
+        c.set("user", newTokenPayload);
+
+        // Continue with the request
+        return next();
+      } catch (refreshError) {
+        // Refresh token is also invalid, user needs to login again
+        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+          message: "Session expired, please login again",
+          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+        });
+      }
+    }
+  } catch (error) {
+    if (error instanceof HTTPException) {
+      throw error;
+    }
+
+    // Handle any other errors
+    throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+      message: "Authentication failed",
+      cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
     });
-  };
-}
+  }
+});
+
+/**
+ * Optional Smart Authentication Middleware
+ * Adds user context if token is present, but doesn't require it
+ * Also handles automatic token refresh
+ */
+export const optionalSmartAuthMiddleware = createMiddleware(async (c, next) => {
+  try {
+    const accessToken = getCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME);
+    const refreshToken = getCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME);
+
+    if (accessToken) {
+      try {
+        const payload = verifyToken(accessToken);
+        if (payload) {
+          // For optional auth, we don't check KV storage to avoid performance impact
+          // Only check if user still exists
+          const user = await AuthService.getUserForToken(
+            c.env.DB,
+            payload.userId,
+          );
+          if (user) {
+            c.set("user", payload);
+          }
+        }
+      } catch (accessTokenError) {
+        // Try to refresh token if access token is expired
+        if (refreshToken) {
+          try {
+            const refreshPayload = verifyToken(refreshToken);
+            if (refreshPayload && refreshPayload.tokenId) {
+              const storedToken = await AuthService.getRefreshToken(
+                c.env.KV,
+                refreshPayload.tokenId,
+              );
+
+              if (storedToken && storedToken.token === refreshToken) {
+                const user = await AuthService.getUserForToken(
+                  c.env.DB,
+                  refreshPayload.userId,
+                );
+
+                if (user) {
+                  // Generate new tokens
+                  const newTokenId = AuthService.generateTokenId();
+                  const newTokenPayload = {
+                    userId: user.id,
+                    email: user.email,
+                    role: user.role,
+                    tokenId: newTokenId,
+                  };
+
+                  const newAccessToken = generateAccessToken(newTokenPayload);
+                  const newRefreshToken = generateRefreshToken(newTokenPayload);
+                  const newCsrfToken = generateCSRFToken();
+
+                  // Store new refresh token
+                  await AuthService.storeRefreshToken(
+                    c.env.KV,
+                    newTokenId,
+                    newRefreshToken,
+                    user.id,
+                  );
+
+                  // Set new cookies
+                  setCookie(
+                    c,
+                    COOKIE_CONFIG.ACCESS_TOKEN_NAME,
+                    newAccessToken,
+                    {
+                      ...COOKIE_CONFIG.OPTIONS,
+                      maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
+                    },
+                  );
+
+                  setCookie(
+                    c,
+                    COOKIE_CONFIG.REFRESH_TOKEN_NAME,
+                    newRefreshToken,
+                    {
+                      ...COOKIE_CONFIG.OPTIONS,
+                      maxAge: COOKIE_CONFIG.REFRESH_TOKEN_MAX_AGE,
+                    },
+                  );
+
+                  setCookie(c, COOKIE_CONFIG.CSRF_TOKEN_NAME, newCsrfToken, {
+                    ...COOKIE_CONFIG.OPTIONS,
+                    httpOnly: false,
+                    maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
+                  });
+
+                  c.set("user", newTokenPayload);
+                }
+              }
+            }
+          } catch (refreshError) {
+            // Silently ignore refresh errors for optional auth
+          }
+        }
+      }
+    }
+  } catch {
+    // Silently ignore authentication errors for optional auth
+  }
+
+  await next();
+});
 
 /**
  * Smart permission middleware factory that automatically handles permissions

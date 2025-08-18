@@ -1,4 +1,4 @@
-import { authMiddleware, csrfMiddleware } from "./index";
+import { smartAuthMiddleware, csrfMiddleware } from "./index";
 import { isPublicRoute, normalizePath } from "../config/routes";
 
 import type { AppBindings, AppVariables } from "../types";
@@ -22,7 +22,7 @@ export function globalAuthMiddleware() {
       return next();
     }
     // Apply authentication middleware for protected routes
-    await authMiddleware(c, async () => {
+    await smartAuthMiddleware(c, async () => {
       // Apply CSRF for state-changing operations on protected routes
       if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
         await csrfMiddleware(c, next);
