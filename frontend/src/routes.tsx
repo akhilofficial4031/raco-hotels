@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router";
 
-import { Dashboard, Login, NotFound, Users } from "./pages";
+import { Dashboard, Login, Users, NotFound, Amenities } from "./pages";
 import { AuthLayout, UnAuthLayout } from "./shared/layouts";
 
 const router = createBrowserRouter([
@@ -41,27 +41,17 @@ const router = createBrowserRouter([
             index: true,
             Component: Users,
           },
-          {
-            path: "new",
-            Component: Users, // For demo purposes, using same component
-            handle: {
-              crumb: () => ({
-                label: "Add New User",
-                href: "/users/new",
-              }),
-            },
-          },
-          {
-            path: ":id",
-            Component: Users, // For demo purposes, using same component
-            handle: {
-              crumb: () => ({
-                label: "User Details",
-                href: "/users/details",
-              }),
-            },
-          },
         ],
+      },
+      {
+        path: "amenities",
+        Component: Amenities,
+        handle: {
+          crumb: () => ({
+            label: "Amenities",
+            href: "/amenities",
+          }),
+        },
       },
       {
         path: "*",
