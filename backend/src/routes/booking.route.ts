@@ -44,7 +44,7 @@ bookingRoutes.openapi(
 bookingRoutes.openapi(
   BookingRouteDefinitions.feedback,
   smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
-    BookingController.confirm(c as AppContext),
+    BookingController.createDraft(c as AppContext),
   ),
 );
 

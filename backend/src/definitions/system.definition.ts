@@ -1,9 +1,9 @@
-import { createPublicRoute, ApiTags } from "../lib/openapi";
+import { createRoute, ApiTags } from "../lib/route-wrapper";
 import { HealthCheckResponseSchema } from "../schemas";
 
 export const SystemRouteDefinitions = {
   // GET /health - Health check
-  healthCheck: createPublicRoute({
+  healthCheck: createRoute({
     method: "get",
     path: "/health",
     summary: "Health check",
@@ -14,7 +14,7 @@ export const SystemRouteDefinitions = {
   }),
 
   // GET / - API info
-  getApiInfo: createPublicRoute({
+  getApiInfo: createRoute({
     method: "get",
     path: "/",
     summary: "API information",
