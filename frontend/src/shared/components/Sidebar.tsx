@@ -3,9 +3,11 @@ import {
   BookOutlined,
   CreditCardOutlined,
   HomeOutlined,
+  SettingOutlined,
   ShopOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import { Menu } from "antd";
 import { Link, useLocation } from "react-router";
 
 import { useSidebar } from "../hooks/useSidebar";
@@ -41,12 +43,35 @@ const Sidebar = () => {
       icon: <CreditCardOutlined />,
       path: "/payments",
     },
+
     {
-      label: "Users",
-      icon: <UserOutlined />,
-      path: "/users",
+      label: "Configurations",
+      icon: <SettingOutlined />,
+      path: "/configurations",
+      children: [
+        {
+          label: "Users",
+          icon: <UserOutlined />,
+          path: "/users",
+        },
+        {
+          label: "Features",
+          icon: <SettingOutlined />,
+          path: "/features",
+        },
+        {
+          label: "Amenities",
+          icon: <SettingOutlined />,
+          path: "/amenities",
+        },
+      ],
     },
   ];
+
+  const defaultOpenKey = sidebarItems.find((item) =>
+    item.children?.some((child) => location.pathname.startsWith(child.path)),
+  )?.label;
+
   return (
     <div
       className={`h-screen bg-slate-900 fixed top-0 left-0 z-10 transition-all duration-300 ${
@@ -58,24 +83,31 @@ const Sidebar = () => {
           {isOpen ? "Raco Hotels" : "R"}
         </h1>
       </div>
-      <div className="flex flex-col gap-2 mt-[50px]">
-        {sidebarItems.map((item) => (
-          <Link
-            to={item.path}
-            key={item.label}
-            className={`${isOpen ? "border-l-4" : "border-l-0"} flex items-center gap-2 text-gray-100 hover:text-gray-300 hover:bg-[#090f21] py-3 px-5 border-transparent ${
-              location.pathname.includes(item.path)
-                ? "bg-[#090f21] !border-blue-600 !text-blue-600"
-                : ""
-            }`}
-          >
-            <div className="flex items-center gap-3 overflow-hidden">
-              {item.icon}
-              {item.label}
-            </div>
-          </Link>
-        ))}
-      </div>
+      <Menu
+        theme="dark"
+        mode="inline"
+        inlineCollapsed={!isOpen}
+        className="bg-slate-900 border-r-0"
+        defaultSelectedKeys={[location.pathname]}
+        defaultOpenKeys={defaultOpenKey ? [defaultOpenKey] : []}
+        selectedKeys={[location.pathname]}
+      >
+        {sidebarItems.map((item) =>
+          item.children ? (
+            <Menu.SubMenu key={item.label} icon={item.icon} title={item.label}>
+              {item.children.map((child) => (
+                <Menu.Item key={child.path} icon={child.icon}>
+                  <Link to={child.path}>{child.label}</Link>
+                </Menu.Item>
+              ))}
+            </Menu.SubMenu>
+          ) : (
+            <Menu.Item key={item.path} icon={item.icon}>
+              <Link to={item.path}>{item.label}</Link>
+            </Menu.Item>
+          ),
+        )}
+      </Menu>
     </div>
   );
 };
