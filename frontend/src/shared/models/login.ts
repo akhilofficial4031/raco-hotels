@@ -1,7 +1,9 @@
 export interface LoginResponse {
-  user: LoginUserResponse;
-  csrfToken: string;
-  expiresIn: number;
+  data: {
+    user: LoginUserResponse;
+    csrfToken: string;
+    expiresIn: number;
+  };
 }
 
 export interface LoginRequest {

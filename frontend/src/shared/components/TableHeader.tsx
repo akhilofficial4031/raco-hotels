@@ -1,5 +1,6 @@
 import { FilterOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Input } from "antd";
+import { useEffect, useState } from "react";
 
 import { type TableHeaderProps } from "../models/tableHeader";
 
@@ -12,8 +13,20 @@ const TableHeader: React.FC<TableHeaderProps> = ({
   onSearch,
   onFilterClick,
 }) => {
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onSearch?.(e.target.value);
+  const [searchValue, setSearchValue] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      onSearch?.(searchValue);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchValue, onSearch]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value);
   };
   return (
     <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-2 border border-gray-200">
@@ -21,7 +34,9 @@ const TableHeader: React.FC<TableHeaderProps> = ({
         <Input
           placeholder={`Search ${searchPlaceholder}`}
           className="!w-64"
-          onChange={handleSearch}
+          value={searchValue}
+          onChange={handleSearchChange}
+          allowClear
         />
       )}
       <div className="flex gap-2">

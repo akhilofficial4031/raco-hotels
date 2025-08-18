@@ -14,11 +14,10 @@ import {
   message,
 } from "antd";
 import { type ColumnsType } from "antd/es/table";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
 
 import AddEditUser from "../features/users/add-edit-user";
-import FullScreenSpinner from "../shared/components/FullScreenSpinner";
 import TableHeader from "../shared/components/TableHeader";
 import {
   type User,
@@ -35,6 +34,8 @@ const Users = () => {
   const [openAddUserPanel, setOpenAddUserPanel] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [filterParams, setFilterParams] = useState<UserListParamStructure>({
     page: 1,
@@ -86,7 +87,9 @@ const Users = () => {
           message.success("User deleted successfully");
           mutate(`/users${queryString}`);
         } catch (error) {
-          message.error("Failed to delete user");
+          if (error) {
+            message.error("Failed to delete user");
+          }
         }
       },
     });
@@ -110,10 +113,16 @@ const Users = () => {
       setCurrentUser(null);
       mutate(`/users${queryString}`);
     } catch (error) {
-      message.error("Failed to save user");
+      if (error) {
+        message.error("Failed to save user");
+      }
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSearch = (value: string) => {
+    setFilterParams((prev) => ({ ...prev, search: value }));
   };
 
   const columns: ColumnsType<User> = [
@@ -173,9 +182,20 @@ const Users = () => {
     },
   ];
 
-  if (isLoading) {
-    return <FullScreenSpinner />;
-  }
+  // if (isLoading) {
+  //   return <FullScreenSpinner />;
+  // }
+
+  useEffect(() => {
+    if (response?.data.users) {
+      setFilteredUsers(
+        response?.data.users.filter(
+          (user) => user?.email !== loggedInUser?.email,
+        ),
+      );
+    }
+  }, [response]);
+
   if (error) {
     return <div>Error: {error.message}</div>;
   }
@@ -187,15 +207,18 @@ const Users = () => {
         showFilter={false}
         onFilterClick={() => {}}
         addButtonOnClick={handleAddUser}
+        onSearch={handleSearch}
       />
       <div className="bg-white p-2 rounded-lg mb-2 border border-gray-200">
         <Table
-          dataSource={response?.data.users}
+          dataSource={filteredUsers}
           className="!bg-white"
           bordered={true}
           columns={columns}
           rowKey="id"
           pagination={false}
+          loading={isLoading}
+          scroll={{ x: "max-content" }}
         />
         <div className="flex justify-end mt-4">
           <Pagination
