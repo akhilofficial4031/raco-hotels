@@ -83,6 +83,16 @@ export type {
   UserFilters,
 } from "./user.interface";
 
+// Customer-related types
+export type {
+  DatabaseCustomer,
+  CreateCustomerData,
+  UpdateCustomerData,
+  CustomerSearchFilters,
+  CustomerWithBookingStats,
+  CustomerBookingHistory,
+} from "./customer.interface";
+
 // Hotel-related types
 export type {
   DatabaseHotel,

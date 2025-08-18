@@ -101,7 +101,7 @@ export class BookingDraftService {
       numAdults: data.numAdults,
       numChildren: data.numChildren,
       petsCount: data.petsCount ?? 0,
-      currencyCode: "USD",
+      currencyCode: "INR",
       promoCode: data.promoCode,
       contactEmail: data.contactEmail,
       contactPhone: data.contactPhone,

@@ -44,7 +44,7 @@ export const BookingPathParamsSchema = z
 export const ProcessPaymentRequestSchema = z
   .object({
     amountCents: z.number().int().positive().openapi({ example: 36000 }),
-    currencyCode: z.string().openapi({ example: "USD" }),
+    currencyCode: z.string().openapi({ example: "INR" }),
     method: z
       .enum(["card", "upi", "netbanking", "cash", "wallet"])
       .openapi({ example: "card" }),

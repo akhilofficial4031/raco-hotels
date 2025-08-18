@@ -39,7 +39,7 @@ export const RoomTypeSchema = z
     baseOccupancy: z.number().int().openapi({ example: 2 }),
     maxOccupancy: z.number().int().openapi({ example: 3 }),
     basePriceCents: z.number().int().openapi({ example: 15999 }),
-    currencyCode: z.string().openapi({ example: "USD" }),
+    currencyCode: z.string().openapi({ example: "INR" }),
     sizeSqft: z.number().int().nullable().openapi({ example: 350 }),
     bedType: z.string().nullable().openapi({ example: "King" }),
     smokingAllowed: z.number().int().openapi({ example: 0 }),

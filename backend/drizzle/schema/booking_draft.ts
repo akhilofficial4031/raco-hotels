@@ -46,7 +46,7 @@ export const bookingDraft = sqliteTable(
     discountAmountCents: integer("discount_amount_cents").notNull().default(0),
     totalAmountCents: integer("total_amount_cents").notNull().default(0),
     balanceDueCents: integer("balance_due_cents").notNull().default(0),
-    currencyCode: text("currency_code").notNull().default("USD"),
+    currencyCode: text("currency_code").notNull().default("INR"),
     promoCode: text("promo_code"),
     contactEmail: text("contact_email"),
     contactPhone: text("contact_phone"),

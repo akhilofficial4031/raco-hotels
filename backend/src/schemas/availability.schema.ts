@@ -33,7 +33,7 @@ export const AvailableRoomTypeSchema = z
     name: z.string().openapi({ example: "Deluxe King" }),
     maxOccupancy: z.number().int().openapi({ example: 3 }),
     basePriceCents: z.number().int().openapi({ example: 12000 }),
-    currencyCode: z.string().openapi({ example: "USD" }),
+    currencyCode: z.string().openapi({ example: "INR" }),
     availableCount: z.number().int().openapi({ example: 4 }),
     nightlyPricesCents: z
       .array(z.number().int())

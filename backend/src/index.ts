@@ -14,6 +14,7 @@ import availabilityRoutes from "./routes/availability.route";
 import bookingRoutes from "./routes/booking.route";
 import cancellationPolicyRoutes from "./routes/cancellation_policy.route";
 import contentRoutes from "./routes/content.route";
+import customerRoutes from "./routes/customer.route";
 import featureRoutes from "./routes/feature.route";
 import hotelRoutes from "./routes/hotel.route";
 import promoCodeRoutes from "./routes/promo_code.route";
@@ -88,6 +89,7 @@ app.route("/api", taxFeeRoutes);
 app.route("/api", cancellationPolicyRoutes);
 app.route("/api", promoCodeRoutes);
 app.route("/api", userRoutes);
+app.route("/api", customerRoutes);
 app.route("/api", authRoutes);
 app.route("/api", systemRoutes);
 
