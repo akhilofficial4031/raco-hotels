@@ -1,6 +1,7 @@
 export * from "./hotel";
 export * from "./hotel_image";
 export * from "./user";
+export * from "./customer";
 export * from "./amenity";
 export * from "./hotel_amenity";
 export * from "./room_type";

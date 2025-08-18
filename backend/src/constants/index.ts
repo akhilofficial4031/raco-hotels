@@ -29,6 +29,7 @@ export const USER_STATUS = {
 export const API_TAGS = {
   SYSTEM: "System",
   USERS: "Users",
+  CUSTOMERS: "Customers",
   AUTH: "Authentication",
   HOTELS: "Hotels",
   POLICIES: "Policies",

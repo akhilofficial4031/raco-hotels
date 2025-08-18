@@ -20,7 +20,7 @@ export const payment = sqliteTable(
         onUpdate: "cascade",
       }),
     amountCents: integer("amount_cents").notNull().default(0),
-    currencyCode: text("currency_code").notNull().default("USD"),
+    currencyCode: text("currency_code").notNull().default("INR"),
     status: text("status").notNull().default("pending"),
     method: text("method").notNull().default("card"),
     processor: text("processor").notNull().default("manual"),

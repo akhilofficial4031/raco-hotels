@@ -25,7 +25,7 @@ export const roomRate = sqliteTable(
       onUpdate: "cascade",
     }),
     priceCents: integer("price_cents").notNull().default(0),
-    currencyCode: text("currency_code").notNull().default("USD"),
+    currencyCode: text("currency_code").notNull().default("INR"),
     minStay: integer("min_stay"),
     maxStay: integer("max_stay"),
     closed: integer("closed").notNull().default(0),

@@ -1,4 +1,4 @@
-import { and, between, eq } from "drizzle-orm";
+import { and, between, eq, sql } from "drizzle-orm";
 
 import {
   booking as bookingTable,
@@ -20,8 +20,10 @@ import {
   PAYMENT_STATUS,
 } from "../constants";
 import { getDb } from "../db";
+import { CustomerService } from "./customer.service";
 import { BookingRepository } from "../repositories/booking.repository";
 import { BookingDraftRepository } from "../repositories/booking_draft.repository";
+import { CustomerRepository } from "../repositories/customer.repository";
 
 import type {
   CreateDraftBookingRequestSchema,
@@ -118,7 +120,7 @@ export class BookingService {
       checkOutDate: payload.checkOutDate,
       numAdults: payload.numAdults,
       numChildren: payload.numChildren,
-      currencyCode: "USD",
+      currencyCode: "INR",
       // contactEmail will be added later when available
       amounts: {
         baseAmountCents: baseTotal,
@@ -493,6 +495,321 @@ export class BookingService {
         hasNext: result.hasNext,
         hasPrev: result.hasPrev,
       },
+    };
+  }
+
+  /**
+   * Create a direct customer booking without using the draft system
+   * Used for front desk bookings, phone bookings, and walk-in customers
+   */
+  static async createDirectCustomerBooking(
+    db: D1Database,
+    payload: {
+      hotelId: number;
+      roomTypeId: number;
+      ratePlanId?: number | null;
+      checkInDate: string;
+      checkOutDate: string;
+      numAdults: number;
+      numChildren: number;
+      petsCount?: number;
+      promoCode?: string;
+
+      // Customer information
+      customerData: {
+        email: string;
+        fullName: string;
+        phone?: string;
+        alternatePhone?: string;
+        dateOfBirth?: string;
+        gender?: "male" | "female" | "other";
+        nationality?: string;
+        idType?: string;
+        idNumber?: string;
+        addressLine1?: string;
+        addressLine2?: string;
+        city?: string;
+        state?: string;
+        country?: string;
+        postalCode?: string;
+        dietaryPreferences?: string[];
+        specialRequests?: string[];
+        emergencyContactName?: string;
+        emergencyContactPhone?: string;
+        loyaltyNumber?: string;
+        marketingOptIn?: boolean;
+        notes?: string;
+      };
+
+      // Booking context
+      adminId?: number; // Admin creating the booking
+      source?: "web" | "front_office" | "phone" | "email" | "mobile_app";
+
+      // Payment information
+      isPrepaid?: boolean;
+      paymentMethod?: string;
+      paymentProcessor?: string;
+      processorPaymentId?: string;
+    },
+  ) {
+    const database = getDb(db);
+
+    // Step 1: Find or create customer
+    const customerResult = await CustomerService.findOrCreateCustomer(db, {
+      ...payload.customerData,
+      source: payload.source || "front_office",
+    });
+
+    const customer = customerResult.customer;
+
+    // Step 2: Validate inventory availability
+    const inv = await database
+      .select()
+      .from(roomInventory)
+      .where(
+        and(
+          eq(roomInventory.roomTypeId, payload.roomTypeId),
+          between(
+            roomInventory.date,
+            payload.checkInDate,
+            payload.checkOutDate,
+          ),
+          eq(roomInventory.closed, 0),
+        ),
+      );
+
+    if (!inv.length) {
+      throw new Error("booking.noAvailability");
+    }
+
+    // Check if any date has insufficient inventory
+    for (const invItem of inv) {
+      if (invItem.availableRooms <= 0) {
+        throw new Error("booking.insufficientInventory");
+      }
+    }
+
+    // Step 3: Calculate pricing
+    const rates = await database
+      .select({ priceCents: roomRate.priceCents, date: roomRate.date })
+      .from(roomRate)
+      .where(
+        and(
+          eq(roomRate.roomTypeId, payload.roomTypeId),
+          between(roomRate.date, payload.checkInDate, payload.checkOutDate),
+        ),
+      );
+
+    if (!rates.length) {
+      throw new Error("booking.pricingUnavailable");
+    }
+
+    const baseTotal = rates.reduce(
+      (acc, r) => acc + (r.priceCents as number),
+      0,
+    );
+
+    // Step 4: Calculate taxes and fees
+    const taxes = await database
+      .select()
+      .from(taxFeeTable)
+      .where(eq(taxFeeTable.hotelId, payload.hotelId));
+
+    let taxAmount = 0;
+    let feeAmount = 0;
+    for (const t of taxes as any[]) {
+      if (t.isActive !== 1) continue;
+      if (t.type === "percent") {
+        const basis = baseTotal;
+        const value = Math.round((basis * t.value) / 100);
+        if (t.name?.toLowerCase().includes("tax")) taxAmount += value;
+        else feeAmount += value;
+      } else if (t.type === "fixed") {
+        const nights = rates.length;
+        const persons = payload.numAdults + (payload.numChildren || 0);
+        let multiplier = 1;
+        if (t.scope === "per_night") multiplier = nights;
+        else if (t.scope === "per_person") multiplier = persons;
+        feeAmount += t.value * multiplier;
+      }
+    }
+
+    // Step 5: Handle promo code if provided
+    let discountAmount = 0;
+    let promoCodeData = null;
+
+    if (payload.promoCode) {
+      const promoCodes = await database
+        .select()
+        .from(promoCode)
+        .where(
+          and(
+            eq(promoCode.code, payload.promoCode),
+            eq(promoCode.hotelId, payload.hotelId),
+            eq(promoCode.isActive, 1),
+          ),
+        )
+        .limit(1);
+
+      if (!promoCodes.length) {
+        throw new Error("booking.invalidPromoCode");
+      }
+
+      promoCodeData = promoCodes[0] as any;
+
+      // Check validity and usage
+      const now = new Date().toISOString().split("T")[0];
+      if (promoCodeData.startDate && now < promoCodeData.startDate) {
+        throw new Error("booking.promoCodeNotYetValid");
+      }
+      if (promoCodeData.endDate && now > promoCodeData.endDate) {
+        throw new Error("booking.promoCodeExpired");
+      }
+      if (
+        promoCodeData.usageLimit &&
+        promoCodeData.usageCount >= promoCodeData.usageLimit
+      ) {
+        throw new Error("booking.promoCodeUsageLimitReached");
+      }
+
+      // Calculate discount
+      if (promoCodeData.type === "percent") {
+        discountAmount = Math.round((baseTotal * promoCodeData.value) / 100);
+      } else if (promoCodeData.type === "fixed") {
+        discountAmount = promoCodeData.value;
+      }
+
+      if (
+        promoCodeData.maxDiscountCents &&
+        discountAmount > promoCodeData.maxDiscountCents
+      ) {
+        discountAmount = promoCodeData.maxDiscountCents;
+      }
+    }
+
+    const finalTotalAmount = baseTotal + taxAmount + feeAmount - discountAmount;
+
+    // Step 6: Create booking
+    const bookingSource = payload.source || BOOKING_SOURCES.FRONT_OFFICE;
+
+    let notes = `Customer: ${customer.fullName}, Email: ${customer.email}`;
+    if (customer.phone) notes += `, Phone: ${customer.phone}`;
+    notes += `, Source: ${bookingSource}`;
+    if (payload.adminId) notes += `, Created by Admin ID: ${payload.adminId}`;
+    if (payload.isPrepaid) {
+      notes += `, Payment: ${payload.paymentMethod || "pending"} via ${payload.paymentProcessor || "manual"}`;
+    }
+
+    const newBooking = await database
+      .insert(bookingTable)
+      .values({
+        referenceCode: generateReferenceCode(),
+        hotelId: payload.hotelId,
+        userId: null, // Direct customer booking, no user account
+        customerId: customer.id,
+        adminId: payload.adminId || null,
+        status: BOOKING_STATUS.CONFIRMED,
+        source: bookingSource,
+        checkInDate: payload.checkInDate,
+        checkOutDate: payload.checkOutDate,
+        numAdults: payload.numAdults,
+        numChildren: payload.numChildren || 0,
+        totalAmountCents: finalTotalAmount,
+        currencyCode: "INR",
+        taxAmountCents: taxAmount,
+        feeAmountCents: feeAmount,
+        discountAmountCents: discountAmount,
+        balanceDueCents: payload.isPrepaid ? 0 : finalTotalAmount,
+        notes: notes,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as any)
+      .returning();
+
+    const booking = newBooking[0] as any;
+
+    // Step 7: Create booking items
+    for (const rate of rates) {
+      await database.insert(bookingItem).values({
+        bookingId: booking.id,
+        roomTypeId: payload.roomTypeId,
+        ratePlanId: payload.ratePlanId || null,
+        date: rate.date,
+        priceCents: rate.priceCents,
+        taxAmountCents: Math.round((rate.priceCents * taxAmount) / baseTotal),
+        feeAmountCents: Math.round((rate.priceCents * feeAmount) / baseTotal),
+        createdAt: new Date().toISOString(),
+      } as any);
+    }
+
+    // Step 8: Handle promo code usage
+    if (promoCodeData && discountAmount > 0) {
+      await database.insert(bookingPromotion).values({
+        bookingId: booking.id,
+        promoCodeId: promoCodeData.id,
+        amountCents: discountAmount,
+        createdAt: new Date().toISOString(),
+      } as any);
+
+      // Update promo code usage count
+      await database
+        .update(promoCode)
+        .set({
+          usageCount: promoCodeData.usageCount + 1,
+          updatedAt: new Date().toISOString(),
+        } as any)
+        .where(eq(promoCode.id, promoCodeData.id));
+    }
+
+    // Step 9: Update room inventory
+    const uniqueDates = [...new Set(rates.map((r: any) => r.date))];
+    for (const date of uniqueDates) {
+      await database
+        .update(roomInventory)
+        .set({
+          availableRooms: sql`${roomInventory.availableRooms} - 1`,
+          updatedAt: new Date().toISOString(),
+        } as any)
+        .where(
+          and(
+            eq(roomInventory.roomTypeId, payload.roomTypeId),
+            eq(roomInventory.date, date),
+          ),
+        );
+    }
+
+    // Step 10: Create payment record if prepaid
+    if (payload.isPrepaid) {
+      let paymentStatus: string = PAYMENT_STATUS.SUCCEEDED;
+      if (
+        payload.paymentMethod === PAYMENT_METHODS.PENDING ||
+        payload.paymentMethod === PAYMENT_METHODS.CASH ||
+        payload.paymentProcessor === PAYMENT_PROCESSORS.MANUAL ||
+        payload.paymentProcessor === PAYMENT_PROCESSORS.FRONT_OFFICE
+      ) {
+        paymentStatus = PAYMENT_STATUS.PENDING;
+      }
+
+      await database.insert(payment).values({
+        bookingId: booking.id,
+        amountCents: finalTotalAmount,
+        currencyCode: "INR",
+        status: paymentStatus,
+        method: payload.paymentMethod || PAYMENT_METHODS.PENDING,
+        processor: payload.paymentProcessor || PAYMENT_PROCESSORS.MANUAL,
+        processorPaymentId: payload.processorPaymentId || null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      } as any);
+    }
+
+    // Step 11: Update customer's last booking timestamp
+    await CustomerRepository.updateLastBookingAt(db, customer.id);
+
+    return {
+      booking,
+      customer,
+      isNewCustomer: customerResult.isNew,
     };
   }
 }

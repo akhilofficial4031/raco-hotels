@@ -11,6 +11,8 @@ import type {
 export interface DatabaseBooking extends HotelScopedEntity {
   referenceCode: string;
   userId: number | null;
+  customerId: number | null; // For direct customer bookings
+  adminId: number | null; // Admin who created the booking (for direct bookings)
   roomTypeId: number;
   roomId: number | null;
   checkInDate: string;
@@ -36,6 +38,8 @@ export interface CreateBookingData {
   referenceCode: string;
   hotelId: number;
   userId?: number | null;
+  customerId?: number | null; // For direct customer bookings
+  adminId?: number | null; // Admin who created the booking
   roomTypeId: number;
   checkInDate: string;
   checkOutDate: string;
