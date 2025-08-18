@@ -1,4 +1,5 @@
 import { Outlet } from "react-router";
+
 import { Header, Sidebar } from "../components";
 import { useSidebar } from "../hooks/useSidebar";
 
@@ -16,7 +17,8 @@ export default function AuthLayout() {
       >
         <Sidebar />
         <Header />
-        <div className="mt-16 p-3">
+        <div className="mt-16 p-6">
+          {/* <Breadcrumbs /> */}
           <Outlet />
         </div>
       </main>

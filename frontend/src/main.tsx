@@ -1,12 +1,12 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App";
 import { RouterProvider } from "react-router";
+import { SWRConfig } from "swr";
+
+import "./index.css";
 import router from "./routes";
 import { SidebarProvider } from "./shared/providers/SidebarProvider";
 import { fetcher } from "./utils/swrFetcher";
-import { SWRConfig } from "swr";
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {

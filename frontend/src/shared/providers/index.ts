@@ -1,2 +1,2 @@
 // Providers exports
-export { SidebarProvider } from './SidebarProvider';
+export { SidebarProvider } from "./SidebarProvider";

@@ -57,6 +57,8 @@ export const mutationFetcher = async <TResponse = unknown, TBody = unknown>(
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      "X-CSRF-Token":
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiY3NyZiIsInRpbWVzdGFtcCI6MTc1NTUwMjY1OTI5MiwiaWF0IjoxNzU1NTAyNjU5LCJleHAiOjE3NTU1MDYyNTl9.mmqV35KErReume_tA6byg6iw8BLwIKe2gAVSrj3p2tA",
       ...headers,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,

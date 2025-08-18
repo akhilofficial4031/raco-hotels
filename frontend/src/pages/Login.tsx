@@ -1,9 +1,10 @@
 import { Button, Input, Alert } from "antd";
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
-import { mutationFetcher, APIError } from "../utils/swrFetcher";
-import { useState } from "react";
-import { LoginRequest, LoginResponse } from "../shared/models/login";
+
+import { type LoginRequest, type LoginResponse } from "../shared/models/login";
+import { mutationFetcher, type APIError } from "../utils/swrFetcher";
 
 const Login = () => {
   const {
