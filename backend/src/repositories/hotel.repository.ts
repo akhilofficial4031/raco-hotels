@@ -3,6 +3,10 @@ import { and, count, desc, like, or, eq } from "drizzle-orm";
 import {
   hotel as hotelTable,
   hotelImage as hotelImageTable,
+  hotelFeature as hotelFeatureTable,
+  hotelAmenity as hotelAmenityTable,
+  feature as featureTable,
+  amenity as amenityTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
 
@@ -14,7 +18,10 @@ import type {
   UpdateHotelData,
   DatabaseHotelImage,
   CreateHotelImageData,
+  DatabaseHotelWithRelations,
 } from "../types";
+import type { DatabaseFeature } from "../types/feature.interface";
+import type { DatabaseAmenity } from "../types/amenity.interface";
 
 export class HotelRepository {
   static async findAll(
@@ -236,5 +243,98 @@ export class HotelRepository {
 
     const images = await this.findImagesByHotelId(db, id);
     return { hotel, images };
+  }
+
+  static async findFeaturesByHotelId(
+    db: D1Database,
+    hotelId: number,
+  ): Promise<DatabaseFeature[]> {
+    const database = getDb(db);
+    const rows = await database
+      .select({
+        id: featureTable.id,
+        code: featureTable.code,
+        name: featureTable.name,
+        description: featureTable.description,
+        isVisible: featureTable.isVisible,
+        sortOrder: featureTable.sortOrder,
+        createdAt: featureTable.createdAt,
+        updatedAt: featureTable.updatedAt,
+      })
+      .from(hotelFeatureTable)
+      .innerJoin(featureTable, eq(hotelFeatureTable.featureId, featureTable.id))
+      .where(eq(hotelFeatureTable.hotelId, hotelId))
+      .orderBy(featureTable.sortOrder, featureTable.name);
+    return rows as DatabaseFeature[];
+  }
+
+  static async findAmenitiesByHotelId(
+    db: D1Database,
+    hotelId: number,
+  ): Promise<DatabaseAmenity[]> {
+    const database = getDb(db);
+    const rows = await database
+      .select({
+        id: amenityTable.id,
+        code: amenityTable.code,
+        name: amenityTable.name,
+        icon: amenityTable.icon,
+        createdAt: amenityTable.createdAt,
+        updatedAt: amenityTable.updatedAt,
+      })
+      .from(hotelAmenityTable)
+      .innerJoin(amenityTable, eq(hotelAmenityTable.amenityId, amenityTable.id))
+      .where(eq(hotelAmenityTable.hotelId, hotelId))
+      .orderBy(amenityTable.name);
+    return rows as DatabaseAmenity[];
+  }
+
+  static async findHotelWithAllRelations(
+    db: D1Database,
+    id: number,
+  ): Promise<DatabaseHotelWithRelations | null> {
+    const hotel = await this.findById(db, id);
+    if (!hotel) return null;
+
+    const [images, features, amenities] = await Promise.all([
+      this.findImagesByHotelId(db, id),
+      this.findFeaturesByHotelId(db, id),
+      this.findAmenitiesByHotelId(db, id),
+    ]);
+
+    return {
+      ...hotel,
+      images,
+      features,
+      amenities,
+    };
+  }
+
+  static async findAllWithBasicRelations(
+    db: D1Database,
+    filters: HotelFilters = {},
+    pagination: PaginationParams = {},
+  ): Promise<{ hotels: DatabaseHotelWithRelations[]; total: number }> {
+    const { hotels, total } = await this.findAll(db, filters, pagination);
+
+    // For list view, we can get images, features, and amenities for all hotels
+    const hotelsWithRelations: DatabaseHotelWithRelations[] = await Promise.all(
+      hotels.map(async (hotel) => {
+        const [images, features, amenities] = await Promise.all([
+          this.findImagesByHotelId(db, hotel.id),
+          this.findFeaturesByHotelId(db, hotel.id),
+          this.findAmenitiesByHotelId(db, hotel.id),
+        ]);
+
+        return {
+          ...hotel,
+          images,
+          features,
+          amenities,
+        };
+      }),
+    );
+
+    return { hotels: hotelsWithRelations, total };
   }
 }

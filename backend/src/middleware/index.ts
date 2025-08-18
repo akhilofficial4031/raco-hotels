@@ -10,3 +10,4 @@ export {
 } from "./rbac";
 export { csrfMiddleware } from "./csrf";
 export { securityHeadersMiddleware, rateLimitMiddleware } from "./security";
+export { globalAuthMiddleware } from "./public-routes";

@@ -9,7 +9,9 @@ export const ReviewSchema = z
     rating: z.number().int().min(1).max(5).openapi({ example: 5 }),
     title: z.string().nullable().openapi({ example: "Great stay" }),
     body: z.string().nullable().openapi({ example: "Clean and comfy" }),
-    status: z.string().openapi({ example: "pending" }),
+    status: z
+      .enum(["pending", "approved", "rejected", "hidden"])
+      .openapi({ example: "pending" }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     publishedAt: z
       .string()
@@ -26,7 +28,10 @@ export const CreateReviewRequestSchema = z
     rating: z.number().int().min(1).max(5).openapi({ example: 5 }),
     title: z.string().optional().openapi({ example: "Great stay" }),
     body: z.string().optional().openapi({ example: "Clean and comfy" }),
-    status: z.string().optional().openapi({ example: "pending" }),
+    status: z
+      .enum(["pending", "approved", "rejected", "hidden"])
+      .optional()
+      .openapi({ example: "pending" }),
     publishedAt: z
       .string()
       .optional()
@@ -59,7 +64,10 @@ export const ReviewQueryParamsSchema = z
       .transform((v) => (v ? parseInt(v, 10) : 10))
       .openapi({ example: "10" }),
     hotelId: z.string().optional().openapi({ example: "1" }),
-    status: z.string().optional().openapi({ example: "approved" }),
+    status: z
+      .enum(["pending", "approved", "rejected", "hidden"])
+      .optional()
+      .openapi({ example: "approved" }),
   })
   .openapi("ReviewQueryParams");
 

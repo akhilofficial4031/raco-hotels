@@ -3,28 +3,13 @@ import { and, count, desc, eq, like } from "drizzle-orm";
 import { room as roomTable } from "../../drizzle/schema";
 import { getDb } from "../db";
 
-import type { DatabaseRoom } from "../types";
-
-export interface RoomFilters {
-  hotelId?: number;
-  roomTypeId?: number;
-  status?: string;
-  isActive?: number;
-  search?: string;
-}
-
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-}
-
-export interface CreateRoomData extends Partial<DatabaseRoom> {
-  hotelId: number;
-  roomTypeId: number;
-  roomNumber: string;
-}
-
-export type UpdateRoomData = Partial<CreateRoomData>;
+import type {
+  DatabaseRoom,
+  RoomFilters,
+  PaginationParams,
+  CreateRoomData,
+  UpdateRoomData,
+} from "../types";
 
 export class RoomRepository {
   static async findAll(
@@ -145,5 +130,18 @@ export class RoomRepository {
       .where(eq(roomTable.id, id))
       .returning();
     return rows.length > 0;
+  }
+
+  static async findByRoomTypeId(
+    db: D1Database,
+    roomTypeId: number,
+  ): Promise<DatabaseRoom[]> {
+    const database = getDb(db);
+    const rows = await database
+      .select()
+      .from(roomTable)
+      .where(eq(roomTable.roomTypeId, roomTypeId))
+      .orderBy(roomTable.roomNumber);
+    return rows as any;
   }
 }

@@ -9,16 +9,7 @@ import {
   amenity as amenityTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
-
-export interface AvailabilityFilters {
-  hotelId?: number;
-  roomTypeId?: number;
-  minPriceCents?: number;
-  maxPriceCents?: number;
-  amenityCodes?: string[];
-  guestCount?: number;
-  petsAllowed?: number; // reserved for future use
-}
+import { type AvailabilityFilters } from "../types/availability.interface";
 
 export class AvailabilityRepository {
   static async findAvailableRoomTypes(

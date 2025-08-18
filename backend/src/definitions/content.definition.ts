@@ -1,4 +1,4 @@
-import { ApiTags, createAuthenticatedRoute } from "../lib/openapi";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   ContentBlocksListResponseSchema,
   ContentBlockPathParamsSchema,
@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 export const ContentRouteDefinitions = {
-  getContentBlocks: createAuthenticatedRoute({
+  getContentBlocks: createRoute({
     method: "get",
     path: "/content-blocks",
     summary: "Get content blocks",
@@ -20,7 +20,7 @@ export const ContentRouteDefinitions = {
     querySchema: ContentBlockQueryParamsSchema,
     includeBadRequest: true,
   }),
-  getContentBlockById: createAuthenticatedRoute({
+  getContentBlockById: createRoute({
     method: "get",
     path: "/content-blocks/{id}",
     summary: "Get content block",
@@ -31,7 +31,7 @@ export const ContentRouteDefinitions = {
     paramsSchema: ContentBlockPathParamsSchema,
     includeNotFound: true,
   }),
-  createContentBlock: createAuthenticatedRoute({
+  createContentBlock: createRoute({
     method: "post",
     path: "/content-blocks",
     summary: "Create content block",
@@ -42,7 +42,7 @@ export const ContentRouteDefinitions = {
     requestSchema: CreateContentBlockRequestSchema,
     includeBadRequest: true,
   }),
-  updateContentBlock: createAuthenticatedRoute({
+  updateContentBlock: createRoute({
     method: "put",
     path: "/content-blocks/{id}",
     summary: "Update content block",
@@ -55,7 +55,7 @@ export const ContentRouteDefinitions = {
     includeBadRequest: true,
     includeNotFound: true,
   }),
-  deleteContentBlock: createAuthenticatedRoute({
+  deleteContentBlock: createRoute({
     method: "delete",
     path: "/content-blocks/{id}",
     summary: "Delete content block",

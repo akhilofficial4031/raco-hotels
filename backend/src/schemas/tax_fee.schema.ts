@@ -31,7 +31,9 @@ export const CreateTaxFeeRequestSchema = z
       example: 1800,
       description: "percent 0..100 or paise for fixed",
     }),
-    scope: z.string().openapi({ example: "per_night" }),
+    scope: z
+      .enum(["per_stay", "per_night", "per_person"])
+      .openapi({ example: "per_night" }),
     includedInPrice: z.number().int().optional().openapi({ example: 0 }),
     isActive: z.number().int().optional().openapi({ example: 1 }),
   })

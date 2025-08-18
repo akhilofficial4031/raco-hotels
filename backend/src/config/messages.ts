@@ -79,6 +79,33 @@ export interface Messages {
     notFound: string;
   };
 
+  // Booking management messages
+  booking: {
+    created: string;
+    updated: string;
+    deleted: string;
+    retrieved: string;
+    listRetrieved: string;
+    notFound: string;
+    confirmed: string;
+    cancelled: string;
+    draftNotFound: string;
+    draftConverted: string;
+    insufficientInventory: string;
+    invalidPromoCode: string;
+    promoCodeExpired: string;
+    promoCodeUsageLimitReached: string;
+    missingGuestInfo: string;
+    invalidDateRange: string;
+    paymentRequired: string;
+    paymentProcessed: string;
+    inventoryReserved: string;
+    transactionFailed: string;
+    pendingRetrieved: string;
+    noPendingFound: string;
+    expiringSoon: string;
+  };
+
   // Operation messages
   operation: {
     fetchUsersFailed: string;
@@ -96,6 +123,11 @@ export interface Messages {
     refreshTokenFailed: string;
     revokeAllSessionsFailed: string;
     verifyAuthFailed: string;
+    confirmBookingFailed: string;
+    convertDraftFailed: string;
+    createDraftFailed: string;
+    processPaymentFailed: string;
+    fetchPendingBookingsFailed: string;
   };
 
   // Validation messages
@@ -119,6 +151,11 @@ export interface Messages {
     validationError: string;
     internalError: string;
     notFound: string;
+    bookingNotFound: string;
+    draftNotFound: string;
+    insufficientInventory: string;
+    invalidPromoCode: string;
+    transactionFailed: string;
   };
 }
 
@@ -194,6 +231,32 @@ const enMessages: Messages = {
     notFound: "Hotel not found",
   },
 
+  booking: {
+    created: "Booking created successfully",
+    updated: "Booking updated successfully",
+    deleted: "Booking deleted successfully",
+    retrieved: "Booking retrieved successfully",
+    listRetrieved: "Bookings retrieved successfully",
+    notFound: "Booking not found",
+    confirmed: "Booking confirmed successfully",
+    cancelled: "Booking cancelled successfully",
+    draftNotFound: "Booking draft not found",
+    draftConverted: "Booking draft converted successfully",
+    insufficientInventory: "Insufficient room availability for selected dates",
+    invalidPromoCode: "Invalid or inactive promo code",
+    promoCodeExpired: "Promo code has expired",
+    promoCodeUsageLimitReached: "Promo code usage limit has been reached",
+    missingGuestInfo: "Required guest information is missing",
+    invalidDateRange: "Invalid check-in or check-out date",
+    paymentRequired: "Payment is required to confirm booking",
+    paymentProcessed: "Payment processed successfully",
+    inventoryReserved: "Room inventory reserved successfully",
+    transactionFailed: "Transaction failed, please try again",
+    pendingRetrieved: "Pending bookings retrieved successfully",
+    noPendingFound: "No pending bookings found",
+    expiringSoon: "This booking draft is expiring soon",
+  },
+
   operation: {
     fetchUsersFailed: "Failed to fetch users",
     fetchUserFailed: "Failed to fetch user",
@@ -210,6 +273,11 @@ const enMessages: Messages = {
     refreshTokenFailed: "Failed to refresh token",
     revokeAllSessionsFailed: "Failed to revoke all sessions",
     verifyAuthFailed: "Failed to verify authentication",
+    confirmBookingFailed: "Failed to confirm booking",
+    convertDraftFailed: "Failed to convert booking draft",
+    createDraftFailed: "Failed to create booking draft",
+    processPaymentFailed: "Failed to process payment",
+    fetchPendingBookingsFailed: "Failed to fetch pending bookings",
   },
 
   validation: {
@@ -231,6 +299,11 @@ const enMessages: Messages = {
     validationError: "VALIDATION_ERROR",
     internalError: "INTERNAL_ERROR",
     notFound: "NOT_FOUND",
+    bookingNotFound: "BOOKING_NOT_FOUND",
+    draftNotFound: "DRAFT_NOT_FOUND",
+    insufficientInventory: "INSUFFICIENT_INVENTORY",
+    invalidPromoCode: "INVALID_PROMO_CODE",
+    transactionFailed: "TRANSACTION_FAILED",
   },
 };
 
@@ -309,6 +382,34 @@ const esMessages: Messages = {
     notFound: "Hotel no encontrado",
   },
 
+  booking: {
+    created: "Reserva creada exitosamente",
+    updated: "Reserva actualizada exitosamente",
+    deleted: "Reserva eliminada exitosamente",
+    retrieved: "Reserva obtenida exitosamente",
+    listRetrieved: "Reservas obtenidas exitosamente",
+    notFound: "Reserva no encontrada",
+    confirmed: "Reserva confirmada exitosamente",
+    cancelled: "Reserva cancelada exitosamente",
+    draftNotFound: "Borrador de reserva no encontrado",
+    draftConverted: "Borrador de reserva convertido exitosamente",
+    insufficientInventory:
+      "Disponibilidad insuficiente para las fechas seleccionadas",
+    invalidPromoCode: "Código promocional inválido o inactivo",
+    promoCodeExpired: "El código promocional ha expirado",
+    promoCodeUsageLimitReached:
+      "Se ha alcanzado el límite de uso del código promocional",
+    missingGuestInfo: "Información requerida del huésped faltante",
+    invalidDateRange: "Fecha de entrada o salida inválida",
+    paymentRequired: "Se requiere pago para confirmar la reserva",
+    paymentProcessed: "Pago procesado exitosamente",
+    inventoryReserved: "Inventario de habitaciones reservado exitosamente",
+    transactionFailed: "Transacción fallida, por favor inténtelo de nuevo",
+    pendingRetrieved: "Reservas pendientes obtenidas exitosamente",
+    noPendingFound: "No se encontraron reservas pendientes",
+    expiringSoon: "Esta reserva está próxima a expirar",
+  },
+
   operation: {
     fetchUsersFailed: "Error al obtener usuarios",
     fetchUserFailed: "Error al obtener usuario",
@@ -325,6 +426,11 @@ const esMessages: Messages = {
     refreshTokenFailed: "Error al actualizar token",
     revokeAllSessionsFailed: "Error al revocar todas las sesiones",
     verifyAuthFailed: "Error al verificar autenticación",
+    confirmBookingFailed: "Error al confirmar reserva",
+    convertDraftFailed: "Error al convertir borrador de reserva",
+    createDraftFailed: "Error al crear borrador de reserva",
+    processPaymentFailed: "Error al procesar pago",
+    fetchPendingBookingsFailed: "Error al obtener reservas pendientes",
   },
 
   validation: {
@@ -346,6 +452,11 @@ const esMessages: Messages = {
     validationError: "VALIDATION_ERROR",
     internalError: "INTERNAL_ERROR",
     notFound: "NOT_FOUND",
+    bookingNotFound: "BOOKING_NOT_FOUND",
+    draftNotFound: "DRAFT_NOT_FOUND",
+    insufficientInventory: "INSUFFICIENT_INVENTORY",
+    invalidPromoCode: "INVALID_PROMO_CODE",
+    transactionFailed: "TRANSACTION_FAILED",
   },
 };
 
@@ -425,6 +536,34 @@ const frMessages: Messages = {
     notFound: "Hôtel non trouvé",
   },
 
+  booking: {
+    created: "Réservation créée avec succès",
+    updated: "Réservation mise à jour avec succès",
+    deleted: "Réservation supprimée avec succès",
+    retrieved: "Réservation récupérée avec succès",
+    listRetrieved: "Réservations récupérées avec succès",
+    notFound: "Réservation non trouvée",
+    confirmed: "Réservation confirmée avec succès",
+    cancelled: "Réservation annulée avec succès",
+    draftNotFound: "Brouillon de réservation non trouvé",
+    draftConverted: "Brouillon de réservation converti avec succès",
+    insufficientInventory:
+      "Disponibilité insuffisante pour les dates sélectionnées",
+    invalidPromoCode: "Code promo invalide ou inactif",
+    promoCodeExpired: "Le code promo a expiré",
+    promoCodeUsageLimitReached:
+      "La limite d'utilisation du code promo a été atteinte",
+    missingGuestInfo: "Informations client requises manquantes",
+    invalidDateRange: "Date d'arrivée ou de départ invalide",
+    paymentRequired: "Paiement requis pour confirmer la réservation",
+    paymentProcessed: "Paiement traité avec succès",
+    inventoryReserved: "Inventaire des chambres réservé avec succès",
+    transactionFailed: "Transaction échouée, veuillez réessayer",
+    pendingRetrieved: "Réservations en attente récupérées avec succès",
+    noPendingFound: "Aucune réservation en attente trouvée",
+    expiringSoon: "Cette réservation est proche de l'expiration",
+  },
+
   operation: {
     fetchUsersFailed: "Échec de la récupération des utilisateurs",
     fetchUserFailed: "Échec de la récupération de l'utilisateur",
@@ -441,6 +580,12 @@ const frMessages: Messages = {
     refreshTokenFailed: "Échec du rafraîchissement du token",
     revokeAllSessionsFailed: "Échec de la révocation de toutes les sessions",
     verifyAuthFailed: "Échec de la vérification de l'authentification",
+    confirmBookingFailed: "Échec de la confirmation de réservation",
+    convertDraftFailed: "Échec de la conversion du brouillon de réservation",
+    createDraftFailed: "Échec de la création du brouillon de réservation",
+    processPaymentFailed: "Échec du traitement du paiement",
+    fetchPendingBookingsFailed:
+      "Échec de la récupération des réservations en attente",
   },
 
   validation: {
@@ -462,14 +607,61 @@ const frMessages: Messages = {
     validationError: "VALIDATION_ERROR",
     internalError: "INTERNAL_ERROR",
     notFound: "NOT_FOUND",
+    bookingNotFound: "BOOKING_NOT_FOUND",
+    draftNotFound: "DRAFT_NOT_FOUND",
+    insufficientInventory: "INSUFFICIENT_INVENTORY",
+    invalidPromoCode: "INVALID_PROMO_CODE",
+    transactionFailed: "TRANSACTION_FAILED",
+  },
+};
+
+// Spanish messages (simplified for now - using English fallbacks for booking)
+const esMessagesComplete: Messages = {
+  ...esMessages,
+  booking: enMessages.booking,
+  operation: {
+    ...esMessages.operation,
+    confirmBookingFailed: "Failed to confirm booking",
+    convertDraftFailed: "Failed to convert booking draft",
+    createDraftFailed: "Failed to create booking draft",
+    processPaymentFailed: "Failed to process payment",
+  },
+  errorCodes: {
+    ...esMessages.errorCodes,
+    bookingNotFound: "BOOKING_NOT_FOUND",
+    draftNotFound: "DRAFT_NOT_FOUND",
+    insufficientInventory: "INSUFFICIENT_INVENTORY",
+    invalidPromoCode: "INVALID_PROMO_CODE",
+    transactionFailed: "TRANSACTION_FAILED",
+  },
+};
+
+// French messages (simplified for now - using English fallbacks for booking)
+const frMessagesComplete: Messages = {
+  ...frMessages,
+  booking: enMessages.booking,
+  operation: {
+    ...frMessages.operation,
+    confirmBookingFailed: "Failed to confirm booking",
+    convertDraftFailed: "Failed to convert booking draft",
+    createDraftFailed: "Failed to create booking draft",
+    processPaymentFailed: "Failed to process payment",
+  },
+  errorCodes: {
+    ...frMessages.errorCodes,
+    bookingNotFound: "BOOKING_NOT_FOUND",
+    draftNotFound: "DRAFT_NOT_FOUND",
+    insufficientInventory: "INSUFFICIENT_INVENTORY",
+    invalidPromoCode: "INVALID_PROMO_CODE",
+    transactionFailed: "TRANSACTION_FAILED",
   },
 };
 
 // Message collections by locale
 const messageCollections: Record<SupportedLocale, Messages> = {
   en: enMessages,
-  es: esMessages,
-  fr: frMessages,
+  es: esMessagesComplete,
+  fr: frMessagesComplete,
   de: enMessages, // Fallback to English for now
   ja: enMessages, // Fallback to English for now
   zh: enMessages, // Fallback to English for now

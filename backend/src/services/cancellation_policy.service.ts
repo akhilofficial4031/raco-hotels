@@ -35,6 +35,7 @@ export class CancellationPolicyService {
     }
     const updated = await CancellationPolicyRepository.update(db, id, {
       ...data,
+      penaltyType: data.penaltyType ?? null,
     });
     if (!updated) {
       throw new Error("Cancellation policy not found");

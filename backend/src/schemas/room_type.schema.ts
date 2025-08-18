@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { RoomSchema } from "./room_unit.schema";
 
 // Room Type Image Schema
 export const RoomTypeImageSchema = z
@@ -41,7 +42,7 @@ export const RoomTypeSchema = z
     currencyCode: z.string().openapi({ example: "USD" }),
     sizeSqft: z.number().int().nullable().openapi({ example: 350 }),
     bedType: z.string().nullable().openapi({ example: "King" }),
-    smokingAllowed: z.boolean().openapi({ example: false }),
+    smokingAllowed: z.number().int().openapi({ example: 0 }),
     totalRooms: z.number().int().openapi({ example: 10 }),
     isActive: z.number().int().openapi({ example: 1 }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
@@ -62,6 +63,9 @@ export const RoomTypeWithRelationsSchema = RoomTypeSchema.extend({
       }),
     )
     .openapi({ description: "Room type amenities" }),
+  rooms: z
+    .array(RoomSchema)
+    .openapi({ description: "Individual room units of this room type" }),
 }).openapi("RoomTypeWithRelations");
 
 export const CreateRoomTypeRequestSchema = z
@@ -79,7 +83,7 @@ export const CreateRoomTypeRequestSchema = z
     currencyCode: z.string().optional().openapi({ example: "USD" }),
     sizeSqft: z.number().int().optional().openapi({ example: 350 }),
     bedType: z.string().optional().openapi({ example: "King" }),
-    smokingAllowed: z.boolean().optional().openapi({ example: false }),
+    smokingAllowed: z.number().int().optional().openapi({ example: 0 }),
     totalRooms: z.number().int().optional().openapi({ example: 10 }),
     isActive: z.number().int().optional().openapi({ example: 1 }),
     amenityIds: z
@@ -149,7 +153,7 @@ export const RoomTypesListResponseSchema = z
   .object({
     success: z.boolean(),
     data: z.object({
-      roomTypes: z.array(RoomTypeSchema),
+      roomTypes: z.array(RoomTypeWithRelationsSchema),
       pagination: z
         .object({
           page: z.number(),

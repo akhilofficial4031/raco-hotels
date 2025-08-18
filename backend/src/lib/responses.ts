@@ -275,6 +275,15 @@ export class HotelResponse {
     );
   }
 
+  // Hotel with all relations response
+  static hotelWithAllRelationsRetrieved(c: Context, hotel: any) {
+    return createLocalizedResponse(
+      c,
+      { hotel },
+      "hotel.retrievedWithAllRelations",
+    );
+  }
+
   // Hotel image responses
   static hotelImageAdded(c: Context, image: any) {
     return createLocalizedResponse(

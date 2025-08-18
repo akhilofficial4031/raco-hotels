@@ -11,9 +11,9 @@ export const CancellationPolicySchema = z
       .openapi({ example: "Free cancellation up to 24h" }),
     freeCancelUntilHours: z.number().int().nullable().openapi({ example: 24 }),
     penaltyType: z
-      .enum(["percentage", "fixed"]) // underlying DB is text; constrain via schema
+      .enum(["percent", "fixed"]) // underlying DB is text; constrain via schema
       .nullable()
-      .openapi({ example: "percentage" }),
+      .openapi({ example: "percent" }),
     penaltyValue: z.number().int().nullable().openapi({ example: 50 }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     updatedAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
@@ -35,7 +35,7 @@ export const CreateCancellationPolicyRequestSchema = z
       .nullable()
       .openapi({ example: 24 })
       .optional(),
-    penaltyType: z.enum(["percentage", "fixed"]).nullable().optional(),
+    penaltyType: z.enum(["percent", "fixed"]).nullable().optional(),
     penaltyValue: z.number().int().nullable().optional(),
   })
   .openapi("CreateCancellationPolicyRequest");
@@ -54,7 +54,7 @@ export const UpdateCancellationPolicyRequestSchema = z
       .nullable()
       .openapi({ example: 24 })
       .optional(),
-    penaltyType: z.enum(["percentage", "fixed"]).nullable().optional(),
+    penaltyType: z.enum(["percent", "fixed"]).nullable().optional(),
     penaltyValue: z.number().int().nullable().optional(),
   })
   .openapi("UpdateCancellationPolicyRequest");

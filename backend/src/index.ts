@@ -1,6 +1,7 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
+import { HTTPException } from "hono/http-exception";
 
 // Import OpenAPI configuration
 import { apiInfo } from "./lib/api-info";
@@ -100,6 +101,8 @@ app.get(
   "/swagger-ui",
   swaggerUI({
     url: "/openapi.json",
+    persistAuthorization: true,
+    tryItOutEnabled: true,
   }),
 );
 
@@ -108,12 +111,16 @@ app.get(
   "/docs",
   swaggerUI({
     url: "/openapi.json",
+    persistAuthorization: true,
+    tryItOutEnabled: true,
   }),
 );
 app.get(
   "/api-docs",
   swaggerUI({
     url: "/openapi.json",
+    persistAuthorization: true,
+    tryItOutEnabled: true,
   }),
 );
 
@@ -140,6 +147,12 @@ app.get("/api-info", apiInfo);
 app.onError((err, c) => {
   console.error(`[${new Date().toISOString()}] Global Error:`, err);
 
+  // If it's an HTTPException with a proper status code, preserve it
+  if (err instanceof HTTPException) {
+    return err.getResponse();
+  }
+
+  // For other errors, return 500
   const errorMessage = getLocalizedMessage(c, "system.unexpectedError");
   const errorCode = getLocalizedMessage(c, "errorCodes.internalError");
 

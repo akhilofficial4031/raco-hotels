@@ -1,4 +1,4 @@
-import { createAuthenticatedRoute, ApiTags } from "../lib/openapi";
+import { createRoute, ApiTags } from "../lib/route-wrapper";
 import {
   UserResponseSchema,
   UsersListResponseSchema,
@@ -12,8 +12,11 @@ import {
 } from "../schemas";
 
 export const UserRouteDefinitions = {
-  // GET /users - Get all users (Admin only)
-  getUsers: createAuthenticatedRoute({
+  // All routes now use createRoute() - it automatically determines public vs authenticated
+  // based on PUBLIC_ROUTES configuration in config/routes.ts
+
+  // GET /users - Automatically determined based on PUBLIC_ROUTES
+  getUsers: createRoute({
     method: "get",
     path: "/users",
     summary: "Get all users",
@@ -26,8 +29,8 @@ export const UserRouteDefinitions = {
     includeBadRequest: true,
   }),
 
-  // GET /users/{id} - Get user by ID (Admin only)
-  getUserById: createAuthenticatedRoute({
+  // GET /users/{id} - Automatically determined based on PUBLIC_ROUTES
+  getUserById: createRoute({
     method: "get",
     path: "/users/{id}",
     summary: "Get user by ID",
@@ -40,8 +43,8 @@ export const UserRouteDefinitions = {
     includeBadRequest: true,
   }),
 
-  // POST /users - Create new user (Admin only)
-  createUser: createAuthenticatedRoute({
+  // POST /users - Automatically determined based on PUBLIC_ROUTES
+  createUser: createRoute({
     method: "post",
     path: "/users",
     summary: "Create new user",
@@ -55,8 +58,8 @@ export const UserRouteDefinitions = {
     includeConflict: true,
   }),
 
-  // PUT /users/{id} - Update user (Admin only)
-  updateUser: createAuthenticatedRoute({
+  // PUT /users/{id} - Automatically determined based on PUBLIC_ROUTES
+  updateUser: createRoute({
     method: "put",
     path: "/users/{id}",
     summary: "Update user",
@@ -73,7 +76,7 @@ export const UserRouteDefinitions = {
   }),
 
   // DELETE /users/{id} - Delete user (Admin only)
-  deleteUser: createAuthenticatedRoute({
+  deleteUser: createRoute({
     method: "delete",
     path: "/users/{id}",
     summary: "Delete user",
@@ -86,7 +89,7 @@ export const UserRouteDefinitions = {
   }),
 
   // PATCH /users/{id}/status - Toggle user status (Admin only)
-  toggleUserStatus: createAuthenticatedRoute({
+  toggleUserStatus: createRoute({
     method: "patch",
     path: "/users/{id}/status",
     summary: "Toggle user status",
@@ -99,7 +102,7 @@ export const UserRouteDefinitions = {
   }),
 
   // GET /users/search - Search users (Admin only)
-  searchUsers: createAuthenticatedRoute({
+  searchUsers: createRoute({
     method: "get",
     path: "/users/search",
     summary: "Search users",
@@ -112,7 +115,7 @@ export const UserRouteDefinitions = {
   }),
 
   // GET /users/stats - Get user statistics (Admin only)
-  getUserStats: createAuthenticatedRoute({
+  getUserStats: createRoute({
     method: "get",
     path: "/users/stats",
     summary: "Get user statistics",

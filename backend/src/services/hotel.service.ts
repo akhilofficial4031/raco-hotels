@@ -10,6 +10,7 @@ import type {
   DatabaseHotel,
   DatabaseHotelImage,
   CreateHotelImageData,
+  DatabaseHotelWithRelations,
 } from "../types";
 import type { z } from "zod";
 
@@ -63,7 +64,7 @@ export class HotelService {
     query: z.infer<typeof HotelQueryParamsSchema>,
   ) {
     const { page = 1, limit = 10, city, countryCode, isActive, search } = query;
-    const { hotels, total } = await HotelRepository.findAll(
+    const { hotels, total } = await HotelRepository.findAllWithBasicRelations(
       db,
       { city, countryCode, isActive, search },
       { page, limit },
@@ -89,6 +90,13 @@ export class HotelService {
     id: number,
   ): Promise<{ hotel: DatabaseHotel; images: DatabaseHotelImage[] } | null> {
     return await HotelRepository.findHotelWithImages(db, id);
+  }
+
+  static async getHotelWithAllRelations(
+    db: D1Database,
+    id: number,
+  ): Promise<DatabaseHotelWithRelations | null> {
+    return await HotelRepository.findHotelWithAllRelations(db, id);
   }
 
   static async createHotelWithImages(

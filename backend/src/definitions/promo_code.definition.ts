@@ -1,4 +1,4 @@
-import { ApiTags, createAuthenticatedRoute } from "../lib/openapi";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   PromoCodesListResponseSchema,
   PromoCodePathParamsSchema,
@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 export const PromoCodeRouteDefinitions = {
-  getPromoCodes: createAuthenticatedRoute({
+  getPromoCodes: createRoute({
     method: "get",
     path: "/promo-codes",
     summary: "Get promo codes",
@@ -20,7 +20,7 @@ export const PromoCodeRouteDefinitions = {
     querySchema: PromoCodeQueryParamsSchema,
     includeBadRequest: true,
   }),
-  getPromoCodeById: createAuthenticatedRoute({
+  getPromoCodeById: createRoute({
     method: "get",
     path: "/promo-codes/{id}",
     summary: "Get promo code by ID",
@@ -31,7 +31,7 @@ export const PromoCodeRouteDefinitions = {
     paramsSchema: PromoCodePathParamsSchema,
     includeNotFound: true,
   }),
-  createPromoCode: createAuthenticatedRoute({
+  createPromoCode: createRoute({
     method: "post",
     path: "/promo-codes",
     summary: "Create promo code",
@@ -42,7 +42,7 @@ export const PromoCodeRouteDefinitions = {
     requestSchema: CreatePromoCodeRequestSchema,
     includeBadRequest: true,
   }),
-  updatePromoCode: createAuthenticatedRoute({
+  updatePromoCode: createRoute({
     method: "put",
     path: "/promo-codes/{id}",
     summary: "Update promo code",
@@ -55,7 +55,7 @@ export const PromoCodeRouteDefinitions = {
     includeBadRequest: true,
     includeNotFound: true,
   }),
-  deletePromoCode: createAuthenticatedRoute({
+  deletePromoCode: createRoute({
     method: "delete",
     path: "/promo-codes/{id}",
     summary: "Delete promo code",
