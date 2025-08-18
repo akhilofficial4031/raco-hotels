@@ -215,7 +215,13 @@ export function configureOpenAPI(
   app: OpenAPIHono<{ Bindings: AppBindings; Variables: AppVariables }>,
 ) {
   // Basic OpenAPI documentation endpoint (with proper config)
-  app.doc("/openapi-base.json", baseOpenAPIConfig as any);
+  app.doc("/openapi-base.json", {
+    openapi: "3.0.0",
+    info: {
+      title: "Raco Hotels API",
+      version: "1.0.0",
+    },
+  });
 
   // Enhanced OpenAPI endpoint with security schemes
   app.get("/openapi.json", createEnhancedOpenAPIHandler(app));
