@@ -3,11 +3,31 @@ import {
   MenuUnfoldOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Avatar, Button, Dropdown, MenuProps, Space } from "antd";
+import { Avatar, Button, Dropdown, type MenuProps, Space } from "antd";
+import { useNavigate } from "react-router";
+
+import Breadcrumbs from "./Breadcrumbs";
+import { mutationFetcher } from "../../utils/swrFetcher";
 import { useSidebar } from "../hooks/useSidebar";
 
 const Header = () => {
   const { isOpen, toggleSidebar } = useSidebar();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await mutationFetcher<{}, void>("/auth/logout", {
+        arg: {
+          method: "POST",
+        },
+      });
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      navigate("/login");
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const items: MenuProps["items"] = [
     {
@@ -25,6 +45,7 @@ const Header = () => {
     {
       label: <span className="text-red-500 hover:text-red-600">Logout</span>,
       key: "1",
+      onClick: handleLogout,
     },
   ];
   return (
@@ -34,7 +55,7 @@ const Header = () => {
       }`}
     >
       <div className="p-4  flex justify-between items-center">
-        <div>
+        <div className="flex  gap-2 items-center">
           <Button
             icon={
               isOpen ? (
@@ -47,6 +68,7 @@ const Header = () => {
             size="large"
             onClick={toggleSidebar}
           />
+          <Breadcrumbs />
         </div>
         <div>
           <Dropdown

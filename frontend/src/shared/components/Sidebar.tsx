@@ -1,6 +1,3 @@
-import { Link, useLocation, useNavigate } from "react-router";
-import { useSidebar } from "../hooks/useSidebar";
-import { SidebarItem } from "../models/sidebar";
 import {
   BankOutlined,
   BookOutlined,
@@ -9,6 +6,10 @@ import {
   ShopOutlined,
   UserOutlined,
 } from "@ant-design/icons";
+import { Link, useLocation } from "react-router";
+
+import { useSidebar } from "../hooks/useSidebar";
+import { type SidebarItem } from "../models/sidebar";
 
 const Sidebar = () => {
   const { isOpen } = useSidebar();
@@ -62,8 +63,10 @@ const Sidebar = () => {
           <Link
             to={item.path}
             key={item.label}
-            className={`${isOpen?'border-l-4':'border-l-0'} flex items-center gap-2 text-gray-100 hover:text-gray-300 hover:bg-[#090f21] py-3 px-5 border-transparent ${
-              location.pathname.includes(item.path) ? "bg-[#090f21] !border-blue-600 !text-blue-600" : ""
+            className={`${isOpen ? "border-l-4" : "border-l-0"} flex items-center gap-2 text-gray-100 hover:text-gray-300 hover:bg-[#090f21] py-3 px-5 border-transparent ${
+              location.pathname.includes(item.path)
+                ? "bg-[#090f21] !border-blue-600 !text-blue-600"
+                : ""
             }`}
           >
             <div className="flex items-center gap-3 overflow-hidden">
