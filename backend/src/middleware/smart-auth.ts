@@ -58,24 +58,18 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
       // First, try to verify the access token
       const payload = verifyToken(accessToken);
 
-      // If token is valid, proceed normally
-      if (payload) {
-        // Verify user still exists and is active
-        const user = await AuthService.getUserForToken(
-          c.env.DB,
-          payload.userId,
-        );
-        if (!user) {
-          throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-            message: "User not found or inactive",
-            cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
-          });
-        }
-
-        // Store user information in context
-        c.set("user", payload);
-        return next();
+      // Verify user still exists and is active
+      const user = await AuthService.getUserForToken(c.env.DB, payload.userId);
+      if (!user) {
+        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+          message: "User not found or inactive",
+          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+        });
       }
+
+      // Store user information in context
+      c.set("user", payload);
+      return next();
     } catch {
       // Access token is invalid/expired, try to refresh it
       if (!refreshToken) {
@@ -207,16 +201,14 @@ export const optionalSmartAuthMiddleware = createMiddleware(async (c, next) => {
     if (accessToken) {
       try {
         const payload = verifyToken(accessToken);
-        if (payload) {
-          // For optional auth, we don't check KV storage to avoid performance impact
-          // Only check if user still exists
-          const user = await AuthService.getUserForToken(
-            c.env.DB,
-            payload.userId,
-          );
-          if (user) {
-            c.set("user", payload);
-          }
+        // For optional auth, we don't check KV storage to avoid performance impact
+        // Only check if user still exists
+        const user = await AuthService.getUserForToken(
+          c.env.DB,
+          payload.userId,
+        );
+        if (user) {
+          c.set("user", payload);
         }
       } catch {
         // Try to refresh token if access token is expired
