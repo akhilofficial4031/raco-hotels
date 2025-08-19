@@ -3,6 +3,9 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   MoreOutlined,
+  CopyOutlined,
+  MailOutlined,
+  KeyOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -12,6 +15,8 @@ import {
   Pagination,
   Table,
   message,
+  Input,
+  Typography,
 } from "antd";
 import { type ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useState } from "react";
@@ -29,12 +34,18 @@ import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
 
 const { confirm } = Modal;
+const { Text } = Typography;
 
 const Users = () => {
   const [openAddUserPanel, setOpenAddUserPanel] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [passwordModalVisible, setPasswordModalVisible] = useState(false);
+  const [generatedPassword, setGeneratedPassword] = useState("");
+  const [selectedUserForPassword, setSelectedUserForPassword] =
+    useState<User | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
   const loggedInUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const [filterParams, setFilterParams] = useState<UserListParamStructure>({
@@ -125,6 +136,121 @@ const Users = () => {
     setFilterParams((prev) => ({ ...prev, search: value }));
   };
 
+  const generatePassword = () => {
+    const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const numbers = "0123456789";
+    const symbols = "!@#$%^&*()_+[]{}|;:,.<>?";
+
+    // Start with a random letter
+    let newPassword = letters.charAt(
+      Math.floor(Math.random() * letters.length),
+    );
+
+    // Ensure at least one lowercase, one uppercase, one number, and one symbol
+    newPassword += letters
+      .charAt(Math.floor(Math.random() * letters.length))
+      .toLowerCase();
+    newPassword += letters
+      .charAt(Math.floor(Math.random() * letters.length))
+      .toUpperCase();
+    newPassword += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    newPassword += symbols.charAt(Math.floor(Math.random() * symbols.length));
+
+    // Fill the rest of the password length with random characters
+    const allCharacters = letters + numbers + symbols;
+    const passwordLength = 12; // You can change the length as needed
+
+    for (let i = newPassword.length; i < passwordLength; i++) {
+      newPassword += allCharacters.charAt(
+        Math.floor(Math.random() * allCharacters.length),
+      );
+    }
+
+    // Shuffle the password to ensure randomness
+    return shuffleString(newPassword);
+  };
+
+  const handleGeneratePassword = async (user: User) => {
+    setSelectedUserForPassword(user);
+    const newPassword = generatePassword();
+    setGeneratedPassword(newPassword);
+
+    // Update user password in database first
+    const updatedUser: CreateUserPayload = {
+      email: user.email,
+      fullName: user.fullName || "",
+      phone: user.phone || "",
+      role: user.role,
+      password: newPassword,
+    };
+
+    try {
+      setIsSaving(true);
+      await mutationFetcher(`/users/${user.id}`, {
+        arg: { method: "PUT", body: updatedUser },
+      });
+      message.success("Password updated successfully");
+      mutate(`/users${queryString}`);
+
+      // Show modal with generated password
+      setPasswordModalVisible(true);
+    } catch (error) {
+      if (error) {
+        message.error("Failed to update password");
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const shuffleString = (str: string) => {
+    return str
+      .split("")
+      .sort(() => Math.random() - 0.5)
+      .join("");
+  };
+
+  const handleCopyPassword = () => {
+    navigator.clipboard
+      .writeText(generatedPassword)
+      .then(() => {
+        message.success("Password copied to clipboard!");
+      })
+      .catch(() => {
+        message.error("Failed to copy password");
+      });
+  };
+
+  const handleSendEmail = async () => {
+    if (!selectedUserForPassword) return;
+
+    setSendingEmail(true);
+    try {
+      // TODO: Replace with actual email sending API endpoint
+      await mutationFetcher("/send-password-email", {
+        arg: {
+          method: "POST",
+          body: {
+            email: selectedUserForPassword.email,
+            password: generatedPassword,
+            fullName: selectedUserForPassword.fullName,
+          },
+        },
+      });
+      message.success("Password sent via email successfully!");
+    } catch {
+      message.error("Failed to send email");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
+  const handleClosePasswordModal = () => {
+    setPasswordModalVisible(false);
+    setGeneratedPassword("");
+    setSelectedUserForPassword(null);
+  };
+
   const columns: ColumnsType<User> = [
     {
       title: "Name",
@@ -172,6 +298,13 @@ const Users = () => {
                 onClick={() => handleDeleteUser(record)}
               >
                 Delete
+              </Menu.Item>
+              <Menu.Item
+                key="generatePassword"
+                icon={<KeyOutlined />}
+                onClick={() => handleGeneratePassword(record)}
+              >
+                Generate Password
               </Menu.Item>
             </Menu>
           }
@@ -236,6 +369,62 @@ const Users = () => {
         user={currentUser}
         isSaving={isSaving}
       />
+
+      {/* Password Generation Modal */}
+      <Modal
+        title={
+          <div className="flex items-center gap-2">
+            <KeyOutlined />
+            <span>Generated Password</span>
+          </div>
+        }
+        open={passwordModalVisible}
+        onCancel={handleClosePasswordModal}
+        footer={null}
+        width={500}
+        centered
+      >
+        <div className="py-4">
+          <div className="mb-4">
+            <Text strong>User: </Text>
+            <Text>
+              {selectedUserForPassword?.fullName} (
+              {selectedUserForPassword?.email})
+            </Text>
+          </div>
+
+          <div className="mb-6">
+            <Text strong className="block mb-2">
+              Generated Password:
+            </Text>
+            <Input.Group compact>
+              <Input
+                value={generatedPassword}
+                readOnly
+                className="font-mono text-lg"
+                style={{ width: "calc(100% - 40px)" }}
+              />
+              <Button
+                icon={<CopyOutlined />}
+                onClick={handleCopyPassword}
+                title="Copy to clipboard"
+              />
+            </Input.Group>
+          </div>
+
+          <div className="flex justify-center gap-3">
+            <Button
+              type="primary"
+              icon={<MailOutlined />}
+              onClick={handleSendEmail}
+              loading={sendingEmail}
+              size="large"
+            >
+              Send via Email
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
