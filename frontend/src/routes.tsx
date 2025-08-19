@@ -1,7 +1,25 @@
+import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
 
-import { Dashboard, Login, NotFound, Users } from "./pages";
+import FullScreenSpinner from "./shared/components/FullScreenSpinner";
 import { AuthLayout, UnAuthLayout } from "./shared/layouts";
+
+// Lazy load page components
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Login = lazy(() => import("./pages/Login"));
+const NotFound = lazy(() => import("./pages/Not-found"));
+const Users = lazy(() => import("./pages/Users"));
+
+// Helper function to wrap lazy components with Suspense
+const withSuspense = (Component: React.ComponentType) => {
+  return function SuspenseWrapper(props: any) {
+    return (
+      <Suspense fallback={<FullScreenSpinner />}>
+        <Component {...props} />
+      </Suspense>
+    );
+  };
+};
 
 const router = createBrowserRouter([
   {
@@ -20,7 +38,7 @@ const router = createBrowserRouter([
       },
       {
         path: "dashboard",
-        Component: Dashboard,
+        Component: withSuspense(Dashboard),
         handle: {
           crumb: () => ({
             label: "Dashboard",
@@ -39,11 +57,11 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            Component: Users,
+            Component: withSuspense(Users),
           },
           {
             path: "new",
-            Component: Users, // For demo purposes, using same component
+            Component: withSuspense(Users), // For demo purposes, using same component
             handle: {
               crumb: () => ({
                 label: "Add New User",
@@ -53,7 +71,7 @@ const router = createBrowserRouter([
           },
           {
             path: ":id",
-            Component: Users, // For demo purposes, using same component
+            Component: withSuspense(Users), // For demo purposes, using same component
             handle: {
               crumb: () => ({
                 label: "User Details",
@@ -65,7 +83,7 @@ const router = createBrowserRouter([
       },
       {
         path: "*",
-        Component: NotFound,
+        Component: withSuspense(NotFound),
       },
     ],
   },
@@ -74,7 +92,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/login",
-        Component: Login,
+        Component: withSuspense(Login),
       },
     ],
   },
