@@ -39,14 +39,14 @@ export const AmenityResponseSchema = z
 
 export const AmenityPathParamsSchema = z
   .object({
-    id: z.number().int().positive().openapi({ example: 1 }),
+    id: z.coerce.number().int().positive().openapi({ example: 1 }),
   })
   .openapi("AmenityPathParams");
 
 export const AmenityQueryParamsSchema = z
   .object({
-    page: z.number().optional(),
-    limit: z.number().optional(),
+    page: z.coerce.number().optional(),
+    limit: z.coerce.number().optional(),
     search: z.string().optional(),
   })
   .openapi("AmenityQueryParams");

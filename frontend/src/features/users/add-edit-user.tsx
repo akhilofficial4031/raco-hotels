@@ -1,9 +1,10 @@
-import { Button, Drawer, Form, Input, Select, Space } from "antd";
-import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { type User, type CreateUserPayload } from "../../shared/models/users";
+import { Button, Drawer, Form, Input, Select, Space } from "antd";
 import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { type User, type CreateUserPayload } from "../../shared/models/users";
 
 const { Option } = Select;
 
@@ -12,20 +13,20 @@ const userSchema = z.object({
   fullName: z.string().min(1, { message: "Full name is required" }),
   phone: z.string().min(1, { message: "Phone number is required" }),
   role: z.enum(["guest", "staff", "admin"]),
-  password: z.string().optional(),
+  // password: z.string().optional(),
 });
 
 const addUserSchema = userSchema.extend({
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/\d/, "Password must contain at least one number")
-    .regex(
-      /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
-      "Password must contain at least one special character",
-    ),
+  // password: z
+  //   .string()
+  //   .min(8, "Password must be at least 8 characters")
+  //   .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  //   .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  //   .regex(/\d/, "Password must contain at least one number")
+  //   .regex(
+  //     /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
+  //     "Password must contain at least one special character",
+  //   ),
 });
 
 interface AddEditUserProps {
@@ -56,7 +57,7 @@ const AddEditUser: React.FC<AddEditUserProps> = ({
       fullName: "",
       phone: "",
       role: "guest",
-      password: "",
+      // password: "",
     },
   });
 
@@ -74,7 +75,7 @@ const AddEditUser: React.FC<AddEditUserProps> = ({
         fullName: "",
         phone: "",
         role: "guest",
-        password: "",
+        // password: "",
       });
     }
   }, [user, reset, open]);
@@ -132,7 +133,7 @@ const AddEditUser: React.FC<AddEditUserProps> = ({
             render={({ field }) => <Input {...field} />}
           />
         </Form.Item>
-        {!isEditMode && (
+        {/* {!isEditMode && (
           <Form.Item
             label="Password"
             required
@@ -145,7 +146,7 @@ const AddEditUser: React.FC<AddEditUserProps> = ({
               render={({ field }) => <Input.Password {...field} />}
             />
           </Form.Item>
-        )}
+        )} */}
         <Form.Item
           label="Phone"
           required

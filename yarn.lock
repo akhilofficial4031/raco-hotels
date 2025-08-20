@@ -7561,6 +7561,7 @@ __metadata:
     prettier: "npm:^3.6.2"
     prettier-plugin-tailwindcss: "npm:^0.6.14"
     react-router: "npm:^7.8.0"
+    react-router-dom: "npm:^7.8.1"
     tailwindcss: "npm:^4.1.11"
     typescript: "npm:^5.9.2"
   languageName: unknown
@@ -8153,6 +8154,34 @@ __metadata:
   version: 0.17.0
   resolution: "react-refresh@npm:0.17.0"
   checksum: 10c0/002cba940384c9930008c0bce26cac97a9d5682bc623112c2268ba0c155127d9c178a9a5cc2212d560088d60dfd503edd808669a25f9b377f316a32361d0b23c
+  languageName: node
+  linkType: hard
+
+"react-router-dom@npm:^7.8.1":
+  version: 7.8.1
+  resolution: "react-router-dom@npm:7.8.1"
+  dependencies:
+    react-router: "npm:7.8.1"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  checksum: 10c0/7616ae6b6c741446c6168a4ec760c01cbe24e8d14364a605bb002ba3f9bc060c0307ae1fb01cb76552aceb0dd956f023a0fb23b2f40436173e7e587a28301a8f
+  languageName: node
+  linkType: hard
+
+"react-router@npm:7.8.1":
+  version: 7.8.1
+  resolution: "react-router@npm:7.8.1"
+  dependencies:
+    cookie: "npm:^1.0.1"
+    set-cookie-parser: "npm:^2.6.0"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10c0/6d3229080a0f67f4644e0d8ecdb5e2637f640bf9e3a87c3e1e6ca91cce156cf3606d57dac3899869b25156b8343bc274291345914e45bb30ef38556a14e24eac
   languageName: node
   linkType: hard
 

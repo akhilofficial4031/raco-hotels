@@ -29,14 +29,19 @@ export class UserService {
       throw new Error(getMessage("user.alreadyExists", DEFAULT_LOCALE));
     }
 
-    // Import AuthService for password operations
-    const { AuthService } = await import("./auth.service");
+    let passwordHash: string | null = null;
 
-    // Validate password strength
-    AuthService.validatePasswordStrength(userData.password);
+    // Only process password if provided
+    if (userData.password) {
+      // Import AuthService for password operations
+      const { AuthService } = await import("./auth.service");
 
-    // Hash password
-    const passwordHash = await AuthService.hashPassword(userData.password);
+      // Validate password strength
+      AuthService.validatePasswordStrength(userData.password);
+
+      // Hash password
+      passwordHash = await AuthService.hashPassword(userData.password);
+    }
 
     // Create user data
     const createData: CreateUserData = {
