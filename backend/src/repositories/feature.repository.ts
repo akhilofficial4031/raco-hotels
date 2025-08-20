@@ -1,4 +1,4 @@
-import { and, count, desc, eq, like } from "drizzle-orm";
+import { and, count, desc, eq, like, or } from "drizzle-orm";
 
 import { feature as featureTable } from "../../drizzle/schema";
 import { getDb } from "../db";
@@ -22,6 +22,15 @@ export class FeatureRepository {
 
     const conditions = [] as any[];
 
+    if (search) {
+      conditions.push(
+        or(
+          like(featureTable.name, `%${search}%`),
+          like(featureTable.description, `%${search}%`),
+        ),
+      );
+    }
+
     const whereClause = conditions.length ? and(...conditions) : undefined;
 
     const totalResult = await database
@@ -29,10 +38,6 @@ export class FeatureRepository {
       .from(featureTable)
       .where(whereClause);
     const total = totalResult[0]?.count || 0;
-
-    if (search) {
-      conditions.push(like(featureTable.name, `%${search}%`));
-    }
 
     const rows = await database
       .select()

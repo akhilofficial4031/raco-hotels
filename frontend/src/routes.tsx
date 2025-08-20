@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router";
 
 import { Dashboard, Login, Users, NotFound, Amenities } from "./pages";
+import Features from "./pages/Features";
 import { AuthLayout, UnAuthLayout } from "./shared/layouts";
 
 const router = createBrowserRouter([
@@ -50,6 +51,16 @@ const router = createBrowserRouter([
           crumb: () => ({
             label: "Amenities",
             href: "/amenities",
+          }),
+        },
+      },
+      {
+        path: "features",
+        Component: Features,
+        handle: {
+          crumb: () => ({
+            label: "Features",
+            href: "/features",
           }),
         },
       },

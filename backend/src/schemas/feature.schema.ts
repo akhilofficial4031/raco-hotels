@@ -54,14 +54,14 @@ export const FeatureResponseSchema = z
 
 export const FeaturePathParamsSchema = z
   .object({
-    id: z.number().int().positive().openapi({ example: 1 }),
+    id: z.coerce.number().int().positive().openapi({ example: 1 }),
   })
   .openapi("FeaturePathParams");
 
 export const FeatureQueryParamsSchema = z
   .object({
-    page: z.number().optional(),
-    limit: z.number().optional(),
+    page: z.coerce.number().optional(),
+    limit: z.coerce.number().optional(),
     search: z.string().optional(),
   })
   .openapi("FeatureQueryParams");

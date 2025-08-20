@@ -47,9 +47,13 @@ const TableHeader: React.FC<TableHeaderProps> = ({
           </Button>
         )}
         {showAddButton && (
-          <Button type="primary" onClick={addButtonOnClick}>
+          <Button
+            type="primary"
+            onClick={addButtonOnClick}
+            className="!capitalize"
+          >
             <PlusOutlined />
-            Add User
+            Add {searchPlaceholder}
           </Button>
         )}
       </div>

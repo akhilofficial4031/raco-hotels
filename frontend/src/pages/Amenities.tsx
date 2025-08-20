@@ -77,7 +77,11 @@ const Amenities = () => {
       await mutationFetcher("/amenities", {
         arg: {
           method: "POST",
-          body: { name: newAmenityName, icon: selectedIcon },
+          body: {
+            name: newAmenityName,
+            icon: selectedIcon,
+            code: newAmenityName,
+          },
         },
       });
       message.success("Amenity added successfully");
@@ -85,8 +89,10 @@ const Amenities = () => {
       setIsAdding(false);
       setNewAmenityName("");
       setSelectedIcon("");
-    } catch (error) {
-      message.error("Failed to add amenity");
+    } catch (_error) {
+      if (_error) {
+        message.error("Failed to add amenity");
+      }
     }
   };
 
@@ -108,8 +114,10 @@ const Amenities = () => {
           });
           message.success("Amenity deleted successfully");
           mutate(`/amenities${queryString}`);
-        } catch (error) {
-          message.error("Failed to delete amenity");
+        } catch (_error) {
+          if (_error) {
+            message.error("Failed to delete amenity");
+          }
         }
       },
     });
@@ -131,15 +139,21 @@ const Amenities = () => {
       await mutationFetcher(`/amenities/${editedAmenity.id}`, {
         arg: {
           method: "PUT",
-          body: { name: editedAmenity.name, icon: editedAmenity.icon },
+          body: {
+            name: editedAmenity.name,
+            icon: editedAmenity.icon,
+            code: editedAmenity.name,
+          },
         },
       });
       message.success("Amenity updated successfully");
       mutate(`/amenities${queryString}`);
       setEditingRowId(null);
       setEditedAmenity(null);
-    } catch (error) {
-      message.error("Failed to update amenity");
+    } catch (_error) {
+      if (_error) {
+        message.error("Failed to update amenity");
+      }
     }
   };
 
@@ -152,52 +166,102 @@ const Amenities = () => {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      render: (text: string, record: Amenity) =>
-        editingRowId === record.id ? (
-          <Input
-            value={editedAmenity?.name}
-            onChange={(e) =>
-              setEditedAmenity(
-                (prev) => ({ ...prev, name: e.target.value }) as Amenity,
-              )
-            }
-          />
-        ) : (
-          text
-        ),
+      render: (text: string, record: Amenity) => {
+        if (record.id === -1) {
+          // New row case
+          return (
+            <Input
+              placeholder="Amenity Name"
+              value={newAmenityName}
+              onChange={(e) => setNewAmenityName(e.target.value)}
+            />
+          );
+        }
+        if (editingRowId === record.id) {
+          // Edit mode case
+          return (
+            <Input
+              value={editedAmenity?.name}
+              onChange={(e) =>
+                setEditedAmenity(
+                  (prev) => ({ ...prev, name: e.target.value }) as Amenity,
+                )
+              }
+            />
+          );
+        }
+        // Normal display case
+        return text;
+      },
     },
     {
       title: "Icon",
       dataIndex: "icon",
       key: "icon",
-      render: (icon: string, record: Amenity) =>
-        editingRowId === record.id ? (
-          <Button
-            onClick={() => {
-              setIsIconModalVisible(true);
-            }}
-          >
-            {editedAmenity?.icon ? (
-              <i className={`fa ${editedAmenity.icon}`} />
-            ) : (
-              "Select Icon"
-            )}
-          </Button>
-        ) : (
-          <i className={`fa ${icon}`} />
-        ),
+      render: (icon: string, record: Amenity) => {
+        if (record.id === -1) {
+          // New row case
+          return (
+            <Button onClick={() => setIsIconModalVisible(true)}>
+              {selectedIcon ? (
+                <i className={`fa ${selectedIcon}`} />
+              ) : (
+                "Select Icon"
+              )}
+            </Button>
+          );
+        }
+        if (editingRowId === record.id) {
+          // Edit mode case
+          return (
+            <Button
+              onClick={() => {
+                setIsIconModalVisible(true);
+              }}
+            >
+              {editedAmenity?.icon ? (
+                <i className={`fa ${editedAmenity.icon}`} />
+              ) : (
+                "Select Icon"
+              )}
+            </Button>
+          );
+        }
+        // Normal display case
+        return <i className={`fa ${icon}`} />;
+      },
     },
     {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (text: string) => new Date(text).toLocaleDateString(),
+      render: (text: string, record: Amenity) => {
+        if (record.id === -1) {
+          // New row case - don't show created date
+          return null;
+        }
+        return new Date(text).toLocaleDateString();
+      },
     },
     {
       title: "Actions",
       key: "actions",
       render: (_: unknown, record: Amenity) => {
+        if (record.id === -1) {
+          // New row case
+          return (
+            <div className="flex gap-2">
+              <Button icon={<SaveOutlined />} onClick={handleSaveNewAmenity}>
+                Save
+              </Button>
+              <Button icon={<CloseOutlined />} onClick={handleCancelAdd}>
+                Cancel
+              </Button>
+            </div>
+          );
+        }
         if (editingRowId === record.id) {
+          // Edit mode case
           return (
             <div className="flex gap-2">
               <Button icon={<SaveOutlined />} onClick={handleSave}>
@@ -209,6 +273,7 @@ const Amenities = () => {
             </div>
           );
         }
+        // Normal display case
         return (
           <Dropdown
             overlay={
@@ -243,29 +308,11 @@ const Amenities = () => {
 
   const newAmenityRow = {
     id: -1,
-    name: (
-      <Input
-        placeholder="Amenity Name"
-        value={newAmenityName}
-        onChange={(e) => setNewAmenityName(e.target.value)}
-      />
-    ),
-    icon: (
-      <Button onClick={() => setIsIconModalVisible(true)}>
-        {selectedIcon ? <i className={`fa ${selectedIcon}`} /> : "Select Icon"}
-      </Button>
-    ),
+    name: newAmenityName,
+    icon: selectedIcon,
     createdAt: "",
-    actions: (
-      <div className="flex gap-2">
-        <Button icon={<SaveOutlined />} onClick={handleSaveNewAmenity}>
-          Save
-        </Button>
-        <Button icon={<CloseOutlined />} onClick={handleCancelAdd}>
-          Cancel
-        </Button>
-      </div>
-    ),
+    code: "",
+    updatedAt: "",
   };
 
   return (
@@ -315,9 +362,11 @@ const Amenities = () => {
               key={icon}
               className="flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-200"
               onClick={() => {
-                if (editingRowId) {
+                if (editingRowId && editingRowId !== -1) {
+                  // Edit mode for existing amenity
                   setEditedAmenity((prev) => ({ ...prev, icon }) as Amenity);
                 } else {
+                  // New amenity mode
                   setSelectedIcon(icon);
                 }
                 setIsIconModalVisible(false);
