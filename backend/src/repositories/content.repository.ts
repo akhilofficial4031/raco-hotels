@@ -7,19 +7,13 @@ import type {
   DatabaseContentBlock,
   CreateContentBlockData,
   UpdateContentBlockData,
+  ContentBlockFilters,
 } from "../types";
-
-export interface ContentFilters {
-  hotelId?: number;
-  page?: string;
-  section?: string;
-  isVisible?: number;
-}
 
 export class ContentRepository {
   static async findAll(
     db: D1Database,
-    filters: ContentFilters = {},
+    filters: ContentBlockFilters = {},
   ): Promise<DatabaseContentBlock[]> {
     const database = getDb(db);
 

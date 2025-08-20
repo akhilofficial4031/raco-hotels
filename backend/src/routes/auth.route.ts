@@ -2,7 +2,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { AuthController } from "../controllers/auth.controller";
 import { AuthRouteDefinitions } from "../definitions/auth.definition";
-import { authMiddleware, csrfMiddleware } from "../middleware";
+import { smartAuthMiddleware } from "../middleware/smart-auth";
 
 import type { AppBindings, AppVariables } from "../types";
 
@@ -12,35 +12,19 @@ const authRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-// Apply middleware for protected routes
-authRoutes.use("*", async (c, next) => {
-  const path = c.req.path;
-  const method = c.req.method;
-
-  // Skip middleware for public routes
-  if (
-    path.includes("/login") ||
-    path.includes("/logout") ||
-    path.includes("/refresh")
-  ) {
-    return next();
-  }
-
-  // Apply auth middleware for protected routes
-  await authMiddleware(c, async () => {
-    // Apply CSRF for state-changing operations
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      await csrfMiddleware(c, next);
-    } else {
-      await next();
-    }
-  });
-});
-
 // Public routes (no authentication required)
 authRoutes.openapi(AuthRouteDefinitions.login, AuthController.login);
 authRoutes.openapi(AuthRouteDefinitions.logout, AuthController.logout);
 authRoutes.openapi(AuthRouteDefinitions.refresh, AuthController.refresh);
+authRoutes.openapi(
+  AuthRouteDefinitions.getCsrfToken,
+  AuthController.getCsrfToken,
+);
+
+// Apply auth middleware to protected routes
+authRoutes.use("/auth/change-password", smartAuthMiddleware);
+authRoutes.use("/auth/revoke-all-sessions", smartAuthMiddleware);
+authRoutes.use("/auth/verify", smartAuthMiddleware);
 
 // Protected routes (authentication required)
 authRoutes.openapi(

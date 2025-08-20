@@ -7,6 +7,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 
+import { customer } from "./customer";
 import { hotel } from "./hotel";
 import { user } from "./user";
 
@@ -25,6 +26,14 @@ export const booking = sqliteTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
+    customerId: integer("customer_id").references(() => customer.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    adminId: integer("admin_id").references(() => user.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
     status: text("status").notNull().default("reserved"),
     source: text("source").notNull().default("web"),
     checkInDate: text("check_in_date").notNull(),
@@ -32,7 +41,7 @@ export const booking = sqliteTable(
     numAdults: integer("num_adults").notNull().default(1),
     numChildren: integer("num_children").notNull().default(0),
     totalAmountCents: integer("total_amount_cents").notNull().default(0),
-    currencyCode: text("currency_code").notNull().default("USD"),
+    currencyCode: text("currency_code").notNull().default("INR"),
     taxAmountCents: integer("tax_amount_cents").notNull().default(0),
     feeAmountCents: integer("fee_amount_cents").notNull().default(0),
     discountAmountCents: integer("discount_amount_cents").notNull().default(0),
@@ -51,6 +60,8 @@ export const booking = sqliteTable(
     bookingRefUq: uniqueIndex("uq_booking_reference_code").on(t.referenceCode),
     bookingHotelIdx: index("idx_booking_hotel").on(t.hotelId),
     bookingUserIdx: index("idx_booking_user").on(t.userId),
+    bookingCustomerIdx: index("idx_booking_customer").on(t.customerId),
+    bookingAdminIdx: index("idx_booking_admin").on(t.adminId),
     bookingStatusIdx: index("idx_booking_status").on(t.status),
     bookingDatesIdx: index("idx_booking_dates").on(
       t.checkInDate,

@@ -1,4 +1,4 @@
-import { ApiTags, createAuthenticatedRoute } from "../lib/openapi";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   TaxFeesListResponseSchema,
   TaxFeePathParamsSchema,
@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 export const TaxFeeRouteDefinitions = {
-  getTaxFees: createAuthenticatedRoute({
+  getTaxFees: createRoute({
     method: "get",
     path: "/tax-fees",
     summary: "Get tax/fee rules",
@@ -20,7 +20,7 @@ export const TaxFeeRouteDefinitions = {
     querySchema: TaxFeeQueryParamsSchema,
     includeBadRequest: true,
   }),
-  getTaxFeeById: createAuthenticatedRoute({
+  getTaxFeeById: createRoute({
     method: "get",
     path: "/tax-fees/{id}",
     summary: "Get tax/fee by ID",
@@ -31,7 +31,7 @@ export const TaxFeeRouteDefinitions = {
     paramsSchema: TaxFeePathParamsSchema,
     includeNotFound: true,
   }),
-  createTaxFee: createAuthenticatedRoute({
+  createTaxFee: createRoute({
     method: "post",
     path: "/tax-fees",
     summary: "Create tax/fee",
@@ -42,7 +42,7 @@ export const TaxFeeRouteDefinitions = {
     requestSchema: CreateTaxFeeRequestSchema,
     includeBadRequest: true,
   }),
-  updateTaxFee: createAuthenticatedRoute({
+  updateTaxFee: createRoute({
     method: "put",
     path: "/tax-fees/{id}",
     summary: "Update tax/fee",
@@ -55,7 +55,7 @@ export const TaxFeeRouteDefinitions = {
     includeBadRequest: true,
     includeNotFound: true,
   }),
-  deleteTaxFee: createAuthenticatedRoute({
+  deleteTaxFee: createRoute({
     method: "delete",
     path: "/tax-fees/{id}",
     summary: "Delete tax/fee",

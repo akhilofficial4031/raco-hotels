@@ -8,7 +8,6 @@ import {
   check,
 } from "drizzle-orm/sqlite-core";
 
-import { amenity } from "./amenity";
 import { hotel } from "./hotel";
 
 export const roomType = sqliteTable(
@@ -24,7 +23,7 @@ export const roomType = sqliteTable(
     baseOccupancy: integer("base_occupancy").notNull().default(2),
     maxOccupancy: integer("max_occupancy").notNull().default(2),
     basePriceCents: integer("base_price_cents").notNull().default(0),
-    currencyCode: text("currency_code").notNull().default("USD"),
+    currencyCode: text("currency_code").notNull().default("INR"),
     sizeSqft: integer("size_sqft"),
     bedType: text("bed_type"),
     smokingAllowed: integer("smoking_allowed").notNull().default(0),

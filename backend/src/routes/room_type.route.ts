@@ -3,50 +3,75 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { PERMISSIONS } from "../config/permissions";
 import { RoomTypeController } from "../controllers/room_type.controller";
 import { RoomTypeRouteDefinitions } from "../definitions/room_type.definition";
-import { authMiddleware, csrfMiddleware } from "../middleware";
-import { assertPermission } from "../middleware/permissions";
+import {
+  smartAuthMiddleware,
+  smartPermissionHandler,
+} from "../middleware/smart-auth";
 
-import type { AppBindings, AppVariables } from "../types";
+import type { AppBindings, AppContext, AppVariables } from "../types";
 
 const roomTypeRoutes = new OpenAPIHono<{
   Bindings: AppBindings;
   Variables: AppVariables;
 }>();
 
-roomTypeRoutes.use("*", async (c, next) => {
-  const method = c.req.method;
-  await authMiddleware(c, async () => {
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      await csrfMiddleware(c, next);
-    } else {
-      await next();
-    }
-  });
-});
+roomTypeRoutes.use("*", smartAuthMiddleware);
 
-roomTypeRoutes.openapi(RoomTypeRouteDefinitions.getRoomTypes, async (c) => {
-  await assertPermission(c, PERMISSIONS.HOTELS_READ);
-  return RoomTypeController.getRoomTypes(c as any);
-});
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.getRoomTypes,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_READ, (c) =>
+    RoomTypeController.getRoomTypes(c as AppContext),
+  ),
+);
 
-roomTypeRoutes.openapi(RoomTypeRouteDefinitions.getRoomTypeById, async (c) => {
-  await assertPermission(c, PERMISSIONS.HOTELS_READ);
-  return RoomTypeController.getRoomTypeById(c as any);
-});
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.getRoomTypeById,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_READ, (c) =>
+    RoomTypeController.getRoomTypeById(c as AppContext),
+  ),
+);
 
-roomTypeRoutes.openapi(RoomTypeRouteDefinitions.createRoomType, async (c) => {
-  await assertPermission(c, PERMISSIONS.HOTELS_CREATE);
-  return RoomTypeController.createRoomType(c as any);
-});
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.createRoomType,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_CREATE, (c) =>
+    RoomTypeController.createRoomType(c as AppContext),
+  ),
+);
 
-roomTypeRoutes.openapi(RoomTypeRouteDefinitions.updateRoomType, async (c) => {
-  await assertPermission(c, PERMISSIONS.HOTELS_UPDATE);
-  return RoomTypeController.updateRoomType(c as any);
-});
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.updateRoomType,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_UPDATE, (c) =>
+    RoomTypeController.updateRoomType(c as AppContext),
+  ),
+);
 
-roomTypeRoutes.openapi(RoomTypeRouteDefinitions.deleteRoomType, async (c) => {
-  await assertPermission(c, PERMISSIONS.HOTELS_DELETE);
-  return RoomTypeController.deleteRoomType(c as any);
-});
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.deleteRoomType,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_DELETE, (c) =>
+    RoomTypeController.deleteRoomType(c as AppContext),
+  ),
+);
+
+// Image management routes
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.uploadRoomTypeImages,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_UPDATE, (c) =>
+    RoomTypeController.uploadRoomTypeImages(c as AppContext),
+  ),
+);
+
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.deleteRoomTypeImage,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_DELETE, (c) =>
+    RoomTypeController.deleteRoomTypeImage(c as AppContext),
+  ),
+);
+
+roomTypeRoutes.openapi(
+  RoomTypeRouteDefinitions.updateRoomTypeImageSortOrder,
+  smartPermissionHandler(PERMISSIONS.ROOM_TYPES_UPDATE, (c) =>
+    RoomTypeController.updateRoomTypeImageSortOrder(c as AppContext),
+  ),
+);
 
 export default roomTypeRoutes;

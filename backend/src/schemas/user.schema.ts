@@ -67,10 +67,11 @@ export const CreateUserRequestSchema = z
         /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
         getMessage("password.missingSpecialChar", DEFAULT_LOCALE),
       )
+      .optional()
       .openapi({
         example: "SecurePass123!",
         description:
-          "User password (8-128 chars, must include uppercase, lowercase, number, and special character)",
+          "User password (8-128 chars, must include uppercase, lowercase, number, and special character) - Optional",
       }),
     fullName: z.string().optional().openapi({
       example: "John Doe",

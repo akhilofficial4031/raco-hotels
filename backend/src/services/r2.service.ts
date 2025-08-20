@@ -10,6 +10,9 @@ export class R2Service {
    * @param r2Bucket - The R2 bucket binding from Cloudflare Workers
    * @param file - The file to upload
    * @param hotelId - The hotel ID for organizing files
+   * @param publicBaseUrl - Base URL for constructing public URLs
+   * @param entityType - Type of entity (hotels, room-types, etc.)
+   * @param entityId - Optional entity ID for additional organization
    * @returns Promise with upload result containing URL and metadata
    */
   static async uploadImage(
@@ -17,6 +20,8 @@ export class R2Service {
     file: File,
     hotelId: number,
     publicBaseUrl: string,
+    entityType: string = "hotels",
+    entityId?: number,
   ): Promise<ImageUploadResult> {
     // Validate file type
     if (!this.isValidImageType(file.type)) {
@@ -36,7 +41,8 @@ export class R2Service {
     // Generate unique filename
     const timestamp = Date.now();
     const extension = this.getFileExtension(file.name);
-    const key = `hotels/${hotelId}/images/${timestamp}-${this.sanitizeFilename(file.name)}${extension}`;
+    const entityPath = entityId ? `${entityType}/${entityId}` : entityType;
+    const key = `hotels/${hotelId}/${entityPath}/images/${timestamp}-${this.sanitizeFilename(file.name)}${extension}`;
 
     try {
       // Upload to R2

@@ -3,46 +3,53 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { PERMISSIONS } from "../config/permissions";
 import { AmenityController } from "../controllers/amenity.controller";
 import { AmenityRouteDefinitions } from "../definitions/amenity.definition";
-import { authMiddleware, csrfMiddleware } from "../middleware";
-import { assertPermission } from "../middleware/permissions";
+import {
+  smartAuthMiddleware,
+  smartPermissionHandler,
+} from "../middleware/smart-auth";
 
-import type { AppBindings, AppVariables } from "../types";
+import type { AppBindings, AppContext, AppVariables } from "../types";
 
 const amenityRoutes = new OpenAPIHono<{
   Bindings: AppBindings;
   Variables: AppVariables;
 }>();
 
-amenityRoutes.use("*", async (c, next) => {
-  const method = c.req.method;
-  await authMiddleware(c, async () => {
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      await csrfMiddleware(c, next);
-    } else {
-      await next();
-    }
-  });
-});
+amenityRoutes.use("*", smartAuthMiddleware);
 
-amenityRoutes.openapi(AmenityRouteDefinitions.getAmenities, async (c) => {
-  await assertPermission(c, PERMISSIONS.AMENITIES_READ);
-  return AmenityController.getAmenities(c as any);
-});
-amenityRoutes.openapi(AmenityRouteDefinitions.getAmenityById, async (c) => {
-  await assertPermission(c, PERMISSIONS.AMENITIES_READ);
-  return AmenityController.getAmenityById(c as any);
-});
-amenityRoutes.openapi(AmenityRouteDefinitions.createAmenity, async (c) => {
-  await assertPermission(c, PERMISSIONS.AMENITIES_CREATE);
-  return AmenityController.createAmenity(c as any);
-});
-amenityRoutes.openapi(AmenityRouteDefinitions.updateAmenity, async (c) => {
-  await assertPermission(c, PERMISSIONS.AMENITIES_UPDATE);
-  return AmenityController.updateAmenity(c as any);
-});
-amenityRoutes.openapi(AmenityRouteDefinitions.deleteAmenity, async (c) => {
-  await assertPermission(c, PERMISSIONS.AMENITIES_DELETE);
-  return AmenityController.deleteAmenity(c as any);
-});
+amenityRoutes.openapi(
+  AmenityRouteDefinitions.getAmenities,
+  smartPermissionHandler(PERMISSIONS.AMENITIES_READ, (c) =>
+    AmenityController.getAmenities(c as AppContext),
+  ),
+);
+
+amenityRoutes.openapi(
+  AmenityRouteDefinitions.getAmenityById,
+  smartPermissionHandler(PERMISSIONS.AMENITIES_READ, (c) =>
+    AmenityController.getAmenityById(c as AppContext),
+  ),
+);
+
+amenityRoutes.openapi(
+  AmenityRouteDefinitions.createAmenity,
+  smartPermissionHandler(PERMISSIONS.AMENITIES_CREATE, (c) =>
+    AmenityController.createAmenity(c as AppContext),
+  ),
+);
+
+amenityRoutes.openapi(
+  AmenityRouteDefinitions.updateAmenity,
+  smartPermissionHandler(PERMISSIONS.AMENITIES_UPDATE, (c) =>
+    AmenityController.updateAmenity(c as AppContext),
+  ),
+);
+
+amenityRoutes.openapi(
+  AmenityRouteDefinitions.deleteAmenity,
+  smartPermissionHandler(PERMISSIONS.AMENITIES_DELETE, (c) =>
+    AmenityController.deleteAmenity(c as AppContext),
+  ),
+);
 
 export default amenityRoutes;

@@ -1,4 +1,5 @@
 import { AvailabilityRepository } from "../repositories/availability.repository";
+
 import type { RoomsAvailabilityQueryParamsSchema } from "../schemas";
 import type { z } from "zod";
 

@@ -7,15 +7,34 @@ export const JWT_CONFIG = {
   // In production, this should be a strong, randomly generated secret
   SECRET:
     process.env.JWT_SECRET || "your-super-secret-jwt-key-change-in-production",
-  ACCESS_TOKEN_EXPIRES_IN: "15m",
-  REFRESH_TOKEN_EXPIRES_IN: "7d",
+  ACCESS_TOKEN_EXPIRES_IN: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || "15m",
+  REFRESH_TOKEN_EXPIRES_IN: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || "7d",
   ISSUER: "raco-hotels",
   AUDIENCE: "raco-hotels-admin",
 } as const;
 
+// Helper function to convert time string to seconds
+function parseTimeToSeconds(timeStr: string): number {
+  const unit = timeStr.slice(-1);
+  const value = parseInt(timeStr.slice(0, -1));
+
+  switch (unit) {
+    case "s":
+      return value;
+    case "m":
+      return value * 60;
+    case "h":
+      return value * 60 * 60;
+    case "d":
+      return value * 24 * 60 * 60;
+    default:
+      return parseInt(timeStr) || 15 * 60; // Default to 15 minutes
+  }
+}
+
 // Cookie Configuration
 export const COOKIE_CONFIG = {
-  ACCESS_TOKEN_NAME: "access_token",
+  ACCESS_TOKEN_NAME: "access-token",
   REFRESH_TOKEN_NAME: "refresh_token",
   CSRF_TOKEN_NAME: "csrf_token",
   OPTIONS: {
@@ -24,8 +43,12 @@ export const COOKIE_CONFIG = {
     sameSite: "lax" as const, // Changed from strict to lax for better compatibility
     path: "/",
   },
-  ACCESS_TOKEN_MAX_AGE: 15 * 60, // 15 minutes in seconds
-  REFRESH_TOKEN_MAX_AGE: 7 * 24 * 60 * 60, // 7 days in seconds
+  ACCESS_TOKEN_MAX_AGE: parseTimeToSeconds(
+    process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || "15m",
+  ),
+  REFRESH_TOKEN_MAX_AGE: parseTimeToSeconds(
+    process.env.JWT_REFRESH_TOKEN_EXPIRES_IN || "7d",
+  ),
 } as const;
 
 // JWT Payload Interface

@@ -1,4 +1,5 @@
 export * from "./user.schema";
+export * from "./customer.schema";
 export * from "./hotel.schema";
 export * from "./health.schema";
 export * from "./amenity.schema";
@@ -11,3 +12,4 @@ export * from "./tax_fee.schema";
 export * from "./promo_code.schema";
 export * from "./availability.schema";
 export * from "./booking.schema";
+export * from "./cancellation_policy.schema";

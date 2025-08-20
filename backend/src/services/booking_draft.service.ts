@@ -101,7 +101,7 @@ export class BookingDraftService {
       numAdults: data.numAdults,
       numChildren: data.numChildren,
       petsCount: data.petsCount ?? 0,
-      currencyCode: "USD",
+      currencyCode: "INR",
       promoCode: data.promoCode,
       contactEmail: data.contactEmail,
       contactPhone: data.contactPhone,
@@ -121,10 +121,22 @@ export class BookingDraftService {
 
   static async convertToBooking(
     db: D1Database,
-    sessionId: string,
+    identifier: { sessionId?: string; email?: string },
     userId: number,
   ) {
-    const draft = await BookingDraftRepository.findBySession(db, sessionId);
+    let draft = null as any;
+    if (identifier.sessionId) {
+      draft = await BookingDraftRepository.findBySession(
+        db,
+        identifier.sessionId,
+      );
+    }
+    if (!draft && identifier.email) {
+      draft = await BookingDraftRepository.findLatestByEmail(
+        db,
+        identifier.email,
+      );
+    }
     if (!draft) throw new Error("draft not found");
 
     // Use booking repository to create a genuine booking and copy totals
@@ -132,11 +144,13 @@ export class BookingDraftService {
       referenceCode: draft.referenceCode,
       hotelId: draft.hotelId,
       userId,
+      roomTypeId: draft.roomTypeId,
       checkInDate: draft.checkInDate,
       checkOutDate: draft.checkOutDate,
       numAdults: draft.numAdults,
       numChildren: draft.numChildren,
       currencyCode: draft.currencyCode,
+      amounts: draft.amounts,
     });
 
     await BookingRepository.addLineItems(

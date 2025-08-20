@@ -3,10 +3,12 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { PERMISSIONS } from "../config/permissions";
 import { UserController } from "../controllers/user.controller";
 import { UserRouteDefinitions } from "../definitions/user.definition";
-import { authMiddleware, csrfMiddleware } from "../middleware";
-import { assertPermission } from "../middleware/permissions";
+import {
+  smartAuthMiddleware,
+  smartPermissionHandler,
+} from "../middleware/smart-auth";
 
-import type { AppBindings, AppVariables } from "../types";
+import type { AppBindings, AppContext, AppVariables } from "../types";
 
 // Create user routes with OpenAPI support
 const userRoutes = new OpenAPIHono<{
@@ -14,54 +16,70 @@ const userRoutes = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-// Authentication + CSRF wrapper; permissions are enforced per-route (Option C)
-userRoutes.use("*", async (c, next) => {
-  const method = c.req.method;
-  await authMiddleware(c, async () => {
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      await csrfMiddleware(c, next);
-    } else {
-      await next();
-    }
-  });
-});
+// hotelRoutes.openapi(
+//   HotelRouteDefinitions.getHotels,
+//   smartPermissionHandler(PERMISSIONS.HOTELS_READ, (c) =>
+//     HotelController.getHotels(c as AppContext),
+//   ),
+// );
 
-// Authentication routes moved to auth.ts
+// Apply authentication middleware to all user routes
+userRoutes.use("*", smartAuthMiddleware);
 
-// Admin-only routes with single-route permission guards (Option C)
-userRoutes.openapi(UserRouteDefinitions.getUsers, async (c) => {
-  await assertPermission(c, PERMISSIONS.USERS_READ);
-  return UserController.getUsers(c as any);
-});
-userRoutes.openapi(UserRouteDefinitions.getUserById, async (c) => {
-  await assertPermission(c, PERMISSIONS.USERS_READ);
-  return UserController.getUserById(c as any);
-});
-userRoutes.openapi(UserRouteDefinitions.createUser, async (c) => {
-  await assertPermission(c, PERMISSIONS.USERS_CREATE);
-  return UserController.createUser(c as any);
-});
-userRoutes.openapi(UserRouteDefinitions.updateUser, async (c) => {
-  await assertPermission(c, PERMISSIONS.USERS_UPDATE);
-  return UserController.updateUser(c as any);
-});
-userRoutes.openapi(UserRouteDefinitions.deleteUser, async (c) => {
-  await assertPermission(c, PERMISSIONS.USERS_DELETE);
-  return UserController.deleteUser(c as any);
-});
-userRoutes.openapi(UserRouteDefinitions.toggleUserStatus, async (c) => {
-  await assertPermission(c, PERMISSIONS.USERS_UPDATE);
-  return UserController.toggleUserStatus(c as any);
-});
-userRoutes.openapi(UserRouteDefinitions.searchUsers, async (c) => {
-  await assertPermission(c, PERMISSIONS.USERS_READ);
-  return UserController.searchUsers(c as any);
-});
-userRoutes.openapi(UserRouteDefinitions.getUserStats, async (c) => {
-  await assertPermission(c, PERMISSIONS.USERS_READ);
-  return UserController.getUserStats(c as any);
-});
+userRoutes.openapi(
+  UserRouteDefinitions.getUsers,
+  smartPermissionHandler(PERMISSIONS.USERS_READ, (c) =>
+    UserController.getUsers(c as AppContext),
+  ),
+);
 
-// Password change route moved to auth.ts
+userRoutes.openapi(
+  UserRouteDefinitions.getUserById,
+  smartPermissionHandler(PERMISSIONS.USERS_READ, (c) =>
+    UserController.getUserById(c as AppContext),
+  ),
+);
+
+userRoutes.openapi(
+  UserRouteDefinitions.createUser,
+  smartPermissionHandler(PERMISSIONS.USERS_CREATE, (c) =>
+    UserController.createUser(c as AppContext),
+  ),
+);
+
+userRoutes.openapi(
+  UserRouteDefinitions.updateUser,
+  smartPermissionHandler(PERMISSIONS.USERS_UPDATE, (c) =>
+    UserController.updateUser(c as AppContext),
+  ),
+);
+
+userRoutes.openapi(
+  UserRouteDefinitions.deleteUser,
+  smartPermissionHandler(PERMISSIONS.USERS_DELETE, (c) =>
+    UserController.deleteUser(c as AppContext),
+  ),
+);
+
+userRoutes.openapi(
+  UserRouteDefinitions.toggleUserStatus,
+  smartPermissionHandler(PERMISSIONS.USERS_UPDATE, (c) =>
+    UserController.toggleUserStatus(c as AppContext),
+  ),
+);
+
+userRoutes.openapi(
+  UserRouteDefinitions.searchUsers,
+  smartPermissionHandler(PERMISSIONS.USERS_READ, (c) =>
+    UserController.searchUsers(c as AppContext),
+  ),
+);
+
+userRoutes.openapi(
+  UserRouteDefinitions.getUserStats,
+  smartPermissionHandler(PERMISSIONS.USERS_READ, (c) =>
+    UserController.getUserStats(c as AppContext),
+  ),
+);
 
 export default userRoutes;

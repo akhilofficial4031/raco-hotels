@@ -1,4 +1,6 @@
+import { RoomRepository } from "../repositories/room.repository";
 import { RoomTypeRepository } from "../repositories/room_type.repository";
+import { R2Service } from "./r2.service";
 
 import type {
   CreateRoomTypeRequestSchema,
@@ -6,6 +8,7 @@ import type {
   RoomTypeQueryParamsSchema,
 } from "../schemas";
 import type { z } from "zod";
+import type { ImageUploadResult } from "./r2.service";
 
 export class RoomTypeService {
   static async createRoomType(
@@ -45,7 +48,8 @@ export class RoomTypeService {
       created.id,
     );
     const amenities = await RoomTypeRepository.getAmenities(db, created.id);
-    return { ...created, images, amenities } as any;
+    const rooms = await RoomRepository.findByRoomTypeId(db, created.id);
+    return { ...created, images, amenities, rooms } as any;
   }
 
   static async updateRoomType(
@@ -93,7 +97,8 @@ export class RoomTypeService {
 
     const images = await RoomTypeRepository.findImagesByRoomTypeId(db, id);
     const amenities = await RoomTypeRepository.getAmenities(db, id);
-    return { ...updated, images, amenities } as any;
+    const rooms = await RoomRepository.findByRoomTypeId(db, id);
+    return { ...updated, images, amenities, rooms } as any;
   }
 
   static async getRoomTypeById(db: D1Database, id: number) {
@@ -101,7 +106,8 @@ export class RoomTypeService {
     if (!rt) return null;
     const images = await RoomTypeRepository.findImagesByRoomTypeId(db, id);
     const amenities = await RoomTypeRepository.getAmenities(db, id);
-    return { ...rt, images, amenities } as any;
+    const rooms = await RoomRepository.findByRoomTypeId(db, id);
+    return { ...rt, images, amenities, rooms } as any;
   }
 
   static async getRoomTypes(
@@ -118,9 +124,22 @@ export class RoomTypeService {
       },
       { page, limit },
     );
+
+    // Fetch all related data for each room type
+    const roomTypesWithRelations = await Promise.all(
+      roomTypes.map(async (roomType) => {
+        const [images, amenities, rooms] = await Promise.all([
+          RoomTypeRepository.findImagesByRoomTypeId(db, roomType.id),
+          RoomTypeRepository.getAmenities(db, roomType.id),
+          RoomRepository.findByRoomTypeId(db, roomType.id),
+        ]);
+        return { ...roomType, images, amenities, rooms };
+      }),
+    );
+
     const totalPages = Math.ceil(total / limit);
     return {
-      items: roomTypes,
+      items: roomTypesWithRelations,
       pagination: { page, limit, total, totalPages },
     };
   }
@@ -129,5 +148,161 @@ export class RoomTypeService {
     const existing = await RoomTypeRepository.findById(db, id);
     if (!existing) throw new Error("Room type not found");
     return await RoomTypeRepository.delete(db, id);
+  }
+
+  /**
+   * Upload images for a room type using R2 service
+   */
+  static async uploadRoomTypeImages(
+    db: D1Database,
+    r2Bucket: R2Bucket,
+    roomTypeId: number,
+    imageFiles: File[],
+    replaceImages: boolean = false,
+    publicBaseUrl: string,
+  ): Promise<any[]> {
+    // Verify room type exists
+    const roomType = await RoomTypeRepository.findById(db, roomTypeId);
+    if (!roomType) {
+      throw new Error("Room type not found");
+    }
+
+    // Delete existing images if replacing
+    if (replaceImages) {
+      await this.deleteAllRoomTypeImages(db, r2Bucket, roomTypeId);
+    }
+
+    // Upload images to R2
+    const uploadResults: ImageUploadResult[] = [];
+    for (const file of imageFiles) {
+      try {
+        const result = await R2Service.uploadImage(
+          r2Bucket,
+          file,
+          roomType.hotelId, // Use hotelId for folder organization
+          publicBaseUrl,
+          "room-types",
+          roomTypeId,
+        );
+        uploadResults.push(result);
+      } catch (error) {
+        console.error(`Failed to upload image ${file.name}:`, error);
+        throw error; // Fail fast on upload errors
+      }
+    }
+
+    // Create image records in database
+    const imageRecords = uploadResults.map((result, index) => ({
+      roomTypeId,
+      url: result.url,
+      alt: null,
+      sortOrder: index,
+    }));
+
+    await RoomTypeRepository.createImages(db, imageRecords);
+
+    // Return the created images
+    return await RoomTypeRepository.findImagesByRoomTypeId(db, roomTypeId);
+  }
+
+  /**
+   * Delete a specific room type image
+   */
+  static async deleteRoomTypeImage(
+    db: D1Database,
+    r2Bucket: R2Bucket,
+    imageId: number,
+  ): Promise<boolean> {
+    // Get image record
+    const image = await RoomTypeRepository.findImageById(db, imageId);
+    if (!image) {
+      throw new Error("Image not found");
+    }
+
+    // Extract R2 key from URL
+    const key = this.extractR2KeyFromUrl(image.url);
+
+    try {
+      // Delete from R2
+      if (key) {
+        await R2Service.deleteImage(r2Bucket, key);
+      }
+    } catch (error) {
+      console.error("Failed to delete image from R2:", error);
+      // Continue with database deletion even if R2 deletion fails
+    }
+
+    // Delete from database
+    return await RoomTypeRepository.deleteImage(db, imageId);
+  }
+
+  /**
+   * Delete all images for a room type
+   */
+  static async deleteAllRoomTypeImages(
+    db: D1Database,
+    r2Bucket: R2Bucket,
+    roomTypeId: number,
+  ): Promise<boolean> {
+    // Get all images for the room type
+    const images = await RoomTypeRepository.findImagesByRoomTypeId(
+      db,
+      roomTypeId,
+    );
+
+    // Extract R2 keys
+    const keys = images
+      .map((image) => this.extractR2KeyFromUrl(image.url))
+      .filter((key) => key !== null) as string[];
+
+    try {
+      // Delete from R2
+      if (keys.length > 0) {
+        await R2Service.deleteMultipleImages(r2Bucket, keys);
+      }
+    } catch (error) {
+      console.error("Failed to delete images from R2:", error);
+      // Continue with database deletion even if R2 deletion fails
+    }
+
+    // Delete from database
+    return await RoomTypeRepository.deleteImagesByRoomTypeId(db, roomTypeId);
+  }
+
+  /**
+   * Update image sort order
+   */
+  static async updateRoomTypeImageSortOrder(
+    db: D1Database,
+    imageId: number,
+    sortOrder: number,
+  ): Promise<any> {
+    const updated = await RoomTypeRepository.updateImageSortOrder(
+      db,
+      imageId,
+      sortOrder,
+    );
+    if (!updated) {
+      throw new Error("Image not found");
+    }
+    return updated;
+  }
+
+  /**
+   * Extract R2 key from public URL
+   * This method needs to be adapted based on your actual R2 URL structure
+   */
+  private static extractR2KeyFromUrl(url: string): string | null {
+    try {
+      // Assuming URL structure: https://your-r2-domain.com/hotels/123/images/filename.jpg
+      const urlObj = new URL(url);
+      const pathname = urlObj.pathname;
+
+      // Remove leading slash and return the key
+      return pathname.startsWith("/") ? pathname.substring(1) : pathname;
+    } catch (error) {
+      console.error("Failed to extract R2 key from URL:", url, error);
+      return null;
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cors } from "hono/cors";
+import { HTTPException } from "hono/http-exception";
 
 // Import OpenAPI configuration
 import { apiInfo } from "./lib/api-info";
@@ -9,18 +10,20 @@ import { configureOpenAPI } from "./lib/openapi-config";
 import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
 import amenityRoutes from "./routes/amenity.route";
 import authRoutes from "./routes/auth.route";
+import availabilityRoutes from "./routes/availability.route";
+import bookingRoutes from "./routes/booking.route";
+import cancellationPolicyRoutes from "./routes/cancellation_policy.route";
 import contentRoutes from "./routes/content.route";
+import customerRoutes from "./routes/customer.route";
 import featureRoutes from "./routes/feature.route";
 import hotelRoutes from "./routes/hotel.route";
 import promoCodeRoutes from "./routes/promo_code.route";
 import reviewRoutes from "./routes/review.route";
 import roomRoutes from "./routes/room.route";
+import roomPublicRoutes from "./routes/room_public.route";
 import roomTypeRoutes from "./routes/room_type.route";
 import systemRoutes from "./routes/system.route";
 import taxFeeRoutes from "./routes/tax_fee.route";
-import availabilityRoutes from "./routes/availability.route";
-import bookingRoutes from "./routes/booking.route";
-import roomPublicRoutes from "./routes/room_public.route";
 // Import middleware and utilities
 import userRoutes from "./routes/user.route";
 import { i18nMiddleware } from "./utils/i18n";
@@ -71,10 +74,10 @@ app.use("*", async (c, next) => {
   );
 });
 
-// Register API routes
-app.route("/api/amenities", amenityRoutes);
-app.route("/api/features", featureRoutes);
-app.route("/api/hotels", hotelRoutes);
+// Register API routes - adding back in groups to identify problematic route
+app.route("/api", amenityRoutes);
+app.route("/api", featureRoutes);
+app.route("/api", hotelRoutes);
 app.route("/api", roomTypeRoutes);
 app.route("/api", roomRoutes);
 app.route("/api", roomPublicRoutes);
@@ -83,21 +86,24 @@ app.route("/api", bookingRoutes);
 app.route("/api", reviewRoutes);
 app.route("/api", contentRoutes);
 app.route("/api", taxFeeRoutes);
+app.route("/api", cancellationPolicyRoutes);
 app.route("/api", promoCodeRoutes);
-app.route("/api/users", userRoutes);
-app.route("/api/auth", authRoutes);
-app.route("/api/system", systemRoutes);
+app.route("/api", userRoutes);
+app.route("/api", customerRoutes);
+app.route("/api", authRoutes);
+app.route("/api", systemRoutes);
 
 // Legacy hotel routes removed in favor of /api/hotels router
 
-// Configure OpenAPI documentation
-configureOpenAPI(app);
+// OpenAPI routes are now properly configured
 
 // Swagger UI endpoint with enhanced configuration
 app.get(
   "/swagger-ui",
   swaggerUI({
     url: "/openapi.json",
+    persistAuthorization: true,
+    tryItOutEnabled: true,
   }),
 );
 
@@ -106,12 +112,16 @@ app.get(
   "/docs",
   swaggerUI({
     url: "/openapi.json",
+    persistAuthorization: true,
+    tryItOutEnabled: true,
   }),
 );
 app.get(
   "/api-docs",
   swaggerUI({
     url: "/openapi.json",
+    persistAuthorization: true,
+    tryItOutEnabled: true,
   }),
 );
 
@@ -138,6 +148,12 @@ app.get("/api-info", apiInfo);
 app.onError((err, c) => {
   console.error(`[${new Date().toISOString()}] Global Error:`, err);
 
+  // If it's an HTTPException with a proper status code, preserve it
+  if (err instanceof HTTPException) {
+    return err.getResponse();
+  }
+
+  // For other errors, return 500
   const errorMessage = getLocalizedMessage(c, "system.unexpectedError");
   const errorCode = getLocalizedMessage(c, "errorCodes.internalError");
 
@@ -172,6 +188,9 @@ app.notFound((c) => {
     404,
   );
 });
+
+// Configure OpenAPI documentation AFTER all routes are registered
+configureOpenAPI(app);
 
 // Mount API under /api for local proxy convenience
 export default app;

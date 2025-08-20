@@ -11,43 +11,12 @@ import type {
   DatabaseRoomType,
   DatabaseRoomTypeImage,
   DatabaseRoomTypeAmenity,
+  RoomTypeFilters,
+  PaginationParams,
+  CreateRoomTypeData,
+  UpdateRoomTypeData,
+  CreateRoomTypeImageData,
 } from "../types";
-
-export interface RoomTypeFilters {
-  hotelId?: number;
-  isActive?: number;
-  search?: string;
-}
-
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-}
-
-export interface CreateRoomTypeData {
-  hotelId: number;
-  name: string;
-  slug: string;
-  description?: string;
-  baseOccupancy?: number;
-  maxOccupancy?: number;
-  basePriceCents?: number;
-  currencyCode?: string;
-  sizeSqft?: number;
-  bedType?: string;
-  smokingAllowed?: boolean;
-  totalRooms?: number;
-  isActive?: number;
-}
-
-export type UpdateRoomTypeData = Partial<CreateRoomTypeData>;
-
-export interface CreateRoomTypeImageData {
-  roomTypeId: number;
-  url: string;
-  alt?: string | null;
-  sortOrder?: number;
-}
 
 export class RoomTypeRepository {
   static async findAll(
@@ -215,6 +184,42 @@ export class RoomTypeRepository {
       .where(eq(roomTypeImageTable.roomTypeId, roomTypeId))
       .returning();
     return rows.length > 0;
+  }
+
+  static async findImageById(
+    db: D1Database,
+    imageId: number,
+  ): Promise<DatabaseRoomTypeImage | null> {
+    const database = getDb(db);
+    const rows = await database
+      .select()
+      .from(roomTypeImageTable)
+      .where(eq(roomTypeImageTable.id, imageId))
+      .limit(1);
+    return (rows[0] as any) || null;
+  }
+
+  static async deleteImage(db: D1Database, imageId: number): Promise<boolean> {
+    const database = getDb(db);
+    const rows = await database
+      .delete(roomTypeImageTable)
+      .where(eq(roomTypeImageTable.id, imageId))
+      .returning();
+    return rows.length > 0;
+  }
+
+  static async updateImageSortOrder(
+    db: D1Database,
+    imageId: number,
+    sortOrder: number,
+  ): Promise<DatabaseRoomTypeImage | null> {
+    const database = getDb(db);
+    const rows = await database
+      .update(roomTypeImageTable)
+      .set({ sortOrder })
+      .where(eq(roomTypeImageTable.id, imageId))
+      .returning();
+    return (rows[0] as any) || null;
   }
 
   // Amenities

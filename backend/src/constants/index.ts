@@ -29,8 +29,10 @@ export const USER_STATUS = {
 export const API_TAGS = {
   SYSTEM: "System",
   USERS: "Users",
+  CUSTOMERS: "Customers",
   AUTH: "Authentication",
   HOTELS: "Hotels",
+  POLICIES: "Policies",
   AMENITIES: "Amenities",
   FEATURES: "Features",
   ROOMS: "Rooms",
@@ -43,6 +45,56 @@ export const API_TAGS = {
   NOTIFICATIONS: "Notifications",
   SETTINGS: "Settings",
   REPORTS: "Reports",
+} as const;
+
+// Booking Sources
+export const BOOKING_SOURCES = {
+  WEB: "web",
+  FRONT_OFFICE: "front_office",
+  PHONE: "phone",
+  EMAIL: "email",
+  MOBILE_APP: "mobile_app",
+} as const;
+
+// Payment Methods
+export const PAYMENT_METHODS = {
+  CARD: "card",
+  CASH: "cash",
+  BANK_TRANSFER: "bank_transfer",
+  UPI: "upi",
+  NETBANKING: "netbanking",
+  WALLET: "wallet",
+  PENDING: "pending",
+} as const;
+
+// Payment Processors
+export const PAYMENT_PROCESSORS = {
+  STRIPE: "stripe",
+  RAZORPAY: "razorpay",
+  PAYPAL: "paypal",
+  FRONT_OFFICE: "front_office",
+  MANUAL: "manual",
+} as const;
+
+// Booking Status
+export const BOOKING_STATUS = {
+  DRAFT: "draft",
+  RESERVED: "reserved",
+  CONFIRMED: "confirmed",
+  CHECKED_IN: "checked_in",
+  CHECKED_OUT: "checked_out",
+  CANCELLED: "cancelled",
+  NO_SHOW: "no_show",
+} as const;
+
+// Payment Status
+export const PAYMENT_STATUS = {
+  PENDING: "pending",
+  PROCESSING: "processing",
+  SUCCEEDED: "succeeded",
+  FAILED: "failed",
+  CANCELLED: "cancelled",
+  REFUNDED: "refunded",
 } as const;
 
 // Error Codes

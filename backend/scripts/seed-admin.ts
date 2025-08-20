@@ -23,6 +23,8 @@ async function hashPassword(password: string): Promise<string> {
 
 async function seedAdminUser() {
   try {
+    console.log("🔍 Looking for database file...");
+
     // For local development, connect to the SQLite database directly
     // Dynamic import to avoid issues with better-sqlite3 types
     const { default: Database } = await import("better-sqlite3");
@@ -45,7 +47,25 @@ async function seedAdminUser() {
 
     console.log("🌱 Starting admin user seeding...");
 
+    // First, let's check if the user table exists
+    try {
+      const tableCheck = sqlite
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='user'",
+        )
+        .get();
+      if (!tableCheck) {
+        throw new Error(
+          "User table does not exist. Make sure to run database migrations first: 'yarn db:migrate:apply'",
+        );
+      }
+      console.log("✅ User table exists");
+    } catch (error) {
+      throw new Error(`Failed to check if user table exists: ${error}`);
+    }
+
     // Check if admin user already exists
+    console.log("🔍 Checking if admin user already exists...");
     const existingAdmin = await db
       .select()
       .from(user)
@@ -100,9 +120,23 @@ async function seedAdminUser() {
   }
 }
 
-// Check if running directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  seedAdminUser();
+// Check if running directly (improved condition)
+if (
+  import.meta.url.startsWith("file:") &&
+  process.argv[1] &&
+  import.meta.url.includes(process.argv[1].replace(/\\/g, "/"))
+) {
+  seedAdminUser().catch((error) => {
+    console.error("❌ Fatal error:", error);
+    process.exit(1);
+  });
+} else {
+  // If we can't detect if this is the main module, just run it anyway for seeding purposes
+  console.log("🚀 Running seed script...");
+  seedAdminUser().catch((error) => {
+    console.error("❌ Fatal error:", error);
+    process.exit(1);
+  });
 }
 
 export { seedAdminUser };

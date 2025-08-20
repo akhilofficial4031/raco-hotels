@@ -142,9 +142,48 @@ export function createAuthenticatedRoute(config: BaseRouteConfig) {
     security: [
       {
         bearerAuth: [],
+        csrfToken: [], // Add CSRF token requirement for authenticated routes
+      },
+      {
+        bypassCsrf: [], // Alternative: allow development bypass
       },
     ],
   });
+}
+
+export function createConditionalRoute(config: BaseRouteConfig) {
+  const route = createPublicRoute(config);
+
+  // Add unauthorized response but no security requirement
+  // (let middleware handle authentication based on method)
+  const responses = { ...route.responses };
+  responses[HTTP_STATUS.UNAUTHORIZED] = {
+    description: "Unauthorized access",
+    content: {
+      "application/json": {
+        schema: ErrorResponseSchema,
+      },
+    },
+  };
+
+  return createRoute({
+    ...route,
+    responses,
+    // No security requirement - handled by middleware
+  });
+}
+
+/**
+ * Smart route creator that automatically determines whether to create a public or authenticated route
+ * based on the PUBLIC_ROUTES configuration. This is the main function developers should use.
+ *
+ * @param config - Route configuration
+ * @returns Automatically configured route (public or authenticated)
+ */
+export function createSmartRoute(config: BaseRouteConfig) {
+  // We'll determine the route type at runtime to avoid circular dependencies
+  // The actual check happens in a separate module
+  return createConditionalRoute(config);
 }
 
 // Export API tags for consistency

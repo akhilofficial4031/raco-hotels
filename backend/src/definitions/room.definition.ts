@@ -1,4 +1,4 @@
-import { ApiTags, createAuthenticatedRoute } from "../lib/openapi";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   RoomsListResponseSchema,
   RoomPathParamsSchema,
@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 export const RoomRouteDefinitions = {
-  getRooms: createAuthenticatedRoute({
+  getRooms: createRoute({
     method: "get",
     path: "/rooms",
     summary: "Get all rooms",
@@ -20,7 +20,7 @@ export const RoomRouteDefinitions = {
     querySchema: RoomQueryParamsSchema,
     includeBadRequest: true,
   }),
-  getRoomById: createAuthenticatedRoute({
+  getRoomById: createRoute({
     method: "get",
     path: "/rooms/{id}",
     summary: "Get room by ID",
@@ -31,7 +31,7 @@ export const RoomRouteDefinitions = {
     paramsSchema: RoomPathParamsSchema,
     includeNotFound: true,
   }),
-  createRoom: createAuthenticatedRoute({
+  createRoom: createRoute({
     method: "post",
     path: "/rooms",
     summary: "Create room",
@@ -42,7 +42,7 @@ export const RoomRouteDefinitions = {
     requestSchema: CreateRoomRequestSchema,
     includeBadRequest: true,
   }),
-  updateRoom: createAuthenticatedRoute({
+  updateRoom: createRoute({
     method: "put",
     path: "/rooms/{id}",
     summary: "Update room",
@@ -55,7 +55,7 @@ export const RoomRouteDefinitions = {
     includeBadRequest: true,
     includeNotFound: true,
   }),
-  deleteRoom: createAuthenticatedRoute({
+  deleteRoom: createRoute({
     method: "delete",
     path: "/rooms/{id}",
     summary: "Delete room",

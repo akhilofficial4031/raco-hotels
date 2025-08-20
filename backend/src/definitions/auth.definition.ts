@@ -1,15 +1,11 @@
 import { z } from "zod";
 
-import {
-  createPublicRoute,
-  createAuthenticatedRoute,
-  ApiTags,
-} from "../lib/openapi";
+import { createRoute, ApiTags } from "../lib/route-wrapper";
 
 // Request schemas
 const LoginRequestSchema = z.object({
-  email: z.string().email().openapi({ example: "admin@racohotels.com" }),
-  password: z.string().min(1).openapi({ example: "password123" }),
+  email: z.string().email().openapi({ example: "admin@raco.com" }),
+  password: z.string().min(1).openapi({ example: "admin123" }),
 });
 
 const ChangePasswordRequestSchema = z.object({
@@ -54,9 +50,22 @@ const AuthResponseSchema = z.object({
     .optional(),
 });
 
+const CsrfTokenResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  data: z.object({
+    csrfToken: z.string(),
+    note: z.string(),
+    expiresIn: z.number(),
+  }),
+});
+
 export const AuthRouteDefinitions = {
-  // POST /auth/login
-  login: createPublicRoute({
+  // All routes now use createRoute() - it automatically determines public vs authenticated
+  // based on PUBLIC_ROUTES configuration in config/routes.ts
+
+  // POST /auth/login - Automatically determined based on PUBLIC_ROUTES
+  login: createRoute({
     method: "post",
     path: "/auth/login",
     tags: [ApiTags.AUTH],
@@ -70,8 +79,8 @@ export const AuthRouteDefinitions = {
     includeUnauthorized: true,
   }),
 
-  // POST /auth/logout
-  logout: createPublicRoute({
+  // POST /auth/logout - Automatically determined based on PUBLIC_ROUTES
+  logout: createRoute({
     method: "post",
     path: "/auth/logout",
     tags: [ApiTags.AUTH],
@@ -81,8 +90,8 @@ export const AuthRouteDefinitions = {
     successDescription: "Logout successful",
   }),
 
-  // POST /auth/refresh
-  refresh: createPublicRoute({
+  // POST /auth/refresh - Automatically determined based on PUBLIC_ROUTES
+  refresh: createRoute({
     method: "post",
     path: "/auth/refresh",
     tags: [ApiTags.AUTH],
@@ -94,7 +103,7 @@ export const AuthRouteDefinitions = {
   }),
 
   // POST /auth/change-password
-  changePassword: createAuthenticatedRoute({
+  changePassword: createRoute({
     method: "post",
     path: "/auth/change-password",
     tags: [ApiTags.AUTH],
@@ -108,7 +117,7 @@ export const AuthRouteDefinitions = {
   }),
 
   // POST /auth/revoke-all-sessions
-  revokeAllSessions: createAuthenticatedRoute({
+  revokeAllSessions: createRoute({
     method: "post",
     path: "/auth/revoke-all-sessions",
     tags: [ApiTags.AUTH],
@@ -119,7 +128,7 @@ export const AuthRouteDefinitions = {
   }),
 
   // GET /auth/verify
-  verify: createAuthenticatedRoute({
+  verify: createRoute({
     method: "get",
     path: "/auth/verify",
     tags: [ApiTags.AUTH],
@@ -127,5 +136,17 @@ export const AuthRouteDefinitions = {
     description: "Verify current authentication status and get user info",
     successSchema: AuthResponseSchema,
     successDescription: "Authentication verified",
+  }),
+
+  // GET /auth/csrf-token
+  getCsrfToken: createRoute({
+    method: "get",
+    path: "/auth/csrf-token",
+    tags: [ApiTags.AUTH],
+    summary: "Get CSRF token",
+    description:
+      "Get a CSRF token for API testing and development. Use this token in the X-CSRF-Token header for POST/PUT/PATCH/DELETE requests.",
+    successSchema: CsrfTokenResponseSchema,
+    successDescription: "CSRF token generated successfully",
   }),
 };

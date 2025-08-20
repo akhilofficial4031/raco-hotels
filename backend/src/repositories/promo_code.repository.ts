@@ -3,32 +3,18 @@ import { and, count, desc, eq, like } from "drizzle-orm";
 import { promoCode as promoCodeTable } from "../../drizzle/schema";
 import { getDb } from "../db";
 
-import type { DatabasePromoCode } from "../types";
-
-export interface PromoFilters {
-  hotelId?: number;
-  isActive?: number;
-  code?: string;
-}
-
-export interface PaginationParams {
-  page?: number;
-  limit?: number;
-}
-
-export interface CreatePromoCodeData extends Partial<DatabasePromoCode> {
-  hotelId: number;
-  code: string;
-  type: "percent" | "fixed";
-  value: number;
-}
-
-export type UpdatePromoCodeData = Partial<CreatePromoCodeData>;
+import type {
+  DatabasePromoCode,
+  PromoCodeFilters,
+  PaginationParams,
+  CreatePromoCodeData,
+  UpdatePromoCodeData,
+} from "../types";
 
 export class PromoCodeRepository {
   static async findAll(
     db: D1Database,
-    filters: PromoFilters = {},
+    filters: PromoCodeFilters = {},
     pagination: PaginationParams = {},
   ): Promise<{ items: DatabasePromoCode[]; total: number }> {
     const database = getDb(db);

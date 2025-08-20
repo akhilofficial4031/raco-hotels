@@ -1,4 +1,4 @@
-import { ApiTags, createAuthenticatedRoute } from "../lib/openapi";
+import { ApiTags, createRoute } from "../lib/route-wrapper";
 import {
   FeaturesListResponseSchema,
   FeaturePathParamsSchema,
@@ -9,7 +9,7 @@ import {
 } from "../schemas";
 
 export const FeatureRouteDefinitions = {
-  getFeatures: createAuthenticatedRoute({
+  getFeatures: createRoute({
     method: "get",
     path: "/features",
     summary: "Get all features",
@@ -21,7 +21,7 @@ export const FeatureRouteDefinitions = {
     querySchema: FeatureQueryParamsSchema,
     includeBadRequest: true,
   }),
-  getFeatureById: createAuthenticatedRoute({
+  getFeatureById: createRoute({
     method: "get",
     path: "/features/{id}",
     summary: "Get feature by ID",
@@ -32,7 +32,7 @@ export const FeatureRouteDefinitions = {
     paramsSchema: FeaturePathParamsSchema,
     includeNotFound: true,
   }),
-  createFeature: createAuthenticatedRoute({
+  createFeature: createRoute({
     method: "post",
     path: "/features",
     summary: "Create feature",
@@ -45,7 +45,7 @@ export const FeatureRouteDefinitions = {
     includeConflict: true,
   }),
 
-  updateFeature: createAuthenticatedRoute({
+  updateFeature: createRoute({
     method: "put",
     path: "/features/{id}",
     summary: "Update feature",
@@ -60,7 +60,7 @@ export const FeatureRouteDefinitions = {
     includeConflict: true,
   }),
 
-  deleteFeature: createAuthenticatedRoute({
+  deleteFeature: createRoute({
     method: "delete",
     path: "/features/{id}",
     summary: "Delete feature",
