@@ -73,21 +73,21 @@ const Sidebar = () => {
   )?.label;
 
   return (
-    <div
-      className={`h-screen bg-slate-900 fixed top-0 left-0 z-10 transition-all duration-300 ${
+    <aside
+      className={`h-screen bg-white fixed  top-0 left-0 z-10 transition-all duration-300 ${
         isOpen ? "w-60" : "w-14"
       }`}
     >
-      <div className="h-16 flex items-start justify-center flex-col border-b-1 border-slate-800">
-        <h1 className="text-2xl text-left px-5 py-2 text-gray-100">
+      <div className="h-16 flex items-start justify-center flex-col">
+        <h1 className="text-2xl text-left px-5 py-2 text-gray-800">
           {isOpen ? "Raco Hotels" : "R"}
         </h1>
       </div>
       <Menu
-        theme="dark"
+        theme="light"
         mode="inline"
         inlineCollapsed={!isOpen}
-        className="bg-slate-900 border-r-0"
+        className={`!bg-white transition-all duration-300 !w-full !border-none`}
         defaultSelectedKeys={[location.pathname]}
         defaultOpenKeys={defaultOpenKey ? [defaultOpenKey] : []}
         selectedKeys={[location.pathname]}
@@ -108,7 +108,7 @@ const Sidebar = () => {
           ),
         )}
       </Menu>
-    </div>
+    </aside>
   );
 };
 

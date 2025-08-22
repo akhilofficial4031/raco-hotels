@@ -1,3 +1,4 @@
+import { LockOutlined, MailOutlined } from "@ant-design/icons";
 import { Button, Input, Alert } from "antd";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -67,12 +68,11 @@ const Login = () => {
   };
   return (
     <>
-      <div className="p-4">
-        <h2 className="text-2xl font-bold text-gray-800">Welcome Back</h2>
-        <p className="text-sm text-gray-500 mb-6">
-          Please enter your details to login
-        </p>
-
+      <h2 className="text-4xl font-bold text-gray-800">Raco Hotels</h2>
+      <p className="text-sm text-gray-500 mb-6 ">
+        Welcome back! Please enter your details to login
+      </p>
+      <div className="p-4 w-3/5">
         {/* Display API error if any */}
         {apiError && (
           <Alert
@@ -87,6 +87,9 @@ const Login = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
+            <label htmlFor="email" className="text-sm text-gray-700">
+              Email Address
+            </label>
             <Controller
               name="email"
               control={control}
@@ -100,9 +103,10 @@ const Login = () => {
               render={({ field }) => (
                 <Input
                   {...field}
+                  prefix={<MailOutlined />}
                   type="email"
                   size="large"
-                  placeholder="Email"
+                  placeholder="admin@raco.com"
                   status={errors.email ? "error" : ""}
                 />
               )}
@@ -115,6 +119,9 @@ const Login = () => {
           </div>
 
           <div className="flex flex-col gap-1">
+            <label htmlFor="password" className="text-sm text-gray-700">
+              Password
+            </label>
             <Controller
               name="password"
               control={control}
@@ -128,8 +135,9 @@ const Login = () => {
               render={({ field }) => (
                 <Input.Password
                   {...field}
+                  prefix={<LockOutlined />}
                   size="large"
-                  placeholder="Password"
+                  placeholder="***********"
                   status={errors.password ? "error" : ""}
                 />
               )}

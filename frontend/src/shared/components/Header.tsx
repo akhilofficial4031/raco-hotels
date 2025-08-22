@@ -50,7 +50,7 @@ const Header = () => {
   ];
   return (
     <div
-      className={`h-16 fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white border-b border-gray-200 ${
+      className={`h-16 fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white ${
         isOpen ? "left-60" : "left-14"
       }`}
     >

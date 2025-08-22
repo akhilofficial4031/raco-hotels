@@ -6,15 +6,17 @@ import { useSidebar } from "../hooks/useSidebar";
 export default function AuthLayout() {
   const { isOpen } = useSidebar();
   return (
-    <div className="min-h-screen bg-slate-200">
+    <div>
       <main
-        className={`${isOpen ? "ml-60" : "ml-14"} transition-all duration-300`}
+        className={`${isOpen ? "ml-60" : "ml-14"} transition-all h-[calc(100vh-64px)] duration-300 mt-16  bg-slate-200 rounded-tl-3xl`}
       >
         <Sidebar />
         <Header />
-        <div className="mt-16 p-6">
-          {/* <Breadcrumbs /> */}
-          <Outlet />
+        <div className="overflow-y-auto h-full px-4">
+          <div className="my-4">
+            {/* <Breadcrumbs /> */}
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>
