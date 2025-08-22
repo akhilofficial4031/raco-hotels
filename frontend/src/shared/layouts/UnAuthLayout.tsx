@@ -3,7 +3,12 @@ import { Outlet } from "react-router";
 const UnAuthLayout = () => {
   return (
     <div className="w-full h-screen grid grid-cols-2 bg-black">
-      <div className="h-full">
+      <div className="h-full relative">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
+          <span className="font-thin text-white">
+            Powered by <span className="font-semibold">Raco Group</span>
+          </span>
+        </div>
         <img
           src="/pattern.jpg"
           alt="login-bg"
