@@ -8,12 +8,13 @@ export default function AuthLayout() {
   return (
     <div>
       <main
-        className={`${isOpen ? "ml-60" : "ml-14"} transition-all h-[calc(100vh-64px)] duration-300 mt-16  bg-slate-200 rounded-tl-3xl`}
+        className={`${isOpen ? "ml-60" : "ml-14"} transition-all h-[calc(100vh-64px)] duration-300 mt-16  bg-slate-200 rounded-tl-3xl relative`}
       >
         <Sidebar />
         <Header />
-        <div className="overflow-y-auto h-full px-4">
-          <div className="my-4">
+        <div className="h-4 bg-slate-200 w-[calc(100%-20px)] absolute top-0 left-1 z-30 rounded-tl-3xl"></div>
+        <div className="overflow-y-auto h-full p-4">
+          <div>
             {/* <Breadcrumbs /> */}
             <Outlet />
           </div>

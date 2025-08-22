@@ -27,10 +27,25 @@ export class HotelService {
       }
     }
 
-    return await HotelRepository.create(db, {
-      ...data,
-      isActive: data.isActive ?? 1,
+    // Extract amenities and features for separate handling
+    const { amenities, features, ...hotelData } = data;
+
+    // Create the hotel first
+    const hotel = await HotelRepository.create(db, {
+      ...hotelData,
+      isActive: hotelData.isActive ?? 1,
     });
+
+    // Add amenities and features if provided
+    if (amenities && amenities.length > 0) {
+      await HotelRepository.addAmenitiesForHotel(db, hotel.id, amenities);
+    }
+
+    if (features && features.length > 0) {
+      await HotelRepository.addFeaturesForHotel(db, hotel.id, features);
+    }
+
+    return hotel;
   }
 
   static async updateHotel(
@@ -48,10 +63,26 @@ export class HotelService {
         throw new Error("Hotel slug already in use");
       }
     }
-    const updated = await HotelRepository.update(db, id, data);
+
+    // Extract amenities and features for separate handling
+    const { amenities, features, ...hotelData } = data;
+
+    // Update the hotel main data
+    const updated = await HotelRepository.update(db, id, hotelData);
     if (!updated) {
       throw new Error("Hotel not found");
     }
+
+    // Update amenities if provided
+    if (amenities !== undefined) {
+      await HotelRepository.updateAmenitiesForHotel(db, id, amenities);
+    }
+
+    // Update features if provided
+    if (features !== undefined) {
+      await HotelRepository.updateFeaturesForHotel(db, id, features);
+    }
+
     return updated;
   }
 
@@ -106,7 +137,7 @@ export class HotelService {
     imageFiles: File[],
     publicBaseUrl: string,
   ): Promise<{ hotel: DatabaseHotel; images: DatabaseHotelImage[] }> {
-    // First create the hotel
+    // First create the hotel (this now handles amenities and features)
     const hotel = await this.createHotel(db, hotelData);
 
     // Then upload and create images
@@ -153,7 +184,7 @@ export class HotelService {
     replaceImages: boolean = false,
     publicBaseUrl?: string,
   ): Promise<{ hotel: DatabaseHotel; images: DatabaseHotelImage[] }> {
-    // Update hotel data
+    // Update hotel data (this now handles amenities and features)
     const hotel = await this.updateHotel(db, id, hotelData);
 
     // Get current images
