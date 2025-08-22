@@ -337,4 +337,98 @@ export class HotelRepository {
 
     return { hotels: hotelsWithRelations, total };
   }
+
+  // Hotel-Amenity relationship methods
+  static async addAmenitiesForHotel(
+    db: D1Database,
+    hotelId: number,
+    amenityIds: number[],
+  ): Promise<boolean> {
+    if (amenityIds.length === 0) return true;
+
+    const database = getDb(db);
+    const nowIso = new Date().toISOString();
+    const values = amenityIds.map((amenityId) => ({
+      hotelId,
+      amenityId,
+      createdAt: nowIso,
+    }));
+
+    await database.insert(hotelAmenityTable).values(values);
+    return true;
+  }
+
+  static async removeAmenitiesForHotel(
+    db: D1Database,
+    hotelId: number,
+  ): Promise<boolean> {
+    const database = getDb(db);
+    await database
+      .delete(hotelAmenityTable)
+      .where(eq(hotelAmenityTable.hotelId, hotelId));
+    return true;
+  }
+
+  static async updateAmenitiesForHotel(
+    db: D1Database,
+    hotelId: number,
+    amenityIds: number[],
+  ): Promise<boolean> {
+    // Remove existing amenities
+    await this.removeAmenitiesForHotel(db, hotelId);
+
+    // Add new amenities
+    if (amenityIds.length > 0) {
+      await this.addAmenitiesForHotel(db, hotelId, amenityIds);
+    }
+
+    return true;
+  }
+
+  // Hotel-Feature relationship methods
+  static async addFeaturesForHotel(
+    db: D1Database,
+    hotelId: number,
+    featureIds: number[],
+  ): Promise<boolean> {
+    if (featureIds.length === 0) return true;
+
+    const database = getDb(db);
+    const nowIso = new Date().toISOString();
+    const values = featureIds.map((featureId) => ({
+      hotelId,
+      featureId,
+      createdAt: nowIso,
+    }));
+
+    await database.insert(hotelFeatureTable).values(values);
+    return true;
+  }
+
+  static async removeFeaturesForHotel(
+    db: D1Database,
+    hotelId: number,
+  ): Promise<boolean> {
+    const database = getDb(db);
+    await database
+      .delete(hotelFeatureTable)
+      .where(eq(hotelFeatureTable.hotelId, hotelId));
+    return true;
+  }
+
+  static async updateFeaturesForHotel(
+    db: D1Database,
+    hotelId: number,
+    featureIds: number[],
+  ): Promise<boolean> {
+    // Remove existing features
+    await this.removeFeaturesForHotel(db, hotelId);
+
+    // Add new features
+    if (featureIds.length > 0) {
+      await this.addFeaturesForHotel(db, hotelId, featureIds);
+    }
+
+    return true;
+  }
 }

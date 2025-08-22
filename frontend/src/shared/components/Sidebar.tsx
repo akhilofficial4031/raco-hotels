@@ -69,8 +69,33 @@ const Sidebar = () => {
   ];
 
   const defaultOpenKey = sidebarItems.find((item) =>
-    item.children?.some((child) => location.pathname.startsWith(child.path)),
+    item.children?.some((child) => location.pathname.includes(child.path)),
   )?.label;
+
+  // Find the selected menu item based on path inclusion
+  const getSelectedKeys = () => {
+    // First check if any child menu item path is included in current pathname
+    for (const item of sidebarItems) {
+      if (item.children) {
+        for (const child of item.children) {
+          if (location.pathname.includes(child.path)) {
+            return [child.path];
+          }
+        }
+      }
+    }
+
+    // Then check main menu items (excluding those with children)
+    for (const item of sidebarItems) {
+      if (!item.children && location.pathname.includes(item.path)) {
+        return [item.path];
+      }
+    }
+
+    return [];
+  };
+
+  const selectedKeys = getSelectedKeys();
 
   return (
     <aside
@@ -88,9 +113,9 @@ const Sidebar = () => {
         mode="inline"
         inlineCollapsed={!isOpen}
         className={`!bg-white transition-all duration-300 !w-full !border-none`}
-        defaultSelectedKeys={[location.pathname]}
+        defaultSelectedKeys={selectedKeys}
         defaultOpenKeys={defaultOpenKey ? [defaultOpenKey] : []}
-        selectedKeys={[location.pathname]}
+        selectedKeys={selectedKeys}
       >
         {sidebarItems.map((item) =>
           item.children ? (

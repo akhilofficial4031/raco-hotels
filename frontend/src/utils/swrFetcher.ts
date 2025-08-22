@@ -66,3 +66,38 @@ export const mutationFetcher = async <TResponse = unknown, TBody = unknown>(
   });
   return handleResponse<TResponse>(res);
 };
+
+/**
+ * 🔹 Multipart form fetcher for file uploads
+ */
+export interface MultipartMutationOptions {
+  method?: Exclude<Uppercase<string>, "GET">;
+  formData: FormData;
+  headers?: Record<string, string>;
+  [key: string]: any;
+}
+
+export const multipartMutationFetcher = async <TResponse = unknown>(
+  url: string,
+  { arg }: { arg: MultipartMutationOptions },
+): Promise<TResponse> => {
+  const { method = "POST", formData, headers = {}, ...rest } = arg || {};
+  if (method.toUpperCase() === "GET") {
+    throw new Error(
+      "multipartMutationFetcher does not support GET requests; use fetcher instead.",
+    );
+  }
+
+  const res = await fetch(`${BASE_URL}${url}`, {
+    method: method.toUpperCase(),
+    credentials: "include",
+    headers: {
+      "X-CSRF-Token":
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiY3NyZiIsInRpbWVzdGFtcCI6MTc1NTUwMjY1OTI5MiwiaWF0IjoxNzU1NTAyNjU5LCJleHAiOjE3NTU1MDYyNTl9.mmqV35KErReume_tA6byg6iw8BLwIKe2gAVSrj3p2tA",
+      ...headers,
+    },
+    body: formData,
+    ...rest,
+  });
+  return handleResponse<TResponse>(res);
+};
