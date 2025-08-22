@@ -64,6 +64,11 @@ const Sidebar = () => {
           icon: <SettingOutlined />,
           path: "/amenities",
         },
+        {
+          label: "Room Types",
+          icon: <ShopOutlined />,
+          path: "/room-types",
+        },
       ],
     },
   ];

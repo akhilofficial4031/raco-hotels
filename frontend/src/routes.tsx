@@ -12,6 +12,7 @@ const NotFound = lazy(() => import("./pages/Not-found"));
 const Users = lazy(() => import("./pages/Users"));
 const Features = lazy(() => import("./pages/Features"));
 const Amenities = lazy(() => import("./pages/Amenities"));
+const RoomType = lazy(() => import("./pages/Room-type"));
 
 // Helper function to wrap lazy components with Suspense
 const withSuspense = (Component: React.ComponentType) => {
@@ -81,6 +82,16 @@ const router = createBrowserRouter([
           crumb: () => ({
             label: "Features",
             href: "/features",
+          }),
+        },
+      },
+      {
+        path: "room-types",
+        Component: withSuspense(RoomType),
+        handle: {
+          crumb: () => ({
+            label: "Room Types",
+            href: "/room-types",
           }),
         },
       },

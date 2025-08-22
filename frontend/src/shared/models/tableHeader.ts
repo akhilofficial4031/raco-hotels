@@ -4,6 +4,7 @@ export interface TableHeaderProps {
   showAddButton?: boolean;
   showSearch?: boolean;
   showFilter?: boolean;
+  hasActiveFilters?: boolean;
   addButtonOnClick?: () => void;
   onSearch?: (value: string) => void;
   onFilterClick?: () => void;

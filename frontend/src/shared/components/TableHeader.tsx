@@ -1,5 +1,5 @@
 import { FilterOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Input } from "antd";
+import { Badge, Button, Input } from "antd";
 import { useEffect, useState } from "react";
 
 import { type TableHeaderProps } from "../models/tableHeader";
@@ -9,6 +9,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({
   showAddButton = true,
   showSearch = true,
   showFilter = false,
+  hasActiveFilters = false,
   addButtonOnClick,
   onSearch,
   onFilterClick,
@@ -41,10 +42,12 @@ const TableHeader: React.FC<TableHeaderProps> = ({
       )}
       <div className="flex gap-2">
         {showFilter && (
-          <Button onClick={onFilterClick}>
-            <FilterOutlined />
-            Filter
-          </Button>
+          <Badge dot={hasActiveFilters} color="blue">
+            <Button onClick={onFilterClick}>
+              <FilterOutlined />
+              Filter
+            </Button>
+          </Badge>
         )}
         {showAddButton && (
           <Button
