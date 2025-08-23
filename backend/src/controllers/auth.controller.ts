@@ -75,13 +75,21 @@ export class AuthController {
           const refreshToken = generateRefreshToken(tokenPayload);
           const csrfToken = generateCSRFToken();
 
-          // Store refresh token in KV with token ID as key
-          await AuthService.storeRefreshToken(
-            c.env.KV,
-            tokenId,
-            refreshToken,
-            user.id,
-          );
+          // Store both refresh and access tokens in KV
+          await Promise.all([
+            AuthService.storeRefreshToken(
+              c.env.KV,
+              tokenId,
+              refreshToken,
+              user.id,
+            ),
+            AuthService.storeAccessToken(
+              c.env.KV,
+              tokenId,
+              accessToken,
+              user.id,
+            ),
+          ]);
 
           // Set HTTP-only cookies
           setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, accessToken, {

@@ -4,7 +4,15 @@ import {
   MoreOutlined,
   StarFilled,
 } from "@ant-design/icons";
-import { Button, Dropdown, Menu, Pagination, Rate, Table, message } from "antd";
+import {
+  Button,
+  Dropdown,
+  type MenuProps,
+  Pagination,
+  Rate,
+  Table,
+  message,
+} from "antd";
 import { useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
 import useSWRMutation from "swr/mutation";
@@ -107,32 +115,35 @@ const Reviews = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: unknown, record: Review) => (
-        <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item
-                key="approve"
-                icon={<CheckOutlined />}
-                onClick={() => handleUpdateReviewStatus(record, "Approved")}
-                disabled={record.status === "Approved"}
-              >
-                Approve
-              </Menu.Item>
-              <Menu.Item
-                key="reject"
-                icon={<CloseOutlined />}
-                onClick={() => handleUpdateReviewStatus(record, "Rejected")}
-                disabled={record.status === "Rejected"}
-              >
-                Reject
-              </Menu.Item>
-            </Menu>
-          }
-        >
-          <Button icon={<MoreOutlined />} />
-        </Dropdown>
-      ),
+      render: (_: unknown, record: Review) => {
+        const items: MenuProps["items"] = [
+          {
+            key: "Approved",
+            icon: <CheckOutlined />,
+            label: "Approve",
+            disabled: record.status === "Approved",
+          },
+          {
+            key: "Rejected",
+            icon: <CloseOutlined />,
+            label: "Reject",
+            disabled: record.status === "Rejected",
+          },
+        ];
+
+        const handleMenuClick = ({ key }: { key: string }) => {
+          handleUpdateReviewStatus(record, key as "Approved" | "Rejected");
+        };
+
+        return (
+          <Dropdown
+            menu={{ items, onClick: handleMenuClick }}
+            trigger={["click"]}
+          >
+            <Button icon={<MoreOutlined />} />
+          </Dropdown>
+        );
+      },
     },
   ];
 

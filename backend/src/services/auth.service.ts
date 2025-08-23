@@ -16,8 +16,17 @@ interface StoredRefreshToken {
   expiresAt: string;
 }
 
+// Access token storage interface for KV
+interface StoredAccessToken {
+  token: string;
+  userId: number;
+  createdAt: string;
+  expiresAt: string;
+}
+
 // Token ID prefix for KV storage organization
 const TOKEN_PREFIX = "auth:refresh:";
+const ACCESS_TOKEN_PREFIX = "auth:access:";
 const USER_SESSIONS_PREFIX = "auth:user:sessions:";
 
 export class AuthService {
@@ -134,6 +143,28 @@ export class AuthService {
     await this.addTokenToUserSessions(kv, userId, tokenId);
   }
 
+  // Store access token in KV for immediate availability
+  static async storeAccessToken(
+    kv: KVNamespace,
+    tokenId: string,
+    accessToken: string,
+    userId: number,
+  ): Promise<void> {
+    const tokenData: StoredAccessToken = {
+      token: accessToken,
+      userId,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(), // 15 minutes
+    };
+
+    const key = ACCESS_TOKEN_PREFIX + tokenId;
+
+    // Store token with expiration (15 minutes)
+    await kv.put(key, JSON.stringify(tokenData), {
+      expirationTtl: 15 * 60, // 15 minutes in seconds
+    });
+  }
+
   // Get refresh token from KV
   static async getRefreshToken(
     kv: KVNamespace,
@@ -163,6 +194,35 @@ export class AuthService {
     }
   }
 
+  // Get access token from KV
+  static async getAccessToken(
+    kv: KVNamespace,
+    tokenId: string,
+  ): Promise<StoredAccessToken | null> {
+    const key = ACCESS_TOKEN_PREFIX + tokenId;
+    const data = await kv.get(key);
+
+    if (!data) {
+      return null;
+    }
+
+    try {
+      const tokenData = JSON.parse(data) as StoredAccessToken;
+
+      // Check if token is expired
+      if (new Date(tokenData.expiresAt) < new Date()) {
+        // Remove expired token
+        await this.revokeAccessToken(kv, tokenId);
+        return null;
+      }
+
+      return tokenData;
+    } catch (error) {
+      console.error("Failed to parse access token data:", error);
+      return null;
+    }
+  }
+
   // Revoke specific refresh token
   static async revokeRefreshToken(
     kv: KVNamespace,
@@ -182,6 +242,15 @@ export class AuthService {
     }
   }
 
+  // Revoke specific access token
+  static async revokeAccessToken(
+    kv: KVNamespace,
+    tokenId: string,
+  ): Promise<void> {
+    const key = ACCESS_TOKEN_PREFIX + tokenId;
+    await kv.delete(key);
+  }
+
   // Revoke all refresh tokens for a user
   static async revokeAllUserSessions(
     kv: KVNamespace,
@@ -197,10 +266,14 @@ export class AuthService {
     try {
       const tokenIds = JSON.parse(sessionsData) as string[];
 
-      // Delete all tokens
+      // Delete all refresh and access tokens
       const deletePromises = tokenIds.map(async (tokenId) => {
-        const tokenKey = TOKEN_PREFIX + tokenId;
-        await kv.delete(tokenKey);
+        const refreshTokenKey = TOKEN_PREFIX + tokenId;
+        const accessTokenKey = ACCESS_TOKEN_PREFIX + tokenId;
+        await Promise.all([
+          kv.delete(refreshTokenKey),
+          kv.delete(accessTokenKey),
+        ]);
       });
 
       await Promise.all(deletePromises);
@@ -370,9 +443,9 @@ export class AuthService {
     // in all KV implementations. For now, we rely on TTL for automatic cleanup.
     // In production, you might want to implement a scheduled job to clean up
     // user session lists that reference expired tokens.
-    console.log(
-      kv,
-      "Token cleanup relies on TTL. Manual cleanup not implemented.",
+    console.warn(
+      "Token cleanup relies on TTL. Manual cleanup not implemented. KV:",
+      !!kv,
     );
   }
 }
