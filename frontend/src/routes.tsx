@@ -13,6 +13,8 @@ const Users = lazy(() => import("./pages/Users"));
 const Features = lazy(() => import("./pages/Features"));
 const Amenities = lazy(() => import("./pages/Amenities"));
 const RoomType = lazy(() => import("./pages/Room-type"));
+const Rooms = lazy(() => import("./pages/Rooms"));
+const AddRoomPage = lazy(() => import("./pages/rooms/AddRoomPage"));
 
 // Helper function to wrap lazy components with Suspense
 const withSuspense = (Component: React.ComponentType) => {
@@ -94,6 +96,41 @@ const router = createBrowserRouter([
             href: "/room-types",
           }),
         },
+      },
+      {
+        path: "rooms",
+        handle: {
+          crumb: () => ({
+            label: "Rooms",
+            href: "/rooms",
+          }),
+        },
+        children: [
+          {
+            index: true,
+            Component: withSuspense(Rooms),
+          },
+          {
+            path: "add",
+            Component: withSuspense(AddRoomPage),
+            handle: {
+              crumb: () => ({
+                label: "Add Room",
+                href: "/rooms/add",
+              }),
+            },
+          },
+          {
+            path: "edit/:id",
+            Component: withSuspense(Rooms),
+            handle: {
+              crumb: () => ({
+                label: "Edit Room",
+                href: "/rooms",
+              }),
+            },
+          },
+        ],
       },
       {
         path: "hotels",
