@@ -1,87 +1,14 @@
-import {
-  BankOutlined,
-  BookOutlined,
-  CreditCardOutlined,
-  HomeOutlined,
-  SettingOutlined,
-  ShopOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
 import { Menu } from "antd";
 import { Link, useLocation } from "react-router";
 
+import { SIDEBAR_ITEMS } from "../constants/sidebar";
 import { useSidebar } from "../hooks/useSidebar";
 import { type SidebarItem } from "../models/sidebar";
 
 const Sidebar = () => {
   const { isOpen } = useSidebar();
   const location = useLocation();
-  const sidebarItems: SidebarItem[] = [
-    {
-      label: "Dashboard",
-      icon: <HomeOutlined />,
-      path: "/dashboard",
-    },
-    {
-      label: "Hotels",
-      icon: <BankOutlined />,
-      path: "/hotels",
-    },
-    {
-      label: "Rooms",
-      icon: <ShopOutlined />,
-      path: "/rooms",
-    },
-
-    {
-      label: "Bookings",
-      icon: <BookOutlined />,
-      path: "/bookings",
-    },
-    {
-      label: "Payments",
-      icon: <CreditCardOutlined />,
-      path: "/payments",
-    },
-    {
-      label: "Reviews",
-      icon: <BookOutlined />,
-      path: "/reviews",
-    },
-
-    {
-      label: "Configurations",
-      icon: <SettingOutlined />,
-      path: "/configurations",
-      children: [
-        {
-          label: "Users",
-          icon: <UserOutlined />,
-          path: "/users",
-        },
-        {
-          label: "Features",
-          icon: <SettingOutlined />,
-          path: "/features",
-        },
-        {
-          label: "Amenities",
-          icon: <SettingOutlined />,
-          path: "/amenities",
-        },
-        {
-          label: "Room Types",
-          icon: <ShopOutlined />,
-          path: "/room-types",
-        },
-        {
-          label: "Addons",
-          icon: <SettingOutlined />,
-          path: "/addons",
-        },
-      ],
-    },
-  ];
+  const sidebarItems: SidebarItem[] = SIDEBAR_ITEMS;
 
   const defaultOpenKey = sidebarItems.find((item) =>
     item.children?.some((child) => location.pathname.includes(child.path)),
