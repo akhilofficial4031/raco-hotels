@@ -15,8 +15,8 @@ const Amenities = lazy(() => import("./pages/Amenities"));
 const RoomType = lazy(() => import("./pages/Room-type"));
 const Rooms = lazy(() => import("./pages/Rooms"));
 const AddRoomPage = lazy(() => import("./pages/rooms/AddRoomPage"));
-
 const Addons = lazy(() => import("./pages/Addons"));
+const Reviews = lazy(() => import("./pages/Reviews"));
 // Helper function to wrap lazy components with Suspense
 const withSuspense = (Component: React.ComponentType) => {
   return function SuspenseWrapper(props: any) {
@@ -177,6 +177,16 @@ const router = createBrowserRouter([
             },
           },
         ],
+      },
+      {
+        path: "reviews",
+        Component: withSuspense(Reviews),
+        handle: {
+          crumb: () => ({
+            label: "Reviews",
+            href: "/reviews",
+          }),
+        },
       },
       {
         path: "*",

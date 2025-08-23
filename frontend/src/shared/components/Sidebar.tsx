@@ -43,6 +43,11 @@ const Sidebar = () => {
       icon: <CreditCardOutlined />,
       path: "/payments",
     },
+    {
+      label: "Reviews",
+      icon: <BookOutlined />,
+      path: "/reviews",
+    },
 
     {
       label: "Configurations",
