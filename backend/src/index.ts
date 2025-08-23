@@ -8,6 +8,7 @@ import { apiInfo } from "./lib/api-info";
 import { configureOpenAPI } from "./lib/openapi-config";
 // Import routes
 import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
+import addonRoutes from "./routes/addon.route";
 import amenityRoutes from "./routes/amenity.route";
 import authRoutes from "./routes/auth.route";
 import availabilityRoutes from "./routes/availability.route";
@@ -92,6 +93,7 @@ app.route("/api", userRoutes);
 app.route("/api", customerRoutes);
 app.route("/api", authRoutes);
 app.route("/api", systemRoutes);
+app.route("/api", addonRoutes);
 
 // Legacy hotel routes removed in favor of /api/hotels router
 

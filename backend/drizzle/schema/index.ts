@@ -32,3 +32,7 @@ export * from "./payment";
 export * from "./refund";
 export * from "./booking_draft";
 export * from "./booking_draft_item";
+export * from "./addon";
+export * from "./room_type_addon";
+export * from "./booking_addon";
+export * from "./booking_draft_addon";

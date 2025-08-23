@@ -66,6 +66,11 @@ export const PERMISSIONS = {
   CUSTOMERS_CREATE: "customers.create",
   CUSTOMERS_UPDATE: "customers.update",
   CUSTOMERS_DELETE: "customers.delete",
+
+  ADDONS_READ: "addons.read",
+  ADDONS_CREATE: "addons.create",
+  ADDONS_UPDATE: "addons.update",
+  ADDONS_DELETE: "addons.delete",
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -132,6 +137,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.CUSTOMERS_CREATE,
     PERMISSIONS.CUSTOMERS_UPDATE,
     PERMISSIONS.CUSTOMERS_DELETE,
+    PERMISSIONS.ADDONS_READ,
+    PERMISSIONS.ADDONS_CREATE,
+    PERMISSIONS.ADDONS_UPDATE,
+    PERMISSIONS.ADDONS_DELETE,
   ],
   [USER_ROLES.STAFF]: [
     PERMISSIONS.USERS_READ,

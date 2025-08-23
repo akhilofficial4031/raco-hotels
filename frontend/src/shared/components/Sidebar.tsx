@@ -64,6 +64,11 @@ const Sidebar = () => {
           icon: <SettingOutlined />,
           path: "/amenities",
         },
+        {
+          label: "Addons",
+          icon: <SettingOutlined />,
+          path: "/addons",
+        },
       ],
     },
   ];

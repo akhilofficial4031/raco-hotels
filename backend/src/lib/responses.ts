@@ -390,6 +390,48 @@ export class FeatureResponse {
     );
   }
 }
+
+// Addon-specific response helpers
+export class AddonResponse {
+  static addonNotFound(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.notFound",
+      "addon.notFound",
+      HTTP_STATUS.NOT_FOUND,
+    );
+  }
+
+  static addonCreated(c: Context, addon: any) {
+    return createLocalizedResponse(
+      c,
+      { addon },
+      "addon.created",
+      HTTP_STATUS.CREATED,
+    );
+  }
+
+  static addonUpdated(c: Context, addon: any) {
+    return createLocalizedResponse(c, { addon }, "addon.updated");
+  }
+
+  static addonDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "addon.deleted");
+  }
+
+  static addonRetrieved(c: Context, addon: any) {
+    return createLocalizedResponse(c, { addon }, "addon.retrieved");
+  }
+
+  static addonsList(c: Context, addons: any[], pagination?: any) {
+    return createLocalizedResponse(
+      c,
+      { addons, ...(pagination && { pagination }) },
+      "addon.listRetrieved",
+    );
+  }
+}
+
 // Async route handler wrapper for error handling
 export async function handleAsyncRoute(
   c: Context,

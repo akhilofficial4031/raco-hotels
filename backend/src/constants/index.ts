@@ -45,6 +45,7 @@ export const API_TAGS = {
   NOTIFICATIONS: "Notifications",
   SETTINGS: "Settings",
   REPORTS: "Reports",
+  ADDONS: "Addons",
 } as const;
 
 // Booking Sources
