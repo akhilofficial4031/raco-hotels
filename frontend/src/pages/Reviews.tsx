@@ -30,6 +30,7 @@ const Reviews = () => {
   const [filterParams, setFilterParams] = useState<ReviewListParamStructure>({
     page: 1,
     limit: 10,
+    search: "",
   });
 
   const queryString = useMemo(
@@ -138,7 +139,7 @@ const Reviews = () => {
         return (
           <Dropdown
             menu={{ items, onClick: handleMenuClick }}
-            trigger={["click"]}
+            trigger={["hover"]}
           >
             <Button icon={<MoreOutlined />} />
           </Dropdown>
@@ -167,13 +168,21 @@ const Reviews = () => {
     setFilterParams((prev) => ({ ...prev, page, limit: pageSize }));
   };
 
+  const handleSearch = (value: string) => {
+    setFilterParams((prev) => ({ ...prev, search: value }));
+  };
+
   if (error) {
     return <div>Error: {error.message}</div>;
   }
 
   return (
     <>
-      <TableHeader searchPlaceholder="reviews" showAddButton={false} />
+      <TableHeader
+        searchPlaceholder="reviews"
+        showAddButton={false}
+        onSearch={handleSearch}
+      />
       <div className="bg-white p-2 rounded-lg mb-2 border border-gray-200">
         <Table
           dataSource={response?.data.reviews}
