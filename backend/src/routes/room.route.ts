@@ -34,7 +34,7 @@ roomRoutes.openapi(
 roomRoutes.openapi(
   RoomRouteDefinitions.createRoom,
   smartPermissionHandler(PERMISSIONS.ROOMS_CREATE, (c) =>
-    RoomController.createRoom(c as AppContext),
+    RoomController.createRooms(c as AppContext),
   ),
 );
 

@@ -1,13 +1,16 @@
-import { and, count, desc, eq, like } from "drizzle-orm";
+import { and, count, desc, eq, like, inArray } from "drizzle-orm";
 
-import { room as roomTable } from "../../drizzle/schema";
+import {
+  room as roomTable,
+  roomType as roomTypeTable,
+} from "../../drizzle/schema";
 import { getDb } from "../db";
 
 import type {
   DatabaseRoom,
   RoomFilters,
   PaginationParams,
-  CreateRoomData,
+  CreateRoomsData,
   UpdateRoomData,
 } from "../types";
 
@@ -16,7 +19,7 @@ export class RoomRepository {
     db: D1Database,
     filters: RoomFilters = {},
     pagination: PaginationParams = {},
-  ): Promise<{ rooms: DatabaseRoom[]; total: number }> {
+  ): Promise<{ rooms: any[]; total: number }> {
     const database = getDb(db);
     const { page = 1, limit = 10 } = pagination;
     const offset = (page - 1) * limit;
@@ -40,13 +43,33 @@ export class RoomRepository {
       .where(whereClause);
     const total = totalResult[0]?.count || 0;
 
-    const rows = await database
-      .select()
+    let query = database
+      .select({
+        id: roomTable.id,
+        hotelId: roomTable.hotelId,
+        roomTypeId: roomTable.roomTypeId,
+        roomNumber: roomTable.roomNumber,
+        floor: roomTable.floor,
+        description: roomTable.description,
+        status: roomTable.status,
+        isActive: roomTable.isActive,
+        createdAt: roomTable.createdAt,
+        updatedAt: roomTable.updatedAt,
+        roomType: {
+          id: roomTypeTable.id,
+          name: roomTypeTable.name,
+        },
+      })
       .from(roomTable)
+      .leftJoin(roomTypeTable, eq(roomTable.roomTypeId, roomTypeTable.id))
       .where(whereClause)
-      .orderBy(desc(roomTable.createdAt))
-      .limit(limit)
-      .offset(offset);
+      .orderBy(desc(roomTable.createdAt));
+
+    if (limit !== -1) {
+      query = query.limit(limit).offset(offset);
+    }
+
+    const rows = await query;
 
     return { rooms: rows as any, total };
   }
@@ -83,25 +106,68 @@ export class RoomRepository {
     return (rows[0] as any) || null;
   }
 
-  static async create(
+  static async findByHotelAndNumbers(
     db: D1Database,
-    data: CreateRoomData,
-  ): Promise<DatabaseRoom> {
+    hotelId: number,
+    roomNumbers: string[],
+  ): Promise<DatabaseRoom[]> {
+    if (roomNumbers.length === 0) return [];
     const database = getDb(db);
+    const existingRooms: DatabaseRoom[] = [];
+    const batchSize = 100;
+
+    for (let i = 0; i < roomNumbers.length; i += batchSize) {
+      const batch = roomNumbers.slice(i, i + batchSize);
+      const rows = await database
+        .select()
+        .from(roomTable)
+        .where(
+          and(
+            eq(roomTable.hotelId, hotelId),
+            inArray(roomTable.roomNumber, batch),
+          ),
+        );
+      if (rows.length > 0) {
+        existingRooms.push(...(rows as any));
+      }
+    }
+    return existingRooms;
+  }
+
+  static async createMany(
+    db: D1Database,
+    data: CreateRoomsData,
+    tx?: any,
+  ): Promise<DatabaseRoom[]> {
+    const database = tx || getDb(db);
     const nowIso = new Date().toISOString();
-    const [created] = await database
-      .insert(roomTable)
-      .values({
-        ...data,
-        description: data.description ?? null,
-        floor: data.floor ?? null,
-        status: data.status ?? "available",
-        isActive: data.isActive ?? 1,
-        createdAt: nowIso,
-        updatedAt: nowIso,
-      } as any)
-      .returning();
-    return created as any;
+
+    const roomsToInsert = data.roomNumbers.map((roomNumber) => ({
+      ...data,
+      roomNumber,
+      description: data.description ?? null,
+      floor: data.floor ?? null,
+      status: data.status ?? "available",
+      isActive: data.isActive ?? 1,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    }));
+
+    if (roomsToInsert.length === 0) return [];
+
+    const batchSize = 50;
+    const createdRooms: DatabaseRoom[] = [];
+
+    for (let i = 0; i < roomsToInsert.length; i += batchSize) {
+      const batch = roomsToInsert.slice(i, i + batchSize);
+      const created = await database
+        .insert(roomTable)
+        .values(batch as any)
+        .returning();
+      createdRooms.push(...(created as any));
+    }
+
+    return createdRooms;
   }
 
   static async update(

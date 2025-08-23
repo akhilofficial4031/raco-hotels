@@ -4,7 +4,8 @@ import {
   RoomPathParamsSchema,
   RoomQueryParamsSchema,
   RoomResponseSchema,
-  CreateRoomRequestSchema,
+  RoomsResponseSchema,
+  CreateRoomsRequestSchema,
   UpdateRoomRequestSchema,
 } from "../schemas";
 
@@ -37,9 +38,9 @@ export const RoomRouteDefinitions = {
     summary: "Create room",
     description: "Create a new physical room connected to a room type",
     tags: [ApiTags.ROOMS],
-    successSchema: RoomResponseSchema,
+    successSchema: RoomsResponseSchema,
     successDescription: "Room created successfully",
-    requestSchema: CreateRoomRequestSchema,
+    requestSchema: CreateRoomsRequestSchema,
     includeBadRequest: true,
   }),
   updateRoom: createRoute({
