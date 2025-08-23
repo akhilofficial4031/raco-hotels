@@ -1,6 +1,6 @@
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
+  DoubleLeftOutlined,
+  DoubleRightOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { Avatar, Button, Dropdown, type MenuProps, Space } from "antd";
@@ -59,9 +59,9 @@ const Header = () => {
           <Button
             icon={
               isOpen ? (
-                <MenuFoldOutlined className="!text-2xl" />
+                <DoubleLeftOutlined className="!text-2xl !text-gray-500" />
               ) : (
-                <MenuUnfoldOutlined className="!text-2xl" />
+                <DoubleRightOutlined className="!text-2xl !text-gray-500" />
               )
             }
             type="text"

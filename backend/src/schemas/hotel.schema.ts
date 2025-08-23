@@ -1,7 +1,7 @@
 import z from "zod";
 
-import { FeatureSchema } from "./feature.schema";
 import { AmenitySchema } from "./amenity.schema";
+import { FeatureSchema } from "./feature.schema";
 
 const LocationInfoImageSchema = z
   .object({
@@ -187,6 +187,20 @@ export const CreateHotelRequestSchema = z
     locationInfo: z.array(LocationInfoSectionSchema).optional().openapi({
       description: "Optional rich JSON content about nearby locations",
     }),
+    amenities: z
+      .array(z.number().int().positive())
+      .optional()
+      .openapi({
+        example: [1, 2, 3],
+        description: "Array of amenity IDs to associate with the hotel",
+      }),
+    features: z
+      .array(z.number().int().positive())
+      .optional()
+      .openapi({
+        example: [1, 2, 3],
+        description: "Array of feature IDs to associate with the hotel",
+      }),
     isActive: z.number().int().optional().openapi({ example: 1 }),
   })
   .openapi("CreateHotelRequest");

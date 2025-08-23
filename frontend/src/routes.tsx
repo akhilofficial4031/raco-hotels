@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
 
+import Hotels from "./pages/Hotels";
 import FullScreenSpinner from "./shared/components/FullScreenSpinner";
 import { AuthLayout, UnAuthLayout } from "./shared/layouts";
 
@@ -92,6 +93,41 @@ const router = createBrowserRouter([
             href: "/addons",
           }),
         },
+      },
+      {
+        path: "hotels",
+        handle: {
+          crumb: () => ({
+            label: "Hotels",
+            href: "/hotels",
+          }),
+        },
+        children: [
+          {
+            index: true,
+            Component: withSuspense(Hotels),
+          },
+          {
+            path: "add",
+            Component: withSuspense(Hotels),
+            handle: {
+              crumb: () => ({
+                label: "Add Hotel",
+                href: "/hotels/add",
+              }),
+            },
+          },
+          {
+            path: "edit/:id",
+            Component: withSuspense(Hotels),
+            handle: {
+              crumb: () => ({
+                label: "Edit Hotel",
+                href: "/hotels",
+              }),
+            },
+          },
+        ],
       },
       {
         path: "*",
