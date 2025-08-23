@@ -9,7 +9,6 @@ import type {
  */
 export interface DatabaseAddon extends BaseEntity {
   name: string;
-  slug: string;
   description: string | null;
   category: string | null;
   unitType: string;
@@ -23,7 +22,6 @@ export interface DatabaseAddon extends BaseEntity {
  */
 export interface CreateAddonData {
   name: string;
-  slug: string;
   description?: string | null;
   category?: string | null;
   unitType: string;

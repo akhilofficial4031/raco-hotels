@@ -53,17 +53,9 @@ export class AddonController {
           // Validate business rules
           AddonService.validateAddonData(payload);
 
-          // Generate slug if not provided
-          if (!payload.slug && payload.name) {
-            payload.slug = AddonService.generateSlug(payload.name);
-          }
-
           const created = await AddonService.createAddon(c.env.DB, payload);
           return AddonResponse.addonCreated(c, created);
         } catch (e) {
-          if (e instanceof Error && e.message.includes("slug")) {
-            return ApiResponse.conflict(c, e.message);
-          }
           if (e instanceof Error && e.message.includes("Invalid")) {
             return ApiResponse.badRequest(c, e.message);
           }
@@ -82,19 +74,12 @@ export class AddonController {
         const payload = await c.req.json();
 
         try {
-          // Generate slug if name is provided but slug is not
-          if (payload.name && !payload.slug) {
-            payload.slug = AddonService.generateSlug(payload.name);
-          }
-
           const updated = await AddonService.updateAddon(c.env.DB, id, payload);
           return AddonResponse.addonUpdated(c, updated);
         } catch (e) {
           if (e instanceof Error) {
             if (e.message === "Addon not found")
               return AddonResponse.addonNotFound(c);
-            if (e.message.includes("slug"))
-              return ApiResponse.conflict(c, e.message);
             if (e.message.includes("Invalid"))
               return ApiResponse.badRequest(c, e.message);
           }

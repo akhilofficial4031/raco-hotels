@@ -3,8 +3,6 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   MoreOutlined,
-  SaveOutlined,
-  CloseOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -14,18 +12,19 @@ import {
   Pagination,
   Table,
   message,
-  Input,
-  Select,
 } from "antd";
 import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
 
+import AddEditAddon from "../features/addon/add-edit-addon";
 import TableHeader from "../shared/components/TableHeader";
 import {
   type Addon,
   type AddonListParamStructure,
   type AddonListResponse,
+  type CreateAddonPayload,
+  type UpdateAddonPayload,
 } from "../shared/models";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
@@ -33,10 +32,9 @@ import { fetcher, mutationFetcher } from "../utils/swrFetcher";
 const { confirm } = Modal;
 
 const Addons = () => {
-  const [isAdding, setIsAdding] = useState(false);
-  const [newAddonName, setNewAddonName] = useState("");
-  const [editingRowId, setEditingRowId] = useState<number | null>(null);
-  const [editedAddon, setEditedAddon] = useState<Addon | null>(null);
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [selectedAddon, setSelectedAddon] = useState<Addon | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [filterParams, setFilterParams] = useState<AddonListParamStructure>({
     page: 1,
@@ -62,41 +60,14 @@ const Addons = () => {
     setFilterParams((prev) => ({ ...prev, page, limit: pageSize }));
   };
 
-  const handleAddAmenity = () => {
-    setIsAdding(true);
+  const handleAddAddon = () => {
+    setSelectedAddon(null);
+    setIsDrawerVisible(true);
   };
 
-  const handleSaveNewAmenity = async () => {
-    if (!newAddonName) {
-      message.error("Please provide a name.");
-      return;
-    }
-    try {
-      await mutationFetcher("/addons", {
-        arg: {
-          method: "POST",
-          body: {
-            name: newAddonName,
-            category: "",
-            unitType: "",
-            isActive: 1,
-          },
-        },
-      });
-      message.success("Amenity added successfully");
-      mutate(`/addons${queryString}`);
-      setIsAdding(false);
-      setNewAddonName("");
-    } catch (_error) {
-      if (_error) {
-        message.error("Failed to add amenity");
-      }
-    }
-  };
-
-  const handleCancelAdd = () => {
-    setIsAdding(false);
-    setNewAddonName("");
+  const handleEditAddon = (addon: Addon) => {
+    setSelectedAddon(addon);
+    setIsDrawerVisible(true);
   };
 
   const handleDeleteAddon = (addon: Addon) => {
@@ -120,179 +91,124 @@ const Addons = () => {
     });
   };
 
-  const handleEdit = (record: Addon) => {
-    setEditingRowId(record.id);
-    setEditedAddon(record);
-  };
-
-  const handleCancelEdit = () => {
-    setEditingRowId(null);
-    setEditedAddon(null);
-  };
-
-  const handleSave = async () => {
-    if (!editedAddon) return;
+  const handleSubmit = async (data: {
+    name: string;
+    description?: string;
+    category?: string;
+    unitType?: string;
+  }) => {
+    setIsSaving(true);
     try {
-      await mutationFetcher(`/addons/${editedAddon.id}`, {
-        arg: {
-          method: "PUT",
-          body: {
-            name: editedAddon.name,
-            category: editedAddon.category,
-            unitType: editedAddon.unitType,
-            isActive: editedAddon.isActive,
+      if (selectedAddon) {
+        // Edit mode
+        const updatePayload: UpdateAddonPayload = {
+          name: data.name,
+          description: data.description || null,
+          category: data.category || null,
+          unitType: data.unitType || "",
+          isActive: selectedAddon.isActive,
+        };
+
+        await mutationFetcher(`/addons/${selectedAddon.id}`, {
+          arg: {
+            method: "PUT",
+            body: updatePayload,
           },
-        },
-      });
-      message.success("Addon updated successfully");
+        });
+        message.success("Addon updated successfully");
+      } else {
+        // Add mode
+        const createPayload: CreateAddonPayload = {
+          name: data.name,
+          description: data.description || null,
+          category: data.category || null,
+          unitType: data.unitType || "",
+          isActive: 1,
+        };
+
+        await mutationFetcher("/addons", {
+          arg: {
+            method: "POST",
+            body: createPayload,
+          },
+        });
+        message.success("Addon added successfully");
+      }
       mutate(`/addons${queryString}`);
-      setEditingRowId(null);
-      setEditedAddon(null);
+      setIsDrawerVisible(false);
+      setSelectedAddon(null);
     } catch (_error) {
       if (_error) {
-        message.error("Failed to update addon");
+        message.error(
+          selectedAddon ? "Failed to update addon" : "Failed to add addon",
+        );
       }
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleSearch = (value: string) => {
-    setFilterParams((prev) => ({ ...prev, search: value }));
+    setFilterParams((prev) => ({ ...prev, search: value, page: 1 }));
   };
-
-  const categories = [
-    { value: "bed", label: "Bed" },
-    { value: "food", label: "Food" },
-    { value: "service", label: "Service" },
-    { value: "amenity", label: "Amenity" },
-  ];
 
   const columns: ColumnsType<Addon> = [
     {
       title: "Name",
       dataIndex: "name",
       key: "name",
-      render: (text: string, record: Addon) => {
-        if (record.id === -1) {
-          // New row case
-          return (
-            <Input
-              placeholder="Addon Name"
-              value={newAddonName}
-              onChange={(e) => setNewAddonName(e.target.value)}
-            />
-          );
-        }
-        if (editingRowId === record.id) {
-          // Edit mode case
-          return (
-            <Input
-              value={editedAddon?.name}
-              onChange={(e) =>
-                setEditedAddon(
-                  (prev) => ({ ...prev, name: e.target.value }) as Addon,
-                )
-              }
-            />
-          );
-        }
-        // Normal display case
-        return text;
-      },
+    },
+    {
+      title: "Description",
+      dataIndex: "description",
+      key: "description",
+      render: (text: string | null) => text || "-",
     },
     {
       title: "Category",
       dataIndex: "category",
       key: "category",
-      render: (category: string | null, record: Addon) => {
-        if (record.id === -1) {
-          // New row case
-          return (
-            <Select
-              value={editedAddon?.category}
-              onChange={(value) =>
-                setEditedAddon(
-                  (prev) => ({ ...prev, category: value }) as Addon,
-                )
-              }
-              options={categories.map((category) => ({
-                label: category.label,
-                value: category.value,
-              }))}
-            />
-          );
-        }
-        // Normal display case
-        return category;
-      },
+      render: (text: string | null) => text || "-",
+    },
+    {
+      title: "Unit Type",
+      dataIndex: "unitType",
+      key: "unitType",
+      render: (text: string) => text || "-",
     },
     {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (text: string, record: Addon) => {
-        if (record.id === -1) {
-          // New row case - don't show created date
-          return null;
-        }
-        return new Date(text).toLocaleDateString();
-      },
+      render: (text: string) => new Date(text).toLocaleDateString(),
     },
     {
       title: "Actions",
       key: "actions",
-      render: (_: unknown, record: Addon) => {
-        if (record.id === -1) {
-          // New row case
-          return (
-            <div className="flex gap-2">
-              <Button icon={<SaveOutlined />} onClick={handleSaveNewAmenity}>
-                Save
-              </Button>
-              <Button icon={<CloseOutlined />} onClick={handleCancelAdd}>
-                Cancel
-              </Button>
-            </div>
-          );
-        }
-        if (editingRowId === record.id) {
-          // Edit mode case
-          return (
-            <div className="flex gap-2">
-              <Button icon={<SaveOutlined />} onClick={handleSave}>
-                Save
-              </Button>
-              <Button icon={<CloseOutlined />} onClick={handleCancelEdit}>
-                Cancel
-              </Button>
-            </div>
-          );
-        }
-        // Normal display case
-        return (
-          <Dropdown
-            overlay={
-              <Menu>
-                <Menu.Item
-                  key="edit"
-                  icon={<EditOutlined />}
-                  onClick={() => handleEdit(record)}
-                >
-                  Edit
-                </Menu.Item>
-                <Menu.Item
-                  key="delete"
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleDeleteAddon(record)}
-                >
-                  Delete
-                </Menu.Item>
-              </Menu>
-            }
-          >
-            <Button icon={<MoreOutlined />} />
-          </Dropdown>
-        );
-      },
+      render: (_: unknown, record: Addon) => (
+        <Dropdown
+          overlay={
+            <Menu>
+              <Menu.Item
+                key="edit"
+                icon={<EditOutlined />}
+                onClick={() => handleEditAddon(record)}
+              >
+                Edit
+              </Menu.Item>
+              <Menu.Item
+                key="delete"
+                icon={<DeleteOutlined />}
+                onClick={() => handleDeleteAddon(record)}
+              >
+                Delete
+              </Menu.Item>
+            </Menu>
+          }
+        >
+          <Button icon={<MoreOutlined />} />
+        </Dropdown>
+      ),
     },
   ];
 
@@ -300,31 +216,19 @@ const Addons = () => {
     return <div>Error: {error.message}</div>;
   }
 
-  const newAddonRow = {
-    id: -1,
-    name: newAddonName,
-    category: "",
-    unitType: "",
-    isActive: 1,
-  };
-
   return (
     <div>
       <TableHeader
         searchPlaceholder="addons"
-        showAddButton={!isAdding}
+        showAddButton={true}
         showFilter={false}
         onFilterClick={() => {}}
-        addButtonOnClick={handleAddAmenity}
+        addButtonOnClick={handleAddAddon}
         onSearch={handleSearch}
       />
       <div className="bg-white p-2 rounded-lg mb-2 border border-gray-200">
         <Table
-          dataSource={
-            isAdding
-              ? [newAddonRow, ...(response?.data.addons || [])]
-              : response?.data.addons
-          }
+          dataSource={response?.data.addons}
           className="!bg-white"
           bordered={true}
           columns={columns}
@@ -342,6 +246,17 @@ const Addons = () => {
           />
         </div>
       </div>
+
+      <AddEditAddon
+        open={isDrawerVisible}
+        onClose={() => {
+          setIsDrawerVisible(false);
+          setSelectedAddon(null);
+        }}
+        onSubmit={handleSubmit}
+        addon={selectedAddon}
+        isSaving={isSaving}
+      />
     </div>
   );
 };

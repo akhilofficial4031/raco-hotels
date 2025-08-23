@@ -12,21 +12,13 @@ export class AddonService {
     db: D1Database,
     data: z.infer<typeof CreateAddonRequestSchema>,
   ) {
-    // Check if slug already exists
-    const existingAddon = await AddonRepository.findBySlug(db, data.slug);
-    if (existingAddon) {
-      throw new Error("Addon with this slug already exists");
-    }
-
     return await AddonRepository.create(db, {
       name: data.name,
-      slug: data.slug,
       description: data.description || null,
       category: data.category || null,
       unitType: data.unitType || "item",
       isActive: data.isActive ?? 1,
       sortOrder: data.sortOrder ?? 0,
-      imageUrl: data.imageUrl || null,
     });
   }
 
@@ -40,26 +32,16 @@ export class AddonService {
       throw new Error("Addon not found");
     }
 
-    // Check if slug is being updated and if it conflicts with existing addon
-    if (data.slug && data.slug !== existing.slug) {
-      const existingWithSlug = await AddonRepository.findBySlug(db, data.slug);
-      if (existingWithSlug && existingWithSlug.id !== id) {
-        throw new Error("Addon with this slug already exists");
-      }
-    }
-
     const updateData: any = {};
 
     // Only include fields that are provided
     if (data.name !== undefined) updateData.name = data.name;
-    if (data.slug !== undefined) updateData.slug = data.slug;
     if (data.description !== undefined)
       updateData.description = data.description;
     if (data.category !== undefined) updateData.category = data.category;
     if (data.unitType !== undefined) updateData.unitType = data.unitType;
     if (data.isActive !== undefined) updateData.isActive = data.isActive;
     if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
-    if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
 
     const updated = await AddonRepository.update(db, id, updateData);
     if (!updated) {
@@ -136,18 +118,6 @@ export class AddonService {
       throw new Error("Addon not found");
     }
     return updated;
-  }
-
-  /**
-   * Generate a slug from addon name
-   */
-  static generateSlug(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
-      .replace(/\s+/g, "-") // Replace spaces with hyphens
-      .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
-      .trim();
   }
 
   /**

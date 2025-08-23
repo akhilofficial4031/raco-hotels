@@ -5,7 +5,6 @@ export const AddonSchema = z
   .object({
     id: z.number().int().positive().openapi({ example: 1 }),
     name: z.string().openapi({ example: "Extra Bed" }),
-    slug: z.string().openapi({ example: "extra-bed" }),
     description: z
       .string()
       .nullable()
@@ -22,7 +21,6 @@ export const AddonSchema = z
 export const CreateAddonRequestSchema = z
   .object({
     name: z.string().openapi({ example: "Extra Bed" }),
-    slug: z.string().openapi({ example: "extra-bed" }),
     description: z
       .string()
       .nullable()
@@ -37,7 +35,6 @@ export const CreateAddonRequestSchema = z
 export const UpdateAddonRequestSchema = z
   .object({
     name: z.string().optional().openapi({ example: "Extra Bed" }),
-    slug: z.string().optional().openapi({ example: "extra-bed" }),
     description: z
       .string()
       .nullable()
