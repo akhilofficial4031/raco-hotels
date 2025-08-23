@@ -129,7 +129,7 @@ export type PaymentStatus =
   | "partial_refund";
 
 // Review status types
-export type ReviewStatus = "pending" | "approved" | "rejected" | "hidden";
+export type ReviewStatus = "Pending" | "Approved" | "Rejected" | "Hidden";
 
 // Fee/Tax scope types
 export type FeeScope = "per_stay" | "per_night" | "per_person";

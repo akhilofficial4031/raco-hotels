@@ -4,7 +4,7 @@ export interface APIError extends Error {
   status?: number;
 }
 
-const BASE_URL = "http://localhost:8787/api";
+export const BASE_URL = "http://localhost:8787/api";
 
 // 🔹 Shared error handler
 async function handleResponse<T>(response: Response): Promise<T> {
