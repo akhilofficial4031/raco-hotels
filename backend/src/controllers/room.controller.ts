@@ -45,21 +45,21 @@ export class RoomController {
     );
   }
 
-  static async createRoom(c: AppContext) {
+  static async createRooms(c: AppContext) {
     return handleAsyncRoute(
       c,
       async () => {
         const payload = await c.req.json();
         try {
-          const created = await RoomService.createRoom(c.env.DB, payload);
-          return ApiResponse.created(c, { room: created });
+          const created = await RoomService.createRooms(c.env.DB, payload);
+          return ApiResponse.created(c, { rooms: created });
         } catch (e) {
           if (
             e instanceof Error &&
-            (e.message.includes("exists") ||
+            (e.message.includes("exist") ||
               e.message.includes("Room type not found"))
           ) {
-            const message = e.message.includes("exists")
+            const message = e.message.includes("exist")
               ? e.message
               : "Room type not found";
             return ApiResponse.badRequest(c, message);

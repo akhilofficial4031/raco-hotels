@@ -15,6 +15,10 @@ export interface DatabaseRoom extends HotelScopedEntity {
   description: string | null;
   status: RoomStatus;
   isActive: number;
+  roomType: {
+    id: number;
+    name: string;
+  };
 }
 
 /**
@@ -30,10 +34,10 @@ export interface RoomFilters extends HotelScopedFilters, ActiveStatusFilter {
 /**
  * Data required to create a new room
  */
-export interface CreateRoomData {
+export interface CreateRoomsData {
   hotelId: number;
   roomTypeId: number;
-  roomNumber: string;
+  roomNumbers: string[];
   floor?: string | null;
   description?: string | null;
   status?: RoomStatus;
@@ -43,5 +47,12 @@ export interface CreateRoomData {
 /**
  * Data that can be updated for a room
  */
-export interface UpdateRoomData
-  extends Partial<Omit<CreateRoomData, "hotelId">> {}
+export interface UpdateRoomData {
+  hotelId?: number;
+  roomTypeId?: number;
+  roomNumber?: string;
+  floor?: string | null;
+  description?: string | null;
+  status?: RoomStatus;
+  isActive?: number;
+}

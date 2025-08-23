@@ -5,7 +5,7 @@ import { getDb } from "../db";
 import { RoomRepository } from "../repositories/room.repository";
 
 import type {
-  CreateRoomRequestSchema,
+  CreateRoomsRequestSchema,
   UpdateRoomRequestSchema,
   RoomQueryParamsSchema,
 } from "../schemas";
@@ -26,22 +26,29 @@ export class RoomService {
     if (!rt) throw new Error("Room type not found");
   }
 
-  static async createRoom(
+  static async createRooms(
     db: D1Database,
-    data: z.infer<typeof CreateRoomRequestSchema>,
+    data: z.infer<typeof CreateRoomsRequestSchema>,
   ) {
     // Ensure room type exists
     await this.assertRoomTypeExists(db, data.roomTypeId);
 
-    // Ensure unique hotelId+roomNumber
-    const existing = await RoomRepository.findByHotelAndNumber(
+    // Ensure unique hotelId+roomNumber for all room numbers
+    const existingRooms = await RoomRepository.findByHotelAndNumbers(
       db,
       data.hotelId,
-      data.roomNumber,
+      data.roomNumbers,
     );
-    if (existing) throw new Error("Room number already exists for this hotel");
+    if (existingRooms.length > 0) {
+      const existingRoomNumbers = existingRooms.map((r) => r.roomNumber);
+      throw new Error(
+        `Room numbers already exist for this hotel: ${existingRoomNumbers.join(
+          ", ",
+        )}`,
+      );
+    }
 
-    return await RoomRepository.create(db, data);
+    return await RoomRepository.createMany(db, data);
   }
 
   static async updateRoom(
@@ -90,6 +97,10 @@ export class RoomService {
       isActive,
       search,
     } = query as any;
+
+    // If a hotelId is provided, fetch all rooms without pagination
+    const pagination = hotelId ? { page: 1, limit: -1 } : { page, limit };
+
     const { rooms, total } = await RoomRepository.findAll(
       db,
       {
@@ -99,9 +110,9 @@ export class RoomService {
         isActive: typeof isActive === "number" ? isActive : undefined,
         search,
       },
-      { page, limit },
+      pagination,
     );
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = limit > 0 ? Math.ceil(total / limit) : 1;
     return { items: rooms, pagination: { page, limit, total, totalPages } };
   }
 
