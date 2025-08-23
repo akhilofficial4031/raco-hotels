@@ -13,3 +13,4 @@ export * from "./promo_code.schema";
 export * from "./availability.schema";
 export * from "./booking.schema";
 export * from "./cancellation_policy.schema";
+export * from "./addon.schema";

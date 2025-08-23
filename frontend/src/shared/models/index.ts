@@ -5,5 +5,6 @@ export * from "./sidebar";
 export * from "./tableHeader";
 export * from "./users";
 export * from "./amenity";
+export * from "./addon";
 export * from "./featuers";
 export * from "./room-type";

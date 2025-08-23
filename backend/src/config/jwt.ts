@@ -67,22 +67,30 @@ export interface JWTPayload {
 export function generateAccessToken(
   payload: Omit<JWTPayload, "iat" | "exp" | "iss" | "aud">,
 ): string {
-  return jwt.sign(payload, JWT_CONFIG.SECRET, {
-    expiresIn: JWT_CONFIG.ACCESS_TOKEN_EXPIRES_IN,
-    issuer: JWT_CONFIG.ISSUER,
-    audience: JWT_CONFIG.AUDIENCE,
-  });
+  return jwt.sign(
+    payload as object,
+    JWT_CONFIG.SECRET as jwt.Secret,
+    {
+      expiresIn: JWT_CONFIG.ACCESS_TOKEN_EXPIRES_IN,
+      issuer: JWT_CONFIG.ISSUER,
+      audience: JWT_CONFIG.AUDIENCE,
+    } as jwt.SignOptions,
+  );
 }
 
 // Generate Refresh Token
 export function generateRefreshToken(
   payload: Omit<JWTPayload, "iat" | "exp" | "iss" | "aud">,
 ): string {
-  return jwt.sign(payload, JWT_CONFIG.SECRET, {
-    expiresIn: JWT_CONFIG.REFRESH_TOKEN_EXPIRES_IN,
-    issuer: JWT_CONFIG.ISSUER,
-    audience: JWT_CONFIG.AUDIENCE,
-  });
+  return jwt.sign(
+    payload as object,
+    JWT_CONFIG.SECRET as jwt.Secret,
+    {
+      expiresIn: JWT_CONFIG.REFRESH_TOKEN_EXPIRES_IN,
+      issuer: JWT_CONFIG.ISSUER,
+      audience: JWT_CONFIG.AUDIENCE,
+    } as jwt.SignOptions,
+  );
 }
 
 // Verify Token

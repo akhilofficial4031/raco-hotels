@@ -15,6 +15,13 @@
       "when": 1755504959055,
       "tag": "0001_true_terrax",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1755853849851,
+      "tag": "0002_true_miracleman",
+      "breakpoints": true
     }
   ]
 }

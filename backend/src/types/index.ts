@@ -113,6 +113,14 @@ export type {
   AmenityFilters,
 } from "./amenity.interface";
 
+// Addon-related types
+export type {
+  DatabaseAddon,
+  CreateAddonData,
+  UpdateAddonData,
+  AddonFilters,
+} from "./addon.interface";
+
 // Feature-related types
 export type {
   DatabaseFeature,
