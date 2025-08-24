@@ -1,6 +1,10 @@
 import { and, count, desc, eq, like, or } from "drizzle-orm";
 
-import { addon as addonTable } from "../../drizzle/schema";
+import {
+  addon as addonTable,
+  roomTypeAddon,
+  roomType,
+} from "../../drizzle/schema";
 import { getDb } from "../db";
 
 import type {
@@ -8,6 +12,7 @@ import type {
   PaginationParams,
   CreateAddonData,
   UpdateAddonData,
+  DatabaseRoomTypeAddon,
 } from "../types";
 
 export class AddonRepository {
@@ -166,5 +171,92 @@ export class AddonRepository {
       .where(eq(addonTable.isActive, 1))
       .orderBy(desc(addonTable.sortOrder), desc(addonTable.createdAt));
     return rows as DatabaseAddon[];
+  }
+
+  static async findAddonConfigurations(
+    db: D1Database,
+    params: { addonId: number; search: string; page: number; limit: number },
+  ) {
+    const { addonId, search, page, limit } = params;
+    const database = getDb(db);
+    const offset = (page - 1) * limit;
+
+    const conditions = [eq(roomTypeAddon.addonId, addonId)];
+    if (search) {
+      conditions.push(like(roomType.name, `%${search}%`));
+    }
+
+    const whereClause = and(...conditions);
+
+    const totalResult = await database
+      .select({ count: count() })
+      .from(roomTypeAddon)
+      .leftJoin(roomType, eq(roomTypeAddon.roomTypeId, roomType.id))
+      .where(whereClause);
+
+    const total = totalResult[0]?.count || 0;
+
+    const rows = await database
+      .select({
+        id: roomTypeAddon.id,
+        roomTypeId: roomTypeAddon.roomTypeId,
+        addonId: roomTypeAddon.addonId,
+        priceCents: roomTypeAddon.priceCents,
+        currencyCode: roomTypeAddon.currencyCode,
+        maxQuantity: roomTypeAddon.maxQuantity,
+        minQuantity: roomTypeAddon.minQuantity,
+        isAvailable: roomTypeAddon.isAvailable,
+        specialInstructions: roomTypeAddon.specialInstructions,
+        createdAt: roomTypeAddon.createdAt,
+        updatedAt: roomTypeAddon.updatedAt,
+        roomType: {
+          id: roomType.id,
+          name: roomType.name,
+        },
+      })
+      .from(roomTypeAddon)
+      .leftJoin(roomType, eq(roomTypeAddon.roomTypeId, roomType.id))
+      .where(whereClause)
+      .orderBy(desc(roomTypeAddon.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return { configurations: rows, total };
+  }
+
+  static async findAddonConfigurationById(db: D1Database, id: number) {
+    const database = getDb(db);
+    const rows = await database
+      .select()
+      .from(roomTypeAddon)
+      .where(eq(roomTypeAddon.id, id))
+      .limit(1);
+    return rows[0] || null;
+  }
+
+  static async updateAddonConfiguration(
+    db: D1Database,
+    id: number,
+    data: { priceCents: number },
+  ): Promise<DatabaseRoomTypeAddon> {
+    const database = getDb(db);
+    const [updated] = await database
+      .update(roomTypeAddon)
+      .set({ ...data, updatedAt: new Date().toISOString() })
+      .where(eq(roomTypeAddon.id, id))
+      .returning();
+    return updated;
+  }
+
+  static async deleteAddonConfiguration(
+    db: D1Database,
+    id: number,
+  ): Promise<boolean> {
+    const database = getDb(db);
+    const rows = await database
+      .delete(roomTypeAddon)
+      .where(eq(roomTypeAddon.id, id))
+      .returning();
+    return rows.length > 0;
   }
 }

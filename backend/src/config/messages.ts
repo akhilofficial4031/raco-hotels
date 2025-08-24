@@ -79,6 +79,13 @@ export interface Messages {
     notFound: string;
   };
 
+  addonConfiguration: {
+    listRetrieved: string;
+    notFound: string;
+    updated: string;
+    deleted: string;
+  };
+
   // Booking management messages
   booking: {
     created: string;
@@ -231,6 +238,13 @@ const enMessages: Messages = {
     notFound: "Hotel not found",
   },
 
+  addonConfiguration: {
+    listRetrieved: "Addon configurations retrieved successfully",
+    notFound: "Addon configuration not found",
+    updated: "Addon configuration updated successfully",
+    deleted: "Addon configuration deleted successfully",
+  },
+
   booking: {
     created: "Booking created successfully",
     updated: "Booking updated successfully",
@@ -380,6 +394,13 @@ const esMessages: Messages = {
     retrieved: "Hotel obtenido exitosamente",
     listRetrieved: "Hoteles obtenidos exitosamente",
     notFound: "Hotel no encontrado",
+  },
+
+  addonConfiguration: {
+    listRetrieved: "Configuraciones de complementos obtenidas exitosamente",
+    notFound: "Configuración de complemento no encontrada",
+    updated: "Configuración de complemento actualizada exitosamente",
+    deleted: "Configuración de complemento eliminada exitosamente",
   },
 
   booking: {
@@ -534,6 +555,13 @@ const frMessages: Messages = {
     retrieved: "Hôtel récupéré avec succès",
     listRetrieved: "Hôtels récupérés avec succès",
     notFound: "Hôtel non trouvé",
+  },
+
+  addonConfiguration: {
+    listRetrieved: "Configurations d'addons récupérées avec succès",
+    notFound: "Configuration d'addon non trouvée",
+    updated: "Configuration d'addon mise à jour avec succès",
+    deleted: "Configuration d'addon supprimée avec succès",
   },
 
   booking: {
