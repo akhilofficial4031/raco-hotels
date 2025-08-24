@@ -6,6 +6,7 @@ import {
   PlusCircleOutlined,
   SettingOutlined,
   ShopOutlined,
+  TagOutlined,
   UserOutlined,
   WalletOutlined,
 } from "@ant-design/icons";
@@ -72,6 +73,11 @@ export const SIDEBAR_ITEMS = [
         label: "Addons",
         icon: <PlusCircleOutlined />,
         path: "/addons",
+      },
+      {
+        label: "Promo Codes",
+        icon: <TagOutlined />,
+        path: "/promo-codes",
       },
     ],
   },

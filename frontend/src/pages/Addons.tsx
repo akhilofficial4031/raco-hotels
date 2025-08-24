@@ -74,7 +74,7 @@ const Addons = () => {
   };
 
   const handleViewConfiguration = (addon: Addon) => {
-    navigate(`/addon/configuration/${addon.id}`);
+    navigate(`/addons/configuration/${addon.id}`);
   };
 
   const handleDeleteAddon = (addon: Addon) => {
