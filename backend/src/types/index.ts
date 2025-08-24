@@ -119,6 +119,7 @@ export type {
   CreateAddonData,
   UpdateAddonData,
   AddonFilters,
+  DatabaseRoomTypeAddon,
 } from "./addon.interface";
 
 // Feature-related types

@@ -51,6 +51,7 @@ export interface RoomTypeWithRelations extends RoomType {
   images: RoomTypeImage[];
   amenities: RoomTypeAmenity[];
   rooms: Room[];
+  addons?: RoomTypeAddon[];
 }
 
 export interface RoomTypeListParamStructure {
@@ -95,6 +96,20 @@ export interface CreateRoomTypePayload {
     alt?: string;
     sortOrder?: number;
   }[];
+  addons?: RoomTypeAddonInput[];
+}
+
+export interface RoomTypeAddon {
+  id?: number;
+  roomTypeId: number;
+  addonId: number;
+  priceCents: number;
+}
+
+export interface RoomTypeAddonInput {
+  id?: number;
+  addonId: number;
+  priceCents: number;
 }
 
 export interface UpdateRoomTypePayload extends Partial<CreateRoomTypePayload> {}
@@ -114,4 +129,5 @@ export interface RoomTypeFormData {
   totalRooms: number;
   isActive: number;
   amenityIds?: number[];
+  addons?: RoomTypeAddonInput[];
 }

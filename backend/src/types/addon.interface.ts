@@ -42,3 +42,14 @@ export interface AddonFilters extends BaseFilters, ActiveStatusFilter {
   category?: string;
   unitType?: string;
 }
+
+export interface DatabaseRoomTypeAddon extends BaseEntity {
+  roomTypeId: number;
+  addonId: number;
+  priceCents: number;
+  currencyCode: string;
+  maxQuantity: number | null;
+  minQuantity: number;
+  isAvailable: number;
+  specialInstructions: string | null;
+}

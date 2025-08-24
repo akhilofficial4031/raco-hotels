@@ -52,4 +52,25 @@ addonRoutes.openapi(
   ),
 );
 
+addonRoutes.openapi(
+  AddonRouteDefinitions.getAddonConfigurations,
+  smartPermissionHandler(PERMISSIONS.ADDONS_READ, (c) =>
+    AddonController.getAddonConfigurations(c as AppContext),
+  ),
+);
+
+addonRoutes.openapi(
+  AddonRouteDefinitions.updateAddonConfiguration,
+  smartPermissionHandler(PERMISSIONS.ADDONS_UPDATE, (c) =>
+    AddonController.updateAddonConfiguration(c as AppContext),
+  ),
+);
+
+addonRoutes.openapi(
+  AddonRouteDefinitions.deleteAddonConfiguration,
+  smartPermissionHandler(PERMISSIONS.ADDONS_DELETE, (c) =>
+    AddonController.deleteAddonConfiguration(c as AppContext),
+  ),
+);
+
 export default addonRoutes;

@@ -1,4 +1,9 @@
-import { AddonResponse, ApiResponse, handleAsyncRoute } from "../lib/responses";
+import {
+  AddonResponse,
+  ApiResponse,
+  handleAsyncRoute,
+  AddonConfigurationResponse,
+} from "../lib/responses";
 import { AddonService } from "../services/addon.service";
 
 import type { AppContext } from "../types";
@@ -152,6 +157,62 @@ export class AddonController {
         return AddonResponse.addonsList(c, addons);
       },
       "operation.fetchActiveAddonsFailed",
+    );
+  }
+
+  static async getAddonConfigurations(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const addonId = parseInt(c.req.param("id"), 10);
+        const query = c.req.query();
+        const page = parseInt(query.page || "1", 10);
+        const limit = parseInt(query.limit || "10", 10);
+
+        const result = await AddonService.getAddonConfigurations(c.env.DB, {
+          addonId,
+          page: String(page),
+          limit: String(limit),
+          search: query.search,
+        } as any);
+
+        return AddonConfigurationResponse.configurationsList(
+          c,
+          result.items,
+          result.pagination,
+        );
+      },
+      "operation.fetchAddonConfigurationsFailed",
+    );
+  }
+
+  static async updateAddonConfiguration(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const id = parseInt(c.req.param("id"), 10);
+        const payload = await c.req.json();
+
+        const updated = await AddonService.updateAddonConfiguration(
+          c.env.DB,
+          id,
+          payload,
+        );
+        return AddonConfigurationResponse.configurationUpdated(c, updated);
+      },
+      "operation.updateAddonConfigurationFailed",
+    );
+  }
+
+  static async deleteAddonConfiguration(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const id = parseInt(c.req.param("id"), 10);
+        await AddonService.deleteAddonConfiguration(c.env.DB, id);
+        return AddonConfigurationResponse.configurationDeleted(c);
+      },
+      "operation.deleteAddonConfigurationFailed",
     );
   }
 }

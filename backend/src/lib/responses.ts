@@ -432,6 +432,41 @@ export class AddonResponse {
   }
 }
 
+export class AddonConfigurationResponse {
+  static configurationsList(
+    c: Context,
+    configurations: any[],
+    pagination?: any,
+  ) {
+    return createLocalizedResponse(
+      c,
+      { configurations, ...(pagination && { pagination }) },
+      "addonConfiguration.listRetrieved",
+    );
+  }
+
+  static configurationNotFound(c: Context) {
+    return createLocalizedError(
+      c,
+      "errorCodes.notFound",
+      "addonConfiguration.notFound",
+      HTTP_STATUS.NOT_FOUND,
+    );
+  }
+
+  static configurationUpdated(c: Context, configuration: any) {
+    return createLocalizedResponse(
+      c,
+      { configuration },
+      "addonConfiguration.updated",
+    );
+  }
+
+  static configurationDeleted(c: Context) {
+    return createLocalizedResponse(c, {}, "addonConfiguration.deleted");
+  }
+}
+
 // Async route handler wrapper for error handling
 export async function handleAsyncRoute(
   c: Context,

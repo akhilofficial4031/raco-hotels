@@ -23,6 +23,7 @@ export interface DatabaseRoomType extends HotelScopedEntity {
   isActive: number;
   images?: DatabaseRoomTypeImage[];
   amenities?: DatabaseRoomTypeAmenity[];
+  addons?: DatabaseRoomTypeAddon[];
 }
 
 /**
@@ -40,6 +41,18 @@ export interface DatabaseRoomTypeAmenity {
   roomTypeId: number;
   amenityId: number;
   createdAt: string;
+}
+
+/**
+ * Database representation of a room type addon association
+ */
+export interface DatabaseRoomTypeAddon {
+  id: number;
+  roomTypeId: number;
+  addonId: number;
+  priceCents: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /**

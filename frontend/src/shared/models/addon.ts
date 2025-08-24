@@ -34,3 +34,9 @@ export interface CreateAddonPayload {
 }
 
 export interface UpdateAddonPayload extends Partial<CreateAddonPayload> {}
+
+export interface AddonResponse {
+  data: {
+    addon: Addon;
+  };
+}
