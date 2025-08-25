@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate } from "react-router";
 
+import CustomerPage from "./pages/Customer";
 import Hotels from "./pages/Hotels";
 import FullScreenSpinner from "./shared/components/FullScreenSpinner";
 import { AuthLayout, UnAuthLayout } from "./shared/layouts";
@@ -185,6 +186,16 @@ const router = createBrowserRouter([
           crumb: () => ({
             label: "Reviews",
             href: "/reviews",
+          }),
+        },
+      },
+      {
+        path: "customers",
+        Component: withSuspense(CustomerPage),
+        handle: {
+          crumb: () => ({
+            label: "Customers",
+            href: "/customers",
           }),
         },
       },

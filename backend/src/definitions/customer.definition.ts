@@ -9,6 +9,8 @@ import {
   CustomersListResponseSchema,
   CustomerBookingHistoryResponseSchema,
   FindCustomerByEmailResponseSchema,
+  CustomerSearchQuerySchema,
+  FindCustomerByEmailQuerySchema,
 } from "../schemas";
 
 export const CustomerRouteDefinitions = {
@@ -35,7 +37,7 @@ export const CustomerRouteDefinitions = {
 - Validates phone number format if provided
 - Validates date of birth (age 13-120 years)
 - Sets default status as 'active'
-- Records creation source (web, front_office, etc.)
+- Records creation source (web, front_office, walk_in, etc.)
 - Converts preference arrays to JSON storage format
 
 **Important Notes:**
@@ -197,7 +199,8 @@ export const CustomerRouteDefinitions = {
 - **fullName**: Partial name search (case-insensitive)
 - **phone**: Search in both primary and alternate phone numbers
 - **status**: Filter by customer status (active, inactive, blocked)
-- **source**: Filter by registration source (web, front_office, phone, etc.)
+- **firstBookingSource**: Filter by registration source (web, front_office, phone, walk_in, etc.)
+- **vipStatus**: Filter by VIP status (regular, silver, gold, platinum)
 - **createdAfter/createdBefore**: Date range filters (YYYY-MM-DD format)
 - **hasBookings**: Filter customers with/without booking history
 - **page/limit**: Pagination (default: page=1, limit=20, max=100)
@@ -207,7 +210,7 @@ export const CustomerRouteDefinitions = {
 **Response Data:**
 - Paginated customer list with booking statistics
 - Total booking count and spent amount per customer
-- Last booking date for each customer
+- Last booking timestamp for each customer
 - Comprehensive pagination metadata
 
 **Use Cases:**
@@ -224,6 +227,9 @@ export const CustomerRouteDefinitions = {
 - Handle pagination appropriately
 - Export functionality for marketing`,
     tags: ["Customers"],
+    requestSchema: {
+      query: CustomerSearchQuerySchema,
+    },
     successSchema: CustomersListResponseSchema,
     successDescription: "Customers retrieved successfully",
   }),
@@ -281,7 +287,7 @@ export const CustomerRouteDefinitions = {
 - Complete customer profile information
 - Total bookings and lifetime spending
 - Average booking value
-- Last booking date and frequency analysis
+- Last booking timestamp and frequency analysis
 - Preferred hotels (top 3 most booked)
 - Booking frequency classification (frequent/regular/occasional/never)
 
@@ -349,6 +355,9 @@ export const CustomerRouteDefinitions = {
 - Handle new vs returning customer flows
 - Show customer booking history when relevant`,
     tags: ["Customers"],
+    requestSchema: {
+      query: FindCustomerByEmailQuerySchema,
+    },
     successSchema: FindCustomerByEmailResponseSchema,
     successDescription: "Customer search completed",
   }),

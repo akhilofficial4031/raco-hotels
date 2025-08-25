@@ -43,11 +43,24 @@ export const CustomerBaseSchema = z.object({
   marketingOptIn: z.boolean().optional(),
 
   // System fields
-  source: z
-    .enum(["web", "front_office", "phone", "email", "mobile_app"])
+  firstBookingSource: z
+    .enum(["web", "front_office", "phone", "email", "mobile_app", "walk_in"])
     .optional(),
   status: z.enum(["active", "inactive", "blocked"]).optional(),
   notes: z.string().optional(),
+  hasUserAccount: z.boolean().optional(),
+
+  // Customer analytics and tracking
+  preferredPaymentMethod: z
+    .string()
+    .max(50, "Payment method too long")
+    .optional(),
+  vipStatus: z.enum(["regular", "silver", "gold", "platinum"]).optional(),
+
+  // Communication preferences
+  preferredContactMethod: z.enum(["email", "phone", "sms"]).optional(),
+  languagePreference: z.string().max(10, "Language code too long").optional(),
+  timeZone: z.string().max(50, "Timezone too long").optional(),
 });
 
 // Create customer schema
@@ -72,9 +85,10 @@ export const CustomerSearchQuerySchema = z.object({
   fullName: z.string().optional(),
   phone: z.string().optional(),
   status: z.enum(["active", "inactive", "blocked"]).optional(),
-  source: z
-    .enum(["web", "front_office", "phone", "email", "mobile_app"])
+  firstBookingSource: z
+    .enum(["web", "front_office", "phone", "email", "mobile_app", "walk_in"])
     .optional(),
+  vipStatus: z.enum(["regular", "silver", "gold", "platinum"]).optional(),
   createdAfter: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
@@ -127,21 +141,39 @@ export const CustomerResponseSchema = z.object({
   marketingOptIn: z.boolean(),
 
   // System fields
-  source: z.enum(["web", "front_office", "phone", "email", "mobile_app"]),
+  firstBookingSource: z.enum([
+    "web",
+    "front_office",
+    "phone",
+    "email",
+    "mobile_app",
+    "walk_in",
+  ]),
   status: z.enum(["active", "inactive", "blocked"]),
   notes: z.string().nullable(),
+
+  // Web user tracking
+  hasUserAccount: z.boolean(),
+
+  // Customer analytics and tracking
+  totalBookings: z.number(),
+  totalSpentCents: z.number(),
+  preferredPaymentMethod: z.string().nullable(),
+  vipStatus: z.enum(["regular", "silver", "gold", "platinum"]).nullable(),
+
+  // Communication preferences
+  preferredContactMethod: z.enum(["email", "phone", "sms"]).nullable(),
+  languagePreference: z.string().nullable(),
+  timeZone: z.string().nullable(),
 
   // Timestamps
   createdAt: z.string(),
   updatedAt: z.string(),
   lastBookingAt: z.string().nullable(),
+  lastContactAt: z.string().nullable(),
 });
 
-export const CustomerWithStatsResponseSchema = CustomerResponseSchema.extend({
-  totalBookings: z.number(),
-  totalSpentCents: z.number(),
-  lastBookingDate: z.string().nullable(),
-});
+export const CustomerWithStatsResponseSchema = CustomerResponseSchema;
 
 export const CustomerBookingHistoryResponseSchema = z.object({
   customerId: z.number(),

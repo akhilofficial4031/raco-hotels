@@ -1,5 +1,6 @@
 import { ApiResponse, handleAsyncRoute } from "../lib/responses";
 import { CustomerService } from "../services/customer.service";
+
 import type { AppContext } from "../types";
 
 export class CustomerController {
@@ -60,28 +61,28 @@ export class CustomerController {
   /**
    * Get customer by email
    */
-  static async getByEmail(c: AppContext) {
-    return handleAsyncRoute(
-      c,
-      async () => {
-        const query = c.req.valid("query");
-        const { email, includeBookingData } = query;
+  // static async getByEmail(c: AppContext) {
+  //   return handleAsyncRoute(
+  //     c,
+  //     async () => {
+  //       const query = c.req.valid("query");
+  //       const { email, includeBookingData } = query;
 
-        const customer = await CustomerService.getCustomerByEmail(
-          c.env.DB,
-          email,
-          includeBookingData || false,
-        );
+  //       const customer = await CustomerService.getCustomerByEmail(
+  //         c.env.DB,
+  //         email,
+  //         includeBookingData || false,
+  //       );
 
-        return ApiResponse.success(c, {
-          customer,
-          found: !!customer,
-          message: customer ? "customer.found" : "customer.notFound",
-        });
-      },
-      "operation.findCustomerByEmailFailed",
-    );
-  }
+  //       return ApiResponse.success(c, {
+  //         customer,
+  //         found: !!customer,
+  //         message: customer ? "customer.found" : "customer.notFound",
+  //       });
+  //     },
+  //     "operation.findCustomerByEmailFailed",
+  //   );
+  // }
 
   /**
    * Update customer
@@ -141,24 +142,24 @@ export class CustomerController {
   /**
    * Search customers with filters
    */
-  static async search(c: AppContext) {
-    return handleAsyncRoute(
-      c,
-      async () => {
-        const query = c.req.valid("query");
-        const result = await CustomerService.searchCustomers(c.env.DB, query);
+  // static async search(c: AppContext) {
+  //   return handleAsyncRoute(
+  //     c,
+  //     async () => {
+  //       const query = c.req.valid("");
+  //       const result = await CustomerService.searchCustomers(c.env.DB, query);
 
-        return ApiResponse.success(c, {
-          ...result,
-          message:
-            result.customers.length > 0
-              ? "customer.searchResults"
-              : "customer.noSearchResults",
-        });
-      },
-      "operation.searchCustomersFailed",
-    );
-  }
+  //       return ApiResponse.success(c, {
+  //         ...result,
+  //         message:
+  //           result.customers.length > 0
+  //             ? "customer.searchResults"
+  //             : "customer.noSearchResults",
+  //       });
+  //     },
+  //     "operation.searchCustomersFailed",
+  //   );
+  // }
 
   /**
    * Get customer booking history

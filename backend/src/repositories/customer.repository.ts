@@ -9,12 +9,14 @@ import {
   isNull,
   isNotNull,
 } from "drizzle-orm";
+
 import {
   customer as customerTable,
   booking as bookingTable,
   hotel as hotelTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
+
 import type {
   CreateCustomerData,
   UpdateCustomerData,
@@ -43,6 +45,7 @@ export class CustomerRepository {
       ? JSON.stringify(data.specialRequests)
       : null;
     const marketingOptIn = data.marketingOptIn ? 1 : 0;
+    const hasUserAccount = data.hasUserAccount ? 1 : 0;
 
     const [created] = await database
       .insert(customerTable)
@@ -68,12 +71,18 @@ export class CustomerRepository {
         emergencyContactPhone: data.emergencyContactPhone || null,
         loyaltyNumber: data.loyaltyNumber || null,
         marketingOptIn,
-        source: data.source || "web",
+        firstBookingSource: data.firstBookingSource || "web",
         status: data.status || "active",
         notes: data.notes || null,
+        hasUserAccount,
+        preferredPaymentMethod: data.preferredPaymentMethod || null,
+        vipStatus: data.vipStatus || "regular",
+        preferredContactMethod: data.preferredContactMethod || "email",
+        languagePreference: data.languagePreference || "en",
+        timeZone: data.timeZone || null,
         createdAt: nowIso,
         updatedAt: nowIso,
-      } as any)
+      })
       .returning();
 
     return this.transformDatabaseCustomer(created);
@@ -168,9 +177,22 @@ export class CustomerRepository {
       updateData.loyaltyNumber = data.loyaltyNumber || null;
     if (data.marketingOptIn !== undefined)
       updateData.marketingOptIn = data.marketingOptIn ? 1 : 0;
-    if (data.source !== undefined) updateData.source = data.source;
+    if (data.firstBookingSource !== undefined)
+      updateData.firstBookingSource = data.firstBookingSource;
     if (data.status !== undefined) updateData.status = data.status;
     if (data.notes !== undefined) updateData.notes = data.notes || null;
+    if (data.hasUserAccount !== undefined)
+      updateData.hasUserAccount = data.hasUserAccount ? 1 : 0;
+    if (data.preferredPaymentMethod !== undefined)
+      updateData.preferredPaymentMethod = data.preferredPaymentMethod || null;
+    if (data.vipStatus !== undefined)
+      updateData.vipStatus = data.vipStatus || null;
+    if (data.preferredContactMethod !== undefined)
+      updateData.preferredContactMethod = data.preferredContactMethod || null;
+    if (data.languagePreference !== undefined)
+      updateData.languagePreference = data.languagePreference || null;
+    if (data.timeZone !== undefined)
+      updateData.timeZone = data.timeZone || null;
 
     const [updated] = await database
       .update(customerTable)
@@ -196,7 +218,7 @@ export class CustomerRepository {
       })
       .where(eq(customerTable.id, id));
 
-    return result.changes > 0;
+    return result.meta.changes > 0;
   }
 
   /**
@@ -232,8 +254,14 @@ export class CustomerRepository {
       conditions.push(eq(customerTable.status, filters.status));
     }
 
-    if (filters.source) {
-      conditions.push(eq(customerTable.source, filters.source));
+    if (filters.firstBookingSource) {
+      conditions.push(
+        eq(customerTable.firstBookingSource, filters.firstBookingSource),
+      );
+    }
+
+    if (filters.vipStatus) {
+      conditions.push(eq(customerTable.vipStatus, filters.vipStatus));
     }
 
     if (filters.createdAfter) {
@@ -301,9 +329,15 @@ export class CustomerRepository {
         emergencyContactPhone: customerTable.emergencyContactPhone,
         loyaltyNumber: customerTable.loyaltyNumber,
         marketingOptIn: customerTable.marketingOptIn,
-        source: customerTable.source,
+        firstBookingSource: customerTable.firstBookingSource,
         status: customerTable.status,
         notes: customerTable.notes,
+        hasUserAccount: customerTable.hasUserAccount,
+        preferredPaymentMethod: customerTable.preferredPaymentMethod,
+        vipStatus: customerTable.vipStatus,
+        preferredContactMethod: customerTable.preferredContactMethod,
+        languagePreference: customerTable.languagePreference,
+        timeZone: customerTable.timeZone,
         createdAt: customerTable.createdAt,
         updatedAt: customerTable.updatedAt,
         lastBookingAt: customerTable.lastBookingAt,
@@ -318,11 +352,11 @@ export class CustomerRepository {
           WHERE ${bookingTable.customerId} = ${customerTable.id} 
           AND ${bookingTable.status} NOT IN ('cancelled', 'refunded')
         ), 0)`.as("totalSpentCents"),
-        lastBookingDate: sql<string>`(
+        calculatedLastBookingAt: sql<string>`(
           SELECT MAX(${bookingTable.createdAt}) 
           FROM ${bookingTable} 
           WHERE ${bookingTable.customerId} = ${customerTable.id}
-        )`.as("lastBookingDate"),
+        )`.as("calculatedLastBookingAt"),
       })
       .from(customerTable)
       .where(whereCondition)
@@ -435,12 +469,19 @@ export class CustomerRepository {
       emergencyContactPhone: dbCustomer.emergencyContactPhone,
       loyaltyNumber: dbCustomer.loyaltyNumber,
       marketingOptIn: dbCustomer.marketingOptIn,
-      source: dbCustomer.source,
+      firstBookingSource: dbCustomer.firstBookingSource,
       status: dbCustomer.status,
       notes: dbCustomer.notes,
+      hasUserAccount: dbCustomer.hasUserAccount,
+      preferredPaymentMethod: dbCustomer.preferredPaymentMethod,
+      vipStatus: dbCustomer.vipStatus,
+      preferredContactMethod: dbCustomer.preferredContactMethod,
+      languagePreference: dbCustomer.languagePreference,
+      timeZone: dbCustomer.timeZone,
       createdAt: dbCustomer.createdAt,
       updatedAt: dbCustomer.updatedAt,
       lastBookingAt: dbCustomer.lastBookingAt,
+      lastContactAt: dbCustomer.lastContactAt,
     };
   }
 
@@ -455,7 +496,7 @@ export class CustomerRepository {
       ...base,
       totalBookings: dbCustomer.totalBookings || 0,
       totalSpentCents: dbCustomer.totalSpentCents || 0,
-      lastBookingDate: dbCustomer.lastBookingDate,
+      lastBookingAt: dbCustomer.calculatedLastBookingAt,
     };
   }
 }

@@ -31,6 +31,11 @@ export const SIDEBAR_ITEMS = [
     path: "/bookings",
   },
   {
+    label: "Customers",
+    icon: <UserOutlined />,
+    path: "/customers",
+  },
+  {
     label: "Payments",
     icon: <CreditCardOutlined />,
     path: "/payments",

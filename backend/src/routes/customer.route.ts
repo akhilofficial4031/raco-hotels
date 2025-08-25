@@ -51,12 +51,12 @@ customerRoutes.openapi(
 );
 
 // Search customers
-customerRoutes.openapi(
-  CustomerRouteDefinitions.search,
-  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
-    CustomerController.search(c as AppContext),
-  ),
-);
+// customerRoutes.openapi(
+//   CustomerRouteDefinitions.search,
+//   smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+//     CustomerController.search(c as AppContext),
+//   ),
+// );
 
 // Get customer booking history
 customerRoutes.openapi(
@@ -75,12 +75,12 @@ customerRoutes.openapi(
 );
 
 // Find customer by email
-customerRoutes.openapi(
-  CustomerRouteDefinitions.findByEmail,
-  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
-    CustomerController.getByEmail(c as AppContext),
-  ),
-);
+// customerRoutes.openapi(
+//   CustomerRouteDefinitions.findByEmail,
+//   smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+//     CustomerController.getByEmail(c as AppContext),
+//   ),
+// );
 
 // Find or create customer
 customerRoutes.openapi(

@@ -1,4 +1,5 @@
 import { CustomerRepository } from "../repositories/customer.repository";
+
 import type {
   CreateCustomerData,
   UpdateCustomerData,
@@ -80,7 +81,7 @@ export class CustomerService {
       ...customer,
       totalBookings: bookingHistory.totalBookings,
       totalSpentCents: bookingHistory.totalSpentCents,
-      lastBookingDate: bookingHistory.bookings[0]?.createdAt || null,
+      lastBookingAt: bookingHistory.bookings[0]?.createdAt || null,
     };
   }
 
@@ -253,7 +254,7 @@ export class CustomerService {
         totalBookings: 0,
         totalSpentCents: 0,
         averageBookingValue: 0,
-        lastBookingDate: null,
+        lastBookingAt: null,
         bookingFrequency: "never",
         preferredHotels: [],
       };
@@ -300,7 +301,7 @@ export class CustomerService {
       totalBookings: bookingHistory.totalBookings,
       totalSpentCents: bookingHistory.totalSpentCents,
       averageBookingValue,
-      lastBookingDate: bookingHistory.bookings[0]?.createdAt || null,
+      lastBookingAt: bookingHistory.bookings[0]?.createdAt || null,
       bookingFrequency,
       preferredHotels,
     };
@@ -311,8 +312,8 @@ export class CustomerService {
    */
   private static isValidPhoneNumber(phone: string): boolean {
     // Basic phone number validation - can be enhanced based on requirements
-    const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ""));
+    const phoneRegex = /^[+]?[1-9][\d]{0,15}$/;
+    return phoneRegex.test(phone.replace(/[\s-()]/g, ""));
   }
 
   /**
@@ -340,7 +341,7 @@ export class CustomerService {
    */
   private static isValidDate(dateString: string): boolean {
     const date = new Date(dateString);
-    return !isNaN(date.getTime()) && dateString.match(/^\d{4}-\d{2}-\d{2}$/);
+    return !isNaN(date.getTime()) && !!dateString.match(/^\d{4}-\d{2}-\d{2}$/);
   }
 
   /**
