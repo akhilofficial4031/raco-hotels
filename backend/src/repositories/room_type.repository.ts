@@ -4,6 +4,7 @@ import {
   roomType as roomTypeTable,
   roomTypeImage as roomTypeImageTable,
   roomTypeAmenity as roomTypeAmenityTable,
+  roomTypeAddon as roomTypeAddonTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
 
@@ -11,6 +12,7 @@ import type {
   DatabaseRoomType,
   DatabaseRoomTypeImage,
   DatabaseRoomTypeAmenity,
+  DatabaseRoomTypeAddon,
   RoomTypeFilters,
   PaginationParams,
   CreateRoomTypeData,
@@ -255,6 +257,44 @@ export class RoomTypeRepository {
       .select()
       .from(roomTypeAmenityTable)
       .where(eq(roomTypeAmenityTable.roomTypeId, roomTypeId));
+    return rows as any;
+  }
+
+  // Addons
+  static async setAddons(
+    db: D1Database,
+    roomTypeId: number,
+    addons: { addonId: number; priceCents: number }[],
+  ): Promise<void> {
+    const database = getDb(db);
+    // Clear existing
+    await database
+      .delete(roomTypeAddonTable)
+      .where(eq(roomTypeAddonTable.roomTypeId, roomTypeId));
+
+    if (addons.length === 0) return;
+
+    const nowIso = new Date().toISOString();
+    await database.insert(roomTypeAddonTable).values(
+      addons.map((addon) => ({
+        roomTypeId,
+        addonId: addon.addonId,
+        priceCents: addon.priceCents,
+        createdAt: nowIso,
+        updatedAt: nowIso,
+      })) as any,
+    );
+  }
+
+  static async getAddons(
+    db: D1Database,
+    roomTypeId: number,
+  ): Promise<DatabaseRoomTypeAddon[]> {
+    const database = getDb(db);
+    const rows = await database
+      .select()
+      .from(roomTypeAddonTable)
+      .where(eq(roomTypeAddonTable.roomTypeId, roomTypeId));
     return rows as any;
   }
 }

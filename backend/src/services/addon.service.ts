@@ -3,6 +3,7 @@ import {
   type AddonQueryParamsSchema,
   type CreateAddonRequestSchema,
   type UpdateAddonRequestSchema,
+  type UpdateAddonConfigurationRequestSchema,
 } from "../schemas";
 
 import type { z } from "zod";
@@ -141,5 +142,47 @@ export class AddonService {
     if (data.isActive !== undefined && ![0, 1].includes(data.isActive)) {
       throw new Error("isActive must be 0 or 1");
     }
+  }
+
+  static async getAddonConfigurations(
+    db: D1Database,
+    params: { addonId: number; page: number; limit: number; search?: string },
+  ) {
+    const { addonId, page = 1, limit = 10, search } = params;
+    const { configurations, total } =
+      await AddonRepository.findAddonConfigurations(db, {
+        addonId,
+        search: search || "",
+        page,
+        limit,
+      });
+
+    return {
+      items: configurations,
+      pagination: { page, limit, total },
+    };
+  }
+
+  static async updateAddonConfiguration(
+    db: D1Database,
+    id: number,
+    data: z.infer<typeof UpdateAddonConfigurationRequestSchema>,
+  ) {
+    const existing = await AddonRepository.findAddonConfigurationById(db, id);
+    if (!existing) {
+      throw new Error("Addon configuration not found");
+    }
+
+    return await AddonRepository.updateAddonConfiguration(db, id, {
+      priceCents: data.priceCents,
+    });
+  }
+
+  static async deleteAddonConfiguration(db: D1Database, id: number) {
+    const existing = await AddonRepository.findAddonConfigurationById(db, id);
+    if (!existing) {
+      throw new Error("Addon configuration not found");
+    }
+    return await AddonRepository.deleteAddonConfiguration(db, id);
   }
 }

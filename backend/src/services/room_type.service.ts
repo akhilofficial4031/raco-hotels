@@ -43,13 +43,23 @@ export class RoomTypeService {
       await RoomTypeRepository.setAmenities(db, created.id, data.amenityIds);
     }
 
+    // Addons
+    if (data.addons && data.addons.length) {
+      await RoomTypeRepository.setAddons(
+        db,
+        created.id,
+        data.addons.map((a) => ({ ...a, roomTypeId: created.id })),
+      );
+    }
+
     const images = await RoomTypeRepository.findImagesByRoomTypeId(
       db,
       created.id,
     );
     const amenities = await RoomTypeRepository.getAmenities(db, created.id);
     const rooms = await RoomRepository.findByRoomTypeId(db, created.id);
-    return { ...created, images, amenities, rooms } as any;
+    const addons = await RoomTypeRepository.getAddons(db, created.id);
+    return { ...created, images, amenities, rooms, addons } as any;
   }
 
   static async updateRoomType(
@@ -81,6 +91,15 @@ export class RoomTypeService {
       );
     }
 
+    // Replace addons if provided
+    if (Array.isArray(data.addons)) {
+      await RoomTypeRepository.setAddons(
+        db,
+        id,
+        data.addons.map((a) => ({ ...a, roomTypeId: id })),
+      );
+    }
+
     // Replace images if provided
     if (Array.isArray(data.images)) {
       await RoomTypeRepository.deleteImagesByRoomTypeId(db, id);
@@ -98,7 +117,8 @@ export class RoomTypeService {
     const images = await RoomTypeRepository.findImagesByRoomTypeId(db, id);
     const amenities = await RoomTypeRepository.getAmenities(db, id);
     const rooms = await RoomRepository.findByRoomTypeId(db, id);
-    return { ...updated, images, amenities, rooms } as any;
+    const addons = await RoomTypeRepository.getAddons(db, id);
+    return { ...updated, images, amenities, rooms, addons } as any;
   }
 
   static async getRoomTypeById(db: D1Database, id: number) {
@@ -107,7 +127,8 @@ export class RoomTypeService {
     const images = await RoomTypeRepository.findImagesByRoomTypeId(db, id);
     const amenities = await RoomTypeRepository.getAmenities(db, id);
     const rooms = await RoomRepository.findByRoomTypeId(db, id);
-    return { ...rt, images, amenities, rooms } as any;
+    const addons = await RoomTypeRepository.getAddons(db, id);
+    return { ...rt, images, amenities, rooms, addons } as any;
   }
 
   static async getRoomTypes(
@@ -128,12 +149,13 @@ export class RoomTypeService {
     // Fetch all related data for each room type
     const roomTypesWithRelations = await Promise.all(
       roomTypes.map(async (roomType) => {
-        const [images, amenities, rooms] = await Promise.all([
+        const [images, amenities, rooms, addons] = await Promise.all([
           RoomTypeRepository.findImagesByRoomTypeId(db, roomType.id),
           RoomTypeRepository.getAmenities(db, roomType.id),
           RoomRepository.findByRoomTypeId(db, roomType.id),
+          RoomTypeRepository.getAddons(db, roomType.id),
         ]);
-        return { ...roomType, images, amenities, rooms };
+        return { ...roomType, images, amenities, rooms, addons };
       }),
     );
 

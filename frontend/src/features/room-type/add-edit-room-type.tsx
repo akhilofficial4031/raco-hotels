@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import { DeleteOutlined } from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
@@ -11,10 +12,11 @@ import {
   Switch,
 } from "antd";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import useSWR from "swr";
 import { z } from "zod";
 
+import { type Addon } from "../../shared/models/addon";
 import { type Amenity } from "../../shared/models/amenity";
 import { type Hotel } from "../../shared/models/hotels";
 import {
@@ -51,6 +53,17 @@ const roomTypeSchema = z
       .min(1, { message: "Total rooms must be at least 1" }),
     isActive: z.number().min(0).max(1),
     amenityIds: z.array(z.number()).optional(),
+    addons: z
+      .array(
+        z.object({
+          id: z.number().optional(),
+          addonId: z.number().min(1, { message: "Addon is required" }),
+          priceCents: z
+            .number()
+            .min(0, { message: "Price must be non-negative" }),
+        }),
+      )
+      .optional(),
   })
   .refine((data) => data.maxOccupancy >= data.baseOccupancy, {
     message: "Max occupancy must be greater than or equal to base occupancy",
@@ -99,7 +112,13 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       totalRooms: 1,
       isActive: 1,
       amenityIds: undefined,
+      addons: [],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "addons",
   });
 
   // Fetch hotels
@@ -117,6 +136,17 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
   const { data: amenitiesResponse } = useSWR(
     "/amenities?limit=100",
     fetcher<{ data: { amenities: Amenity[] } }>,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      shouldRetryOnError: false,
+    },
+  );
+
+  // Fetch addons
+  const { data: addonsResponse } = useSWR(
+    "/addons?limit=100",
+    fetcher<{ data: { addons: Addon[] } }>,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
@@ -149,6 +179,11 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
   useEffect(() => {
     if (roomType) {
       const amenityIds = roomType.amenities?.map((a) => a.amenityId) || [];
+      const addons =
+        roomType.addons?.map((a) => ({
+          addonId: a.addonId,
+          priceCents: a.priceCents,
+        })) || [];
       const priceInRupees = roomType.basePriceCents / 100;
 
       reset({
@@ -166,6 +201,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         totalRooms: roomType.totalRooms,
         isActive: roomType.isActive,
         amenityIds: amenityIds.length ? amenityIds : undefined,
+        addons,
       });
       setPriceInRupees(priceInRupees);
     } else {
@@ -184,6 +220,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         totalRooms: 1,
         isActive: 1,
         amenityIds: undefined,
+        addons: [],
       });
       setPriceInRupees(0);
     }
@@ -205,6 +242,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       totalRooms: data.totalRooms,
       isActive: data.isActive,
       amenityIds: data.amenityIds?.length ? data.amenityIds : undefined,
+      addons: data.addons,
     };
     onSubmit(payload);
   };
@@ -452,6 +490,84 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
             )}
           />
         </Form.Item>
+        <div>
+          <div className="flex items-center justify-between space-x-2 mb-2">
+            <p>Addons</p>
+            <Button
+              type="dashed"
+              size="small"
+              onClick={() => append({ addonId: 0, priceCents: 0 })}
+            >
+              + Add Addon
+            </Button>
+          </div>
+          <Form.Item>
+            {fields.map((field, index) => (
+              <div key={field.id} className="!flex !items-center gap-2 !mb-2">
+                <Form.Item
+                  className="flex-grow !mb-0"
+                  validateStatus={
+                    errors.addons?.[index]?.addonId ? "error" : ""
+                  }
+                  help={errors.addons?.[index]?.addonId?.message}
+                >
+                  <Controller
+                    name={`addons.${index}.addonId`}
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        value={field.value || null}
+                        placeholder="Select an addon"
+                        showSearch
+                        optionFilterProp="children"
+                      >
+                        {addonsResponse?.data?.addons?.map((addon) => (
+                          <Option key={addon.id} value={addon.id}>
+                            {addon.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    )}
+                  />
+                </Form.Item>
+                <Form.Item
+                  className="!mb-0"
+                  validateStatus={
+                    errors.addons?.[index]?.priceCents ? "error" : ""
+                  }
+                  help={errors.addons?.[index]?.priceCents?.message}
+                >
+                  <Controller
+                    name={`addons.${index}.priceCents`}
+                    control={control}
+                    render={({ field }) => (
+                      <InputNumber
+                        {...field}
+                        addonBefore="₹"
+                        placeholder="Price"
+                        min={0}
+                        onChange={(value) =>
+                          field.onChange(
+                            value ? Math.round((value || 0) * 100) : 0,
+                          )
+                        }
+                        value={field.value ? field.value / 100 : 0}
+                      />
+                    )}
+                  />
+                </Form.Item>
+                <Button
+                  type="dashed"
+                  danger
+                  onClick={() => remove(index)}
+                  size="small"
+                  icon={<DeleteOutlined />}
+                />
+              </div>
+            ))}
+          </Form.Item>
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <Form.Item label="Smoking Allowed">

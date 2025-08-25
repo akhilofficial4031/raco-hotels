@@ -17,7 +17,9 @@ const RoomType = lazy(() => import("./pages/Room-type"));
 const Rooms = lazy(() => import("./pages/Rooms"));
 const AddRoomPage = lazy(() => import("./pages/rooms/AddRoomPage"));
 const Addons = lazy(() => import("./pages/Addons"));
+const AddonConfiguration = lazy(() => import("./pages/AddonConfiguration"));
 const Reviews = lazy(() => import("./pages/Reviews"));
+const PromoCode = lazy(() => import("./pages/PromoCode"));
 // Helper function to wrap lazy components with Suspense
 const withSuspense = (Component: React.ComponentType) => {
   return function SuspenseWrapper(props: any) {
@@ -110,6 +112,16 @@ const router = createBrowserRouter([
         },
       },
       {
+        path: "addons/configuration/:id",
+        Component: withSuspense(AddonConfiguration),
+        handle: {
+          crumb: () => ({
+            label: "Addon Configuration",
+            href: "/addons",
+          }),
+        },
+      },
+      {
         path: "rooms",
         handle: {
           crumb: () => ({
@@ -196,6 +208,16 @@ const router = createBrowserRouter([
           crumb: () => ({
             label: "Customers",
             href: "/customers",
+          }),
+        },
+      },
+      {
+        path: "promo-codes",
+        Component: withSuspense(PromoCode),
+        handle: {
+          crumb: () => ({
+            label: "Promo Codes",
+            href: "/promo-codes",
           }),
         },
       },

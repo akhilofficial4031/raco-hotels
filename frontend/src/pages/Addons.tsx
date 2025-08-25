@@ -3,6 +3,7 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   MoreOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -15,6 +16,7 @@ import {
 } from "antd";
 import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import useSWR, { mutate } from "swr";
 
 import AddEditAddon from "../features/addon/add-edit-addon";
@@ -32,6 +34,7 @@ import { fetcher, mutationFetcher } from "../utils/swrFetcher";
 const { confirm } = Modal;
 
 const Addons = () => {
+  const navigate = useNavigate();
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [selectedAddon, setSelectedAddon] = useState<Addon | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -68,6 +71,10 @@ const Addons = () => {
   const handleEditAddon = (addon: Addon) => {
     setSelectedAddon(addon);
     setIsDrawerVisible(true);
+  };
+
+  const handleViewConfiguration = (addon: Addon) => {
+    navigate(`/addons/configuration/${addon.id}`);
   };
 
   const handleDeleteAddon = (addon: Addon) => {
@@ -195,6 +202,13 @@ const Addons = () => {
                 onClick={() => handleEditAddon(record)}
               >
                 Edit
+              </Menu.Item>
+              <Menu.Item
+                key="config"
+                icon={<SettingOutlined />}
+                onClick={() => handleViewConfiguration(record)}
+              >
+                View Configuration
               </Menu.Item>
               <Menu.Item
                 key="delete"

@@ -3,9 +3,12 @@ import {
   BookOutlined,
   CreditCardOutlined,
   HomeOutlined,
+  PlusCircleOutlined,
   SettingOutlined,
   ShopOutlined,
+  TagOutlined,
   UserOutlined,
+  WalletOutlined,
 } from "@ant-design/icons";
 
 export const SIDEBAR_ITEMS = [
@@ -58,12 +61,12 @@ export const SIDEBAR_ITEMS = [
       },
       {
         label: "Features",
-        icon: <SettingOutlined />,
+        icon: <BookOutlined />,
         path: "/features",
       },
       {
         label: "Amenities",
-        icon: <SettingOutlined />,
+        icon: <WalletOutlined />,
         path: "/amenities",
       },
       {
@@ -73,8 +76,13 @@ export const SIDEBAR_ITEMS = [
       },
       {
         label: "Addons",
-        icon: <SettingOutlined />,
+        icon: <PlusCircleOutlined />,
         path: "/addons",
+      },
+      {
+        label: "Promo Codes",
+        icon: <TagOutlined />,
+        path: "/promo-codes",
       },
     ],
   },
