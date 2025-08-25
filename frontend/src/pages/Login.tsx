@@ -2,8 +2,9 @@ import { LockOutlined, MailOutlined } from "@ant-design/icons";
 import { Button, Input, Alert } from "antd";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 
+import { useAuth } from "../shared/contexts/AuthContext";
 import { type LoginRequest, type LoginResponse } from "../shared/models/login";
 import { mutationFetcher, type APIError } from "../utils/swrFetcher";
 
@@ -19,7 +20,7 @@ const Login = () => {
     },
   });
 
-  const navigate = useNavigate();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -39,13 +40,10 @@ const Login = () => {
         },
       );
 
-      // Store user data if needed
+      // Use the auth context login method which handles navigation
       if (response.data.user) {
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+        login(response.data.user);
       }
-
-      // Navigate to dashboard or home page
-      navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
       const apiError = error as APIError;
