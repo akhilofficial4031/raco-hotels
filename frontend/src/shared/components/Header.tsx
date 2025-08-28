@@ -4,15 +4,15 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import { Avatar, Button, Dropdown, type MenuProps, Space } from "antd";
-import { useNavigate } from "react-router";
 
 import Breadcrumbs from "./Breadcrumbs";
-import { mutationFetcher } from "../../utils/swrFetcher";
+import { useAuth } from "../contexts/AuthContext";
 import { useSidebar } from "../hooks/useSidebar";
+import { mutationFetcher } from "../../utils/swrFetcher";
 
 const Header = () => {
   const { isOpen, toggleSidebar } = useSidebar();
-  const navigate = useNavigate();
+  const { logout, user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -21,11 +21,12 @@ const Header = () => {
           method: "POST",
         },
       });
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      navigate("/login");
     } catch (error) {
-      console.error(error);
+      console.error("Logout API error:", error);
+      // Even if the API call fails, we should still log out locally
+    } finally {
+      // Use the auth context logout method
+      logout();
     }
   };
 
@@ -33,8 +34,8 @@ const Header = () => {
     {
       label: (
         <>
-          <span className="text-gray-800">admin@raco.com</span>
-          <p className="text-gray-500 text-xs">Administrator</p>
+          <span className="text-gray-800">{user?.email || "Unknown User"}</span>
+          <p className="text-gray-500 text-xs">{user?.role || "User"}</p>
         </>
       ),
       key: "0",

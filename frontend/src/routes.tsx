@@ -1,9 +1,10 @@
 import { Suspense, lazy } from "react";
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter, Navigate, Outlet } from "react-router";
 
 import CustomerPage from "./pages/Customer";
 import Hotels from "./pages/Hotels";
 import FullScreenSpinner from "./shared/components/FullScreenSpinner";
+import { AuthProvider } from "./shared/contexts/AuthContext";
 import { AuthLayout, UnAuthLayout } from "./shared/layouts";
 
 // Lazy load page components
@@ -32,17 +33,30 @@ const withSuspense = (Component: React.ComponentType) => {
   };
 };
 
+// Root component that provides auth context
+const RootLayout = () => {
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
+};
+
 const router = createBrowserRouter([
   {
     path: "/",
-    Component: AuthLayout,
-    handle: {
-      crumb: () => ({
-        label: "Dashboard",
-        href: "/dashboard",
-      }),
-    },
+    Component: RootLayout,
     children: [
+      {
+        path: "/",
+        Component: AuthLayout,
+        handle: {
+          crumb: () => ({
+            label: "Dashboard",
+            href: "/dashboard",
+          }),
+        },
+        children: [
       {
         index: true,
         element: <Navigate to="/dashboard" replace />,
@@ -222,18 +236,20 @@ const router = createBrowserRouter([
           }),
         },
       },
-      {
-        path: "*",
-        Component: withSuspense(NotFound),
+          {
+            path: "*",
+            Component: withSuspense(NotFound),
+          },
+        ],
       },
-    ],
-  },
-  {
-    Component: UnAuthLayout,
-    children: [
       {
-        path: "/login",
-        Component: withSuspense(Login),
+        Component: UnAuthLayout,
+        children: [
+          {
+            path: "/login",
+            Component: withSuspense(Login),
+          },
+        ],
       },
       {
         path: "/forgot-password",
