@@ -40,178 +40,33 @@ export const HotelRouteDefinitions = {
     includeNotFound: true,
   }),
 
-  createHotel: {
-    method: "post" as const,
+  createHotel: createRoute({
+    method: "post",
     path: "/hotels",
-    summary: "Create hotel with optional images",
-    description:
-      "Create a new hotel with optional image uploads. Supports both JSON-only creation (application/json) for hotel data only, and multipart form data for hotels with images. For multipart requests, send hotelData as JSON string and images[] as file array. Business rules: hotel slug must be unique, hotel name is required, images are automatically resized and optimized, sorted by upload order. Use cases include hotel onboarding through admin panels, bulk hotel creation with images, mobile app registration, and property management system integrations.",
+    summary: "Create hotel",
+    description: "Create a new hotel with hotel information.",
     tags: [ApiTags.HOTELS],
-    request: {
-      body: {
-        content: {
-          "application/json": {
-            schema: CreateHotelRequestSchema,
-          },
-          "multipart/form-data": {
-            schema: {
-              type: "object",
-              properties: {
-                hotelData: {
-                  type: "string",
-                  description: "Hotel data as JSON string",
-                },
-                images: {
-                  type: "array",
-                  items: {
-                    type: "string",
-                    format: "binary",
-                  },
-                  description: "Hotel image files (JPEG, PNG, WebP)",
-                },
-              },
-              required: ["hotelData"],
-            },
-          },
-        },
-      },
-    },
-    responses: {
-      201: {
-        content: {
-          "application/json": {
-            schema: HotelWithImagesResponseSchema,
-          },
-        },
-        description: "Hotel created successfully with images",
-      },
-      400: {
-        content: {
-          "application/json": {
-            schema: z.object({
-              success: z.boolean(),
-              error: z.object({
-                code: z.string(),
-                message: z.string(),
-              }),
-            }),
-          },
-        },
-        description: "Bad request - Invalid hotel data or image format",
-      },
-      409: {
-        content: {
-          "application/json": {
-            schema: z.object({
-              success: z.boolean(),
-              error: z.object({
-                code: z.string(),
-                message: z.string(),
-              }),
-            }),
-          },
-        },
-        description: "Conflict - Hotel slug already exists",
-      },
-    },
-  },
+    requestSchema: CreateHotelRequestSchema,
+    successSchema: HotelWithImagesResponseSchema,
+    successDescription: "Hotel created successfully",
+    includeBadRequest: true,
+    includeConflict: true,
+  }),
 
-  updateHotel: {
-    method: "put" as const,
+  updateHotel: createRoute({
+    method: "put",
     path: "/hotels/{id}",
-    summary: "Update hotel with optional image management",
-    description:
-      "Update an existing hotel with flexible image management options. Supports both JSON-only updates (application/json) for hotel data only, and multipart form data for image management. For multipart requests: hotelData (JSON string), replaceImages (boolean flag), images[] (new files). Image options: add new images (provide images[] without replaceImages), replace all images (replaceImages=true + new images[]), remove all images (replaceImages=true without images[]), no image changes (use JSON). Business rules: hotel must exist, slug uniqueness enforced, existing images preserved unless replaced, sort order maintained automatically. Use cases include hotel information updates, image gallery management, seasonal content updates, mobile app editing.",
+    summary: "Update hotel",
+    description: "Update an existing hotel information.",
     tags: [ApiTags.HOTELS],
-    request: {
-      params: HotelPathParamsSchema,
-      body: {
-        content: {
-          "application/json": {
-            schema: UpdateHotelRequestSchema,
-          },
-          "multipart/form-data": {
-            schema: {
-              type: "object",
-              properties: {
-                hotelData: {
-                  type: "string",
-                  description: "Updated hotel data as JSON string",
-                },
-                replaceImages: {
-                  type: "string",
-                  enum: ["true", "false"],
-                  description:
-                    "Whether to replace all existing images (true/false)",
-                },
-                images: {
-                  type: "array",
-                  items: {
-                    type: "string",
-                    format: "binary",
-                  },
-                  description: "New hotel image files",
-                },
-              },
-              required: ["hotelData"],
-            },
-          },
-        },
-      },
-    },
-    responses: {
-      200: {
-        content: {
-          "application/json": {
-            schema: HotelWithImagesResponseSchema,
-          },
-        },
-        description: "Hotel updated successfully with images",
-      },
-      400: {
-        content: {
-          "application/json": {
-            schema: z.object({
-              success: z.boolean(),
-              error: z.object({
-                code: z.string(),
-                message: z.string(),
-              }),
-            }),
-          },
-        },
-        description: "Bad request - Invalid hotel data or image format",
-      },
-      404: {
-        content: {
-          "application/json": {
-            schema: z.object({
-              success: z.boolean(),
-              error: z.object({
-                code: z.string(),
-                message: z.string(),
-              }),
-            }),
-          },
-        },
-        description: "Hotel not found",
-      },
-      409: {
-        content: {
-          "application/json": {
-            schema: z.object({
-              success: z.boolean(),
-              error: z.object({
-                code: z.string(),
-                message: z.string(),
-              }),
-            }),
-          },
-        },
-        description: "Conflict - Hotel slug already exists",
-      },
-    },
-  },
+    paramsSchema: HotelPathParamsSchema,
+    requestSchema: UpdateHotelRequestSchema,
+    successSchema: HotelWithImagesResponseSchema,
+    successDescription: "Hotel updated successfully",
+    includeBadRequest: true,
+    includeNotFound: true,
+    includeConflict: true,
+  }),
 
   deleteHotel: createRoute({
     method: "delete",

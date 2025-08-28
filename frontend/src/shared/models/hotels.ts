@@ -1,18 +1,6 @@
+import { type Amenity } from "./amenity";
 import { type PaginationResponse } from "./common";
-
-export interface Amenity {
-  id: number;
-  name: string;
-  description: string | null;
-  isActive: number;
-}
-
-export interface Feature {
-  id: number;
-  name: string;
-  description: string | null;
-  isActive: number;
-}
+import { type Feature } from "./featuers";
 
 export interface LocationInfoImage {
   url: string;

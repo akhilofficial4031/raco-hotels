@@ -190,14 +190,14 @@ export const PendingBookingsQuerySchema = z
       .transform((val) => parseInt(val, 10))
       .pipe(z.number().int().min(1))
       .optional()
-      .default("1")
+      .default(1)
       .openapi({ example: "1", description: "Page number for pagination" }),
     limit: z
       .string()
       .transform((val) => parseInt(val, 10))
       .pipe(z.number().int().min(1).max(100))
       .optional()
-      .default("20")
+      .default(20)
       .openapi({ example: "20", description: "Number of items per page" }),
     hotelId: z
       .string()

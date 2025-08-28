@@ -29,6 +29,20 @@
       "when": 1755920462772,
       "tag": "0003_perfect_blockbuster",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1756401609872,
+      "tag": "0004_sloppy_adam_destine",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1756402240786,
+      "tag": "0005_vengeful_earthquake",
+      "breakpoints": true
     }
   ]
 }

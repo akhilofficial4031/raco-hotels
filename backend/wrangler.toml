@@ -9,6 +9,8 @@ compatibility_flags = ["nodejs_compat"]
 # Example (custom domain): https://assets.example.com
 # Example (R2 public bucket): https://pub-xxxxxx.r2.dev
 R2_PUBLIC_BASE_URL = ""
+# Email API key for Resend service
+EMAIL_API_KEY = "re_6iPc8bVN_ND8w2gkDES3YJ31WxLgUJNWP"
 
 [[kv_namespaces]]
 binding = "KV"

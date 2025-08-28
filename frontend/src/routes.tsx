@@ -20,6 +20,7 @@ const Addons = lazy(() => import("./pages/Addons"));
 const AddonConfiguration = lazy(() => import("./pages/AddonConfiguration"));
 const Reviews = lazy(() => import("./pages/Reviews"));
 const PromoCode = lazy(() => import("./pages/PromoCode"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 // Helper function to wrap lazy components with Suspense
 const withSuspense = (Component: React.ComponentType) => {
   return function SuspenseWrapper(props: any) {
@@ -233,6 +234,10 @@ const router = createBrowserRouter([
       {
         path: "/login",
         Component: withSuspense(Login),
+      },
+      {
+        path: "/forgot-password",
+        Component: withSuspense(ForgotPassword),
       },
     ],
   },

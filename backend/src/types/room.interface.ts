@@ -34,7 +34,7 @@ export interface RoomFilters extends HotelScopedFilters, ActiveStatusFilter {
 /**
  * Data required to create a new room
  */
-export interface CreateRoomsData {
+export interface CreateRoomData {
   hotelId: number;
   roomTypeId: number;
   roomNumbers: string[];
@@ -56,3 +56,8 @@ export interface UpdateRoomData {
   status?: RoomStatus;
   isActive?: number;
 }
+
+/**
+ * @deprecated Use CreateRoomData instead
+ */
+export type CreateRoomsData = CreateRoomData;

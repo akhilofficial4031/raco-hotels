@@ -9,7 +9,6 @@ import {
 } from "../middleware/smart-auth";
 
 import type { AppBindings, AppVariables, AppContext } from "../types";
-import type { RouteConfigToTypedResponse } from "@hono/zod-openapi";
 
 const hotelRoutes = new OpenAPIHono<{
   Bindings: AppBindings;
@@ -36,27 +35,15 @@ hotelRoutes.openapi(
 
 hotelRoutes.openapi(
   HotelRouteDefinitions.createHotel,
-  smartPermissionHandler(
-    PERMISSIONS.HOTELS_CREATE,
-    async (c) =>
-      (await HotelController.createHotel(
-        c as AppContext,
-      )) as unknown as RouteConfigToTypedResponse<
-        typeof HotelRouteDefinitions.createHotel
-      >,
+  smartPermissionHandler(PERMISSIONS.HOTELS_CREATE, (c) =>
+    HotelController.createHotel(c as AppContext),
   ),
 );
 
 hotelRoutes.openapi(
   HotelRouteDefinitions.updateHotel,
-  smartPermissionHandler(
-    PERMISSIONS.HOTELS_UPDATE,
-    async (c) =>
-      (await HotelController.updateHotel(
-        c as AppContext,
-      )) as unknown as RouteConfigToTypedResponse<
-        typeof HotelRouteDefinitions.updateHotel
-      >,
+  smartPermissionHandler(PERMISSIONS.HOTELS_UPDATE, (c) =>
+    HotelController.updateHotel(c as AppContext),
   ),
 );
 

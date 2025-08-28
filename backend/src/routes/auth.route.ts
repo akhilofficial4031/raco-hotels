@@ -20,6 +20,14 @@ authRoutes.openapi(
   AuthRouteDefinitions.getCsrfToken,
   AuthController.getCsrfToken,
 );
+authRoutes.openapi(
+  AuthRouteDefinitions.forgotPassword,
+  AuthController.forgotPassword,
+);
+authRoutes.openapi(
+  AuthRouteDefinitions.resetPassword,
+  AuthController.resetPassword,
+);
 
 // Apply auth middleware to protected routes
 authRoutes.use("/auth/change-password", smartAuthMiddleware);

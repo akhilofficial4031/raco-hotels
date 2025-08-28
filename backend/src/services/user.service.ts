@@ -46,7 +46,7 @@ export class UserService {
     // Create user data
     const createData: CreateUserData = {
       email: userData.email,
-      passwordHash,
+      passwordHash: passwordHash || undefined,
       fullName: userData.fullName,
       phone: userData.phone,
       role: userData.role || USER_ROLES.GUEST,

@@ -52,7 +52,6 @@ roomTypeRoutes.openapi(
   ),
 );
 
-// Image management routes
 roomTypeRoutes.openapi(
   RoomTypeRouteDefinitions.uploadRoomTypeImages,
   smartPermissionHandler(PERMISSIONS.ROOM_TYPES_UPDATE, (c) =>

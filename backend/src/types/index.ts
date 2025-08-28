@@ -10,6 +10,7 @@ export interface AppBindings {
   KV: KVNamespace;
   // Optional vars from wrangler [vars]
   R2_PUBLIC_BASE_URL?: string;
+  EMAIL_API_KEY?: string;
 }
 
 /**
@@ -96,6 +97,7 @@ export type {
 // Hotel-related types
 export type {
   DatabaseHotel,
+  DatabaseHotelWithRelations,
   LocationInfoImage,
   LocationInfoSection,
   HotelFilters,
@@ -147,6 +149,7 @@ export type {
   DatabaseRoom,
   RoomFilters,
   CreateRoomData,
+  CreateRoomsData,
   UpdateRoomData,
 } from "./room.interface";
 

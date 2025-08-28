@@ -11,17 +11,4 @@ export * from "./tableHeader";
 export * from "./users";
 export * from "./room-type";
 export * from "./review";
-export {
-  type Amenity as HotelAmenity,
-  type CreateHotelPayload,
-  type Feature as HotelFeature,
-  type Hotel,
-  type HotelDetailsResponse,
-  type HotelImage,
-  type HotelListParamStructure,
-  type HotelListResponse,
-  type HotelResponse,
-  type LocationInfo,
-  type LocationInfoImage,
-  type UpdateHotelPayload,
-} from "./hotels";
+export * from "./hotels";

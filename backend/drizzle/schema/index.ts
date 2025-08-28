@@ -36,3 +36,4 @@ export * from "./addon";
 export * from "./room_type_addon";
 export * from "./booking_addon";
 export * from "./booking_draft_addon";
+export * from "./password_reset_token";

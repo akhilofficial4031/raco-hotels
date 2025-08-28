@@ -13,6 +13,16 @@ const ChangePasswordRequestSchema = z.object({
   newPassword: z.string().min(8).openapi({ example: "newSecurePassword123!" }),
 });
 
+const ForgotPasswordRequestSchema = z.object({
+  email: z.string().email().openapi({ example: "admin@raco.com" }),
+});
+
+const ResetPasswordRequestSchema = z.object({
+  token: z.string().openapi({ example: "1234567890" }),
+  userId: z.number().openapi({ example: 1 }),
+  newPassword: z.string().min(8).openapi({ example: "newSecurePassword123!" }),
+});
+
 // Response schemas
 const LoginResponseSchema = z.object({
   success: z.boolean(),
@@ -58,6 +68,11 @@ const CsrfTokenResponseSchema = z.object({
     note: z.string(),
     expiresIn: z.number(),
   }),
+});
+
+const SimpleSuccessResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
 });
 
 export const AuthRouteDefinitions = {
@@ -148,5 +163,33 @@ export const AuthRouteDefinitions = {
       "Get a CSRF token for API testing and development. Use this token in the X-CSRF-Token header for POST/PUT/PATCH/DELETE requests.",
     successSchema: CsrfTokenResponseSchema,
     successDescription: "CSRF token generated successfully",
+  }),
+
+  // POST /auth/forgot-password
+  forgotPassword: createRoute({
+    method: "post",
+    path: "/auth/forgot-password",
+    tags: [ApiTags.AUTH],
+    summary: "Forgot password",
+    description: "Send password reset email to user",
+    requestSchema: ForgotPasswordRequestSchema,
+    requestDescription: "User email for password reset",
+    successSchema: SimpleSuccessResponseSchema,
+    successDescription: "Password reset email sent successfully",
+    includeBadRequest: true,
+  }),
+
+  // POST /auth/reset-password
+  resetPassword: createRoute({
+    method: "post",
+    path: "/auth/reset-password",
+    tags: [ApiTags.AUTH],
+    summary: "Reset password",
+    description: "Reset user password using reset token",
+    requestSchema: ResetPasswordRequestSchema,
+    requestDescription: "Reset token and new password",
+    successSchema: SimpleSuccessResponseSchema,
+    successDescription: "Password reset successfully",
+    includeBadRequest: true,
   }),
 };

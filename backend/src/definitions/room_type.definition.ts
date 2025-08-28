@@ -73,95 +73,19 @@ export const RoomTypeRouteDefinitions = {
     includeNotFound: true,
   }),
 
-  uploadRoomTypeImages: {
-    method: "post" as const,
+  uploadRoomTypeImages: createRoute({
+    method: "post",
     path: "/room-types/{id}/images",
-    summary: "Upload images for room type",
+    summary: "Upload room type images",
     description:
-      "Upload one or more images for a room type to R2 cloud storage. Images are automatically resized and optimized. Supports JPEG, PNG, and WebP formats up to 10MB each. Images are stored with organized naming conventions and metadata.",
+      "Upload images for a room type. Note: This endpoint requires multipart/form-data with files.",
     tags: [ApiTags.ROOMS],
-    request: {
-      params: RoomTypePathParamsSchema,
-      body: {
-        content: {
-          "multipart/form-data": {
-            schema: {
-              type: "object",
-              properties: {
-                images: {
-                  type: "array",
-                  items: {
-                    type: "string",
-                    format: "binary",
-                  },
-                  minItems: 1,
-                  maxItems: 10,
-                  description:
-                    "Image files to upload (max 10 files, 10MB each)",
-                },
-                replaceImages: {
-                  type: "string",
-                  enum: ["true", "false"],
-                  description:
-                    "Whether to replace all existing images (default: false)",
-                  example: "false",
-                },
-              },
-              required: ["images"],
-            },
-          },
-        },
-      },
-    },
-    responses: {
-      200: {
-        content: {
-          "application/json": {
-            schema: z.object({
-              success: z.boolean(),
-              data: z.object({
-                roomType: z.object({
-                  id: z.number(),
-                  name: z.string(),
-                }),
-                images: z.array(RoomTypeImageSchema),
-              }),
-              message: z.string().optional(),
-            }),
-          },
-        },
-        description: "Images uploaded successfully",
-      },
-      400: {
-        content: {
-          "application/json": {
-            schema: z.object({
-              success: z.boolean(),
-              error: z.object({
-                code: z.string(),
-                message: z.string(),
-              }),
-            }),
-          },
-        },
-        description: "Bad request - Invalid image format or size",
-      },
-      404: {
-        content: {
-          "application/json": {
-            schema: z.object({
-              success: z.boolean(),
-              error: z.object({
-                code: z.string(),
-                message: z.string(),
-              }),
-            }),
-          },
-        },
-        description: "Room type not found",
-      },
-    },
-  },
+    paramsSchema: RoomTypePathParamsSchema,
+    successSchema: RoomTypeResponseSchema,
+    successDescription: "Images uploaded successfully",
+    includeBadRequest: true,
+    includeNotFound: true,
+  }),
 
   deleteRoomTypeImage: {
     method: "delete" as const,

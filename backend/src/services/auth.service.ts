@@ -5,6 +5,7 @@ import { getMessage, DEFAULT_LOCALE } from "../config/messages";
 import { USER_STATUS } from "../constants";
 import { AuthRepository } from "../repositories/auth.repository";
 import { UserRepository } from "../repositories/user.repository";
+import { sendMail } from "../utils/mail";
 
 import type { DatabaseUser } from "../types";
 
@@ -447,5 +448,88 @@ export class AuthService {
       "Token cleanup relies on TTL. Manual cleanup not implemented. KV:",
       !!kv,
     );
+  }
+
+  static async createPasswordResetToken(
+    c: any, // Context for accessing env vars
+    db: D1Database,
+    userEmail: string,
+    tokenExpiryDays: number,
+  ) {
+    const user = await UserRepository.findByEmail(db, userEmail);
+    if (!user) {
+      return;
+    }
+
+    // Delete existing tokens for userx
+    await AuthRepository.deletePasswordResetToken(db, user.id);
+
+    const resetToken = Buffer.from(randomBytes(32)).toString("hex");
+    const tokenHash = await this.hashPassword(resetToken);
+    const createdAt = new Date();
+    const expiresAt = new Date(
+      createdAt.getTime() + tokenExpiryDays * 86400000,
+    );
+
+    await AuthRepository.createPasswordResetToken(
+      db,
+      user.id,
+      tokenHash,
+      expiresAt,
+    );
+
+    // Prepare reset URL with token and userId as query params
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}&userId=${user.id}`;
+
+    // Compose email HTML
+    const html = `
+      <p>You requested a password reset.</p>
+      <p>Click <a href="${resetUrl}">here</a> to reset your password. This link will expire in ${tokenExpiryDays} days.</p>
+    `;
+
+    // Send email via Resend client
+    await sendMail(c, {
+      to: userEmail,
+      subject: "Your Password Reset Link",
+      html,
+    });
+
+    return resetToken;
+  }
+
+  static async resetPassword(
+    db: D1Database,
+    kv: KVNamespace,
+    userId: number,
+    token: string,
+    newPassword: string,
+  ) {
+    const storedToken = await AuthRepository.findPasswordResetTokenByUserId(
+      db,
+      userId,
+    );
+
+    if (
+      !storedToken ||
+      storedToken.used ||
+      new Date(storedToken.expiresAt) < new Date()
+    ) {
+      throw new Error(getMessage("auth.invalidOrExpiredToken", DEFAULT_LOCALE));
+    }
+
+    const isTokenValid = await this.verifyPassword(
+      token,
+      storedToken.tokenHash,
+    );
+    if (!isTokenValid) {
+      throw new Error(getMessage("auth.invalidOrExpiredToken", DEFAULT_LOCALE));
+    }
+
+    this.validatePasswordStrength(newPassword);
+    const newPasswordHash = await this.hashPassword(newPassword);
+
+    await AuthRepository.updatePassword(db, userId, newPasswordHash);
+    await AuthRepository.markPasswordResetTokenAsUsed(db, storedToken.id);
+    await this.revokeAllUserSessions(kv, userId);
   }
 }
