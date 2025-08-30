@@ -25,8 +25,8 @@ authRoutes.openapi(
   AuthController.forgotPassword,
 );
 authRoutes.openapi(
-  AuthRouteDefinitions.resetPassword,
-  AuthController.resetPassword,
+  AuthRouteDefinitions.setPassword,
+  AuthController.setPassword,
 );
 
 // Apply auth middleware to protected routes

@@ -19,8 +19,7 @@ const ForgotPasswordRequestSchema = z.object({
 
 const ResetPasswordRequestSchema = z.object({
   token: z.string().openapi({ example: "1234567890" }),
-  userId: z.number().openapi({ example: 1 }),
-  newPassword: z.string().min(8).openapi({ example: "newSecurePassword123!" }),
+  password: z.string().min(8).openapi({ example: "newSecurePassword123!" }),
 });
 
 // Response schemas
@@ -179,10 +178,10 @@ export const AuthRouteDefinitions = {
     includeBadRequest: true,
   }),
 
-  // POST /auth/reset-password
-  resetPassword: createRoute({
+  // POST /auth/set-password
+  setPassword: createRoute({
     method: "post",
-    path: "/auth/reset-password",
+    path: "/auth/set-password",
     tags: [ApiTags.AUTH],
     summary: "Reset password",
     description: "Reset user password using reset token",

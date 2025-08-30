@@ -486,19 +486,13 @@ export class AuthController {
   }
 
   // POST /auth/reset-password - Reset password
-  static async resetPassword(c: AppContext) {
+  static async setPassword(c: AppContext) {
     return handleAsyncRoute(
       c,
       async () => {
-        const { userId, token, newPassword } = await c.req.json();
+        const { token, password } = await c.req.json();
 
-        await AuthService.resetPassword(
-          c.env.DB,
-          c.env.KV,
-          userId,
-          token,
-          newPassword,
-        );
+        await AuthService.setPassword(c.env.DB, c.env.KV, token, password);
 
         return c.json({
           success: true,

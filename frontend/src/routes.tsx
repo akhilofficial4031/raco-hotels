@@ -22,6 +22,7 @@ const AddonConfiguration = lazy(() => import("./pages/AddonConfiguration"));
 const Reviews = lazy(() => import("./pages/Reviews"));
 const PromoCode = lazy(() => import("./pages/PromoCode"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const SetPassword = lazy(() => import("./pages/SetPasswotd"));
 // Helper function to wrap lazy components with Suspense
 const withSuspense = (Component: React.ComponentType) => {
   return function SuspenseWrapper(props: any) {
@@ -57,185 +58,185 @@ const router = createBrowserRouter([
           }),
         },
         children: [
-      {
-        index: true,
-        element: <Navigate to="/dashboard" replace />,
-      },
-      {
-        path: "dashboard",
-        Component: withSuspense(Dashboard),
-        handle: {
-          crumb: () => ({
-            label: "Dashboard",
-            href: "/dashboard",
-          }),
-        },
-      },
-      {
-        path: "users",
-        handle: {
-          crumb: () => ({
-            label: "Users",
-            href: "/users",
-          }),
-        },
-        children: [
           {
             index: true,
-            Component: withSuspense(Users),
-          },
-        ],
-      },
-      {
-        path: "amenities",
-        Component: withSuspense(Amenities),
-        handle: {
-          crumb: () => ({
-            label: "Amenities",
-            href: "/amenities",
-          }),
-        },
-      },
-      {
-        path: "features",
-        Component: withSuspense(Features),
-        handle: {
-          crumb: () => ({
-            label: "Features",
-            href: "/features",
-          }),
-        },
-      },
-      {
-        path: "room-types",
-        Component: withSuspense(RoomType),
-        handle: {
-          crumb: () => ({
-            label: "Room Types",
-            href: "/room-types",
-          }),
-        },
-      },
-      {
-        path: "addons",
-        Component: withSuspense(Addons),
-        handle: {
-          crumb: () => ({
-            label: "Addons",
-            href: "/addons",
-          }),
-        },
-      },
-      {
-        path: "addons/configuration/:id",
-        Component: withSuspense(AddonConfiguration),
-        handle: {
-          crumb: () => ({
-            label: "Addon Configuration",
-            href: "/addons",
-          }),
-        },
-      },
-      {
-        path: "rooms",
-        handle: {
-          crumb: () => ({
-            label: "Rooms",
-            href: "/rooms",
-          }),
-        },
-        children: [
-          {
-            index: true,
-            Component: withSuspense(Rooms),
+            element: <Navigate to="/dashboard" replace />,
           },
           {
-            path: "add",
-            Component: withSuspense(AddRoomPage),
+            path: "dashboard",
+            Component: withSuspense(Dashboard),
             handle: {
               crumb: () => ({
-                label: "Add Room",
-                href: "/rooms/add",
+                label: "Dashboard",
+                href: "/dashboard",
               }),
             },
           },
           {
-            path: "edit/:id",
-            Component: withSuspense(Rooms),
+            path: "users",
             handle: {
               crumb: () => ({
-                label: "Edit Room",
+                label: "Users",
+                href: "/users",
+              }),
+            },
+            children: [
+              {
+                index: true,
+                Component: withSuspense(Users),
+              },
+            ],
+          },
+          {
+            path: "amenities",
+            Component: withSuspense(Amenities),
+            handle: {
+              crumb: () => ({
+                label: "Amenities",
+                href: "/amenities",
+              }),
+            },
+          },
+          {
+            path: "features",
+            Component: withSuspense(Features),
+            handle: {
+              crumb: () => ({
+                label: "Features",
+                href: "/features",
+              }),
+            },
+          },
+          {
+            path: "room-types",
+            Component: withSuspense(RoomType),
+            handle: {
+              crumb: () => ({
+                label: "Room Types",
+                href: "/room-types",
+              }),
+            },
+          },
+          {
+            path: "addons",
+            Component: withSuspense(Addons),
+            handle: {
+              crumb: () => ({
+                label: "Addons",
+                href: "/addons",
+              }),
+            },
+          },
+          {
+            path: "addons/configuration/:id",
+            Component: withSuspense(AddonConfiguration),
+            handle: {
+              crumb: () => ({
+                label: "Addon Configuration",
+                href: "/addons",
+              }),
+            },
+          },
+          {
+            path: "rooms",
+            handle: {
+              crumb: () => ({
+                label: "Rooms",
                 href: "/rooms",
               }),
             },
+            children: [
+              {
+                index: true,
+                Component: withSuspense(Rooms),
+              },
+              {
+                path: "add",
+                Component: withSuspense(AddRoomPage),
+                handle: {
+                  crumb: () => ({
+                    label: "Add Room",
+                    href: "/rooms/add",
+                  }),
+                },
+              },
+              {
+                path: "edit/:id",
+                Component: withSuspense(Rooms),
+                handle: {
+                  crumb: () => ({
+                    label: "Edit Room",
+                    href: "/rooms",
+                  }),
+                },
+              },
+            ],
           },
-        ],
-      },
-      {
-        path: "hotels",
-        handle: {
-          crumb: () => ({
-            label: "Hotels",
-            href: "/hotels",
-          }),
-        },
-        children: [
           {
-            index: true,
-            Component: withSuspense(Hotels),
-          },
-          {
-            path: "add",
-            Component: withSuspense(Hotels),
+            path: "hotels",
             handle: {
               crumb: () => ({
-                label: "Add Hotel",
-                href: "/hotels/add",
-              }),
-            },
-          },
-          {
-            path: "edit/:id",
-            Component: withSuspense(Hotels),
-            handle: {
-              crumb: () => ({
-                label: "Edit Hotel",
+                label: "Hotels",
                 href: "/hotels",
               }),
             },
+            children: [
+              {
+                index: true,
+                Component: withSuspense(Hotels),
+              },
+              {
+                path: "add",
+                Component: withSuspense(Hotels),
+                handle: {
+                  crumb: () => ({
+                    label: "Add Hotel",
+                    href: "/hotels/add",
+                  }),
+                },
+              },
+              {
+                path: "edit/:id",
+                Component: withSuspense(Hotels),
+                handle: {
+                  crumb: () => ({
+                    label: "Edit Hotel",
+                    href: "/hotels",
+                  }),
+                },
+              },
+            ],
           },
-        ],
-      },
-      {
-        path: "reviews",
-        Component: withSuspense(Reviews),
-        handle: {
-          crumb: () => ({
-            label: "Reviews",
-            href: "/reviews",
-          }),
-        },
-      },
-      {
-        path: "customers",
-        Component: withSuspense(CustomerPage),
-        handle: {
-          crumb: () => ({
-            label: "Customers",
-            href: "/customers",
-          }),
-        },
-      },
-      {
-        path: "promo-codes",
-        Component: withSuspense(PromoCode),
-        handle: {
-          crumb: () => ({
-            label: "Promo Codes",
-            href: "/promo-codes",
-          }),
-        },
-      },
+          {
+            path: "reviews",
+            Component: withSuspense(Reviews),
+            handle: {
+              crumb: () => ({
+                label: "Reviews",
+                href: "/reviews",
+              }),
+            },
+          },
+          {
+            path: "customers",
+            Component: withSuspense(CustomerPage),
+            handle: {
+              crumb: () => ({
+                label: "Customers",
+                href: "/customers",
+              }),
+            },
+          },
+          {
+            path: "promo-codes",
+            Component: withSuspense(PromoCode),
+            handle: {
+              crumb: () => ({
+                label: "Promo Codes",
+                href: "/promo-codes",
+              }),
+            },
+          },
           {
             path: "*",
             Component: withSuspense(NotFound),
@@ -249,11 +250,15 @@ const router = createBrowserRouter([
             path: "/login",
             Component: withSuspense(Login),
           },
+          {
+            path: "/forgot-password",
+            Component: withSuspense(ForgotPassword),
+          },
+          {
+            path: "/set-password/:token",
+            Component: withSuspense(SetPassword),
+          },
         ],
-      },
-      {
-        path: "/forgot-password",
-        Component: withSuspense(ForgotPassword),
       },
     ],
   },

@@ -20,8 +20,8 @@ import type {
   CreateHotelImageData,
   DatabaseHotelWithRelations,
 } from "../types";
-import type { DatabaseFeature } from "../types/feature.interface";
 import type { DatabaseAmenity } from "../types/amenity.interface";
+import type { DatabaseFeature } from "../types/feature.interface";
 
 export class HotelRepository {
   static async findAll(

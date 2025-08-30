@@ -202,12 +202,12 @@ export class AuthRepository {
     }
   }
 
-  static async findPasswordResetTokenByUserId(db: D1Database, userId: number) {
+  static async findPasswordResetTokenByToken(db: D1Database, token: string) {
     const database = getDb(db);
     const result = await database
       .select()
       .from(passwordResetTokens)
-      .where(eq(passwordResetTokens.userId, userId))
+      .where(eq(passwordResetTokens.tokenHash, token))
       .limit(1);
 
     return result[0] || null;

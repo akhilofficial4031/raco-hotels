@@ -1,14 +1,14 @@
+import { R2Service } from "./r2.service";
 import { RoomRepository } from "../repositories/room.repository";
 import { RoomTypeRepository } from "../repositories/room_type.repository";
-import { R2Service } from "./r2.service";
 
 import type {
   CreateRoomTypeRequestSchema,
   UpdateRoomTypeRequestSchema,
   RoomTypeQueryParamsSchema,
 } from "../schemas";
-import type { z } from "zod";
 import type { ImageUploadResult } from "./r2.service";
+import type { z } from "zod";
 
 export class RoomTypeService {
   static async createRoomType(

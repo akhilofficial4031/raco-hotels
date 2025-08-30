@@ -1,3 +1,4 @@
+import type { DatabaseAmenity } from "./amenity.interface";
 import type {
   BaseEntity,
   AddressInfo,
@@ -8,7 +9,6 @@ import type {
   DatabaseMediaReference,
 } from "./common.interface";
 import type { DatabaseFeature } from "./feature.interface";
-import type { DatabaseAmenity } from "./amenity.interface";
 
 /**
  * Database representation of a hotel
