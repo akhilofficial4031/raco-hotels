@@ -35,6 +35,7 @@ export interface Messages {
     verified: string;
     allSessionsRevoked: string;
     passwordResetEmailSent: string;
+    passwordResetSuccessful: string;
   };
 
   // Password validation messages
@@ -199,6 +200,7 @@ const enMessages: Messages = {
     verified: "Authentication verified",
     allSessionsRevoked: "All sessions revoked successfully",
     passwordResetEmailSent: "Password reset email sent successfully",
+    passwordResetSuccessful: "Password reset successfully",
   },
 
   password: {
@@ -356,6 +358,7 @@ const esMessages: Messages = {
     allSessionsRevoked: "Todas las sesiones revocadas exitosamente",
     passwordResetEmailSent:
       "Email de restablecimiento de contraseña enviado exitosamente",
+    passwordResetSuccessful: "Contraseña restablecida exitosamente",
   },
 
   password: {
@@ -519,6 +522,7 @@ const frMessages: Messages = {
     allSessionsRevoked: "Toutes les sessions révoquées avec succès",
     passwordResetEmailSent:
       "Email de restablecimiento de contraseña enviado exitosamente",
+    passwordResetSuccessful: "Mot de passe réinitialisé avec succès",
   },
 
   password: {

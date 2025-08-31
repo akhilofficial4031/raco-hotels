@@ -64,7 +64,7 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({
           <p
             style={{ color: styles.white, margin: "10px 0 0 0", opacity: 0.9 }}
           >
-            Your premium hotel booking experience awaits
+            Hotel Management System Access
           </p>
         </div>
 
@@ -88,45 +88,47 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({
               margin: "0 0 20px 0",
             }}
           >
-            Thank you for joining Raco Hotels! We're thrilled to have you as
-            part of our community. Your account has been successfully created
-            and you're now ready to explore amazing accommodations worldwide.
+            Welcome to the Raco Hotels Management System! Your account has been
+            successfully created and you're now part of our team. To get
+            started, you'll need to set up your password to access the system.
           </p>
 
-          <div
-            style={{
-              backgroundColor: styles.lightGray,
-              padding: "25px",
-              borderRadius: "8px",
-              margin: "30px 0",
-            }}
-          >
-            <h3
+          {loginUrl && loginUrl !== "#" && (
+            <div
               style={{
-                color: styles.primary,
-                margin: "0 0 15px 0",
-                fontSize: "18px",
+                backgroundColor: styles.success + "20",
+                border: `1px solid ${styles.success}`,
+                borderRadius: "8px",
+                padding: "20px",
+                margin: "20px 0",
               }}
             >
-              What you can do now:
-            </h3>
-            <p style={{ margin: "0 0 10px 0", color: styles.secondary }}>
-              🏨 <strong>Book Premium Hotels</strong> - Access thousands of
-              luxury and budget-friendly options
-            </p>
-            <p style={{ margin: "0 0 10px 0", color: styles.secondary }}>
-              📱 <strong>Manage Reservations</strong> - View, modify, and track
-              your bookings effortlessly
-            </p>
-            <p style={{ margin: "0 0 10px 0", color: styles.secondary }}>
-              💰 <strong>Exclusive Deals</strong> - Get access to member-only
-              discounts and promotions
-            </p>
-            <p style={{ margin: "0", color: styles.secondary }}>
-              ⭐ <strong>Loyalty Rewards</strong> - Earn points with every
-              booking for future stays
-            </p>
-          </div>
+              <p
+                style={{
+                  color: styles.secondary,
+                  fontSize: "16px",
+                  lineHeight: "1.6",
+                  margin: "0 0 10px 0",
+                  fontWeight: "bold",
+                }}
+              >
+                🔐 <strong>Important:</strong> Please set up your password to
+                secure your account.
+              </p>
+              <p
+                style={{
+                  color: styles.secondary,
+                  fontSize: "14px",
+                  lineHeight: "1.5",
+                  margin: "0",
+                }}
+              >
+                Click the button below to create your password and access the
+                Raco Hotels management system. This secure link will expire in 7
+                days for your account protection.
+              </p>
+            </div>
+          )}
 
           <div style={{ textAlign: "center", margin: "30px 0" }}>
             <a
@@ -142,7 +144,9 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({
                 display: "inline-block",
               }}
             >
-              Start Exploring Hotels
+              {loginUrl && loginUrl !== "#"
+                ? "Set Your Password"
+                : "Access Management System"}
             </a>
           </div>
 
@@ -153,8 +157,8 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({
               margin: "20px 0 0 0",
             }}
           >
-            Need help getting started? Our support team is here to assist you
-            24/7.
+            Need help getting started with the system? Contact our technical
+            support team for assistance.
           </p>
         </div>
 

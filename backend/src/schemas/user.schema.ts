@@ -1,7 +1,8 @@
 import { z } from "zod";
 
+import { UserStatus } from "../../../shared/types/user";
 import { getMessage, DEFAULT_LOCALE } from "../config/messages";
-import { USER_ROLES, USER_STATUS } from "../constants";
+import { USER_ROLES } from "../constants";
 
 // User role and status enums
 const UserRoleSchema = z.enum([
@@ -9,7 +10,12 @@ const UserRoleSchema = z.enum([
   USER_ROLES.STAFF,
   USER_ROLES.ADMIN,
 ]);
-const UserStatusSchema = z.enum([USER_STATUS.ACTIVE, USER_STATUS.DISABLED]);
+const UserStatusSchema = z.enum([
+  UserStatus.ACTIVE,
+  UserStatus.DISABLED,
+  UserStatus.SUSPENDED,
+  UserStatus.PENDING_ACTIVATION,
+]);
 
 // Base User Schema
 export const UserSchema = z
@@ -35,7 +41,7 @@ export const UserSchema = z
       description: "User role",
     }),
     status: UserStatusSchema.openapi({
-      example: USER_STATUS.ACTIVE,
+      example: UserStatus.ACTIVE,
       description: "User status",
     }),
     createdAt: z.string().openapi({
@@ -56,27 +62,16 @@ export const CreateUserRequestSchema = z
       example: "john.doe@example.com",
       description: "User email address",
     }),
-    password: z
-      .string()
-      .min(8, getMessage("password.tooShort", DEFAULT_LOCALE))
-      .max(128, getMessage("password.tooLong", DEFAULT_LOCALE))
-      .regex(/[A-Z]/, getMessage("password.missingUppercase", DEFAULT_LOCALE))
-      .regex(/[a-z]/, getMessage("password.missingLowercase", DEFAULT_LOCALE))
-      .regex(/\d/, getMessage("password.missingNumber", DEFAULT_LOCALE))
-      .regex(
-        /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
-        getMessage("password.missingSpecialChar", DEFAULT_LOCALE),
-      )
-      .optional()
-      .openapi({
-        example: "SecurePass123!",
-        description:
-          "User password (8-128 chars, must include uppercase, lowercase, number, and special character) - Optional",
-      }),
     fullName: z.string().optional().openapi({
       example: "John Doe",
       description: "User full name",
     }),
+    status: UserStatusSchema.optional()
+      .default(UserStatus.PENDING_ACTIVATION)
+      .openapi({
+        example: UserStatus.PENDING_ACTIVATION,
+        description: "User status",
+      }),
     phone: z.string().optional().openapi({
       example: "+1234567890",
       description: "User phone number",
@@ -108,7 +103,7 @@ export const UpdateUserRequestSchema = z
       description: "User role",
     }),
     status: UserStatusSchema.optional().openapi({
-      example: USER_STATUS.ACTIVE,
+      example: UserStatus.ACTIVE,
       description: "User status",
     }),
   })
@@ -178,7 +173,7 @@ export const UserQueryParamsSchema = z
       description: "Filter by user role",
     }),
     status: UserStatusSchema.optional().openapi({
-      example: USER_STATUS.ACTIVE,
+      example: UserStatus.ACTIVE,
       description: "Filter by user status",
     }),
     search: z.string().optional().openapi({

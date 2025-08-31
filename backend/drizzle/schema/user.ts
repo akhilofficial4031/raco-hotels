@@ -8,6 +8,8 @@ import {
   check,
 } from "drizzle-orm/sqlite-core";
 
+import { UserStatus, USER_STATUS_VALUES } from "../../../shared/types/user";
+
 export const user = sqliteTable(
   "user",
   {
@@ -17,7 +19,7 @@ export const user = sqliteTable(
     fullName: text("full_name"),
     phone: text("phone"),
     role: text("role").notNull().default("guest"),
-    status: text("status").notNull().default("active"),
+    status: text("status").notNull().default(UserStatus.ACTIVE),
 
     // Link to customer record - required for guest users, null for staff/admin
     customerId: integer("customer_id"),
@@ -50,7 +52,10 @@ export const user = sqliteTable(
     ),
     userStatusCheck: check(
       "ck_user_status",
-      sql`${t.status} IN ('active','disabled','suspended')`,
+      sql`${t.status} IN (${sql.join(
+        USER_STATUS_VALUES.map((s) => sql`${s}`),
+        sql`, `,
+      )})`,
     ),
     userEmailVerifiedCheck: check(
       "ck_user_email_verified",

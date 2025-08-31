@@ -4,7 +4,13 @@ import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import {
+  UserStatus,
+  type UserStatusType,
+  USER_STATUS_VALUES,
+} from "../../../../shared/types/user";
 import { type User, type CreateUserPayload } from "../../shared/models/users";
+import { capitalize } from "../../utils/utility";
 
 const { Option } = Select;
 
@@ -12,21 +18,8 @@ const userSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   fullName: z.string().min(1, { message: "Full name is required" }),
   phone: z.string().min(1, { message: "Phone number is required" }),
-  role: z.enum(["guest", "staff", "admin"]),
-  // password: z.string().optional(),
-});
-
-const addUserSchema = userSchema.extend({
-  // password: z
-  //   .string()
-  //   .min(8, "Password must be at least 8 characters")
-  //   .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-  //   .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-  //   .regex(/\d/, "Password must contain at least one number")
-  //   .regex(
-  //     /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/,
-  //     "Password must contain at least one special character",
-  //   ),
+  role: z.string().min(1, { message: "Role is required" }),
+  status: z.string().min(1, { message: "Status is required" }),
 });
 
 interface AddEditUserProps {
@@ -51,13 +44,13 @@ const AddEditUser: React.FC<AddEditUserProps> = ({
     reset,
     formState: { errors },
   } = useForm<CreateUserPayload>({
-    resolver: zodResolver(isEditMode ? userSchema : addUserSchema),
+    resolver: zodResolver(userSchema),
     defaultValues: {
       email: "",
       fullName: "",
       phone: "",
-      role: "guest",
-      // password: "",
+      role: "staff",
+      status: UserStatus.PENDING_ACTIVATION,
     },
   });
 
@@ -68,14 +61,15 @@ const AddEditUser: React.FC<AddEditUserProps> = ({
         fullName: user.fullName || "",
         phone: user.phone || "",
         role: user.role,
+        status: user.status,
       });
     } else {
       reset({
         email: "",
         fullName: "",
         phone: "",
-        role: "guest",
-        // password: "",
+        role: "staff",
+        status: UserStatus.PENDING_ACTIVATION,
       });
     }
   }, [user, reset, open]);
@@ -133,20 +127,6 @@ const AddEditUser: React.FC<AddEditUserProps> = ({
             render={({ field }) => <Input {...field} />}
           />
         </Form.Item>
-        {/* {!isEditMode && (
-          <Form.Item
-            label="Password"
-            required
-            validateStatus={errors.password ? "error" : ""}
-            help={errors.password?.message}
-          >
-            <Controller
-              name="password"
-              control={control}
-              render={({ field }) => <Input.Password {...field} />}
-            />
-          </Form.Item>
-        )} */}
         <Form.Item
           label="Phone"
           required
@@ -170,13 +150,33 @@ const AddEditUser: React.FC<AddEditUserProps> = ({
             control={control}
             render={({ field }) => (
               <Select {...field}>
-                <Option value="guest">Guest</Option>
                 <Option value="staff">Staff</Option>
                 <Option value="admin">Admin</Option>
               </Select>
             )}
           />
         </Form.Item>
+        {isEditMode && (
+          <Form.Item
+            label="Active Status"
+            validateStatus={errors.status ? "error" : ""}
+            help={errors.status?.message}
+          >
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <Select {...field}>
+                  {USER_STATUS_VALUES.map((status: UserStatusType) => (
+                    <Option key={status} value={status}>
+                      {capitalize(status)}
+                    </Option>
+                  ))}
+                </Select>
+              )}
+            />
+          </Form.Item>
+        )}
       </Form>
     </Drawer>
   );

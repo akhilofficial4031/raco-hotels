@@ -1,20 +1,41 @@
-import type { USER_ROLES, USER_STATUS } from "../constants";
+import type { UserStatus as UserStatusType } from "../../../shared/types/user";
+import type { USER_ROLES } from "../constants";
 import type { BaseEntity, BaseFilters } from "./common.interface";
 
 // User role and status types
 export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
-export type UserStatus = (typeof USER_STATUS)[keyof typeof USER_STATUS];
+export type UserStatus = (typeof UserStatusType)[keyof typeof UserStatusType];
 
 /**
  * Database representation of a user
  */
 export interface DatabaseUser extends BaseEntity {
   email: string;
-  passwordHash: string | null;
+  passwordHash?: string | null; // Made optional for safe queries
   fullName: string | null;
   phone: string | null;
   role: UserRole;
   status: UserStatus;
+  customerId?: number | null;
+  lastLoginAt?: string | null;
+  passwordResetToken?: string | null;
+  passwordResetExpiresAt?: string | null;
+  emailVerified?: number;
+  emailVerificationToken?: string | null;
+}
+
+/**
+ * Safe user data excluding sensitive authentication fields
+ */
+export interface SafeUserData extends BaseEntity {
+  email: string;
+  fullName: string | null;
+  phone: string | null;
+  role: UserRole;
+  status: UserStatus;
+  customerId?: number | null;
+  lastLoginAt?: string | null;
+  emailVerified?: number;
 }
 
 /**

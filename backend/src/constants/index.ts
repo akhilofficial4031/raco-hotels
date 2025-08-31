@@ -19,12 +19,6 @@ export const USER_ROLES = {
   ADMIN: "admin",
 } as const;
 
-// User Status
-export const USER_STATUS = {
-  ACTIVE: "active",
-  DISABLED: "disabled",
-} as const;
-
 // API Tags for OpenAPI
 export const API_TAGS = {
   SYSTEM: "System",

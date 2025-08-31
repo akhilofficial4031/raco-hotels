@@ -2,11 +2,14 @@ import { scrypt } from "@noble/hashes/scrypt";
 import { sha256 } from "@noble/hashes/sha256";
 import { randomBytes } from "@noble/hashes/utils";
 
+import { UserStatus } from "../../../shared/types/user";
 import { getMessage, DEFAULT_LOCALE } from "../config/messages";
-import { USER_STATUS } from "../constants";
 import { AuthRepository } from "../repositories/auth.repository";
 import { UserRepository } from "../repositories/user.repository";
-import { sendPasswordResetEmail } from "../utils/mail";
+import {
+  sendPasswordResetEmail,
+  sendWelcomePasswordEmail,
+} from "../utils/mail";
 
 import type { DatabaseUser } from "../types";
 
@@ -52,7 +55,7 @@ export class AuthService {
     }
 
     // Check if user is active
-    if (user.status !== USER_STATUS.ACTIVE) {
+    if (user.status !== UserStatus.ACTIVE) {
       throw new Error(getMessage("user.accountDisabled", DEFAULT_LOCALE));
     }
 
@@ -105,7 +108,7 @@ export class AuthService {
     userId: number,
   ): Promise<DatabaseUser | null> {
     const user = await UserRepository.findById(db, userId);
-    if (!user || user.status !== USER_STATUS.ACTIVE) {
+    if (!user || user.status !== UserStatus.ACTIVE) {
       return null;
     }
     return this.sanitizeUser(user);
@@ -533,6 +536,47 @@ export class AuthService {
     return resetToken;
   }
 
+  static async createWelcomePasswordToken(
+    c: any, // Context for accessing env vars
+    db: D1Database,
+    userEmail: string,
+    userName: string,
+    tokenExpiryDays: number = 7,
+  ) {
+    const user = await UserRepository.findByEmail(db, userEmail);
+    if (!user) {
+      return;
+    }
+
+    // Delete existing tokens for user
+    await AuthRepository.deletePasswordResetToken(db, user.id);
+
+    // Generate URL-friendly UUID v4 token
+    const resetToken = this.generateUUID();
+    // Create URL-friendly hash for database storage
+    const tokenHash = await this.hashTokenForStorage(resetToken);
+
+    const createdAt = new Date();
+    const expiresAt = new Date(
+      createdAt.getTime() + tokenExpiryDays * 86400000,
+    );
+
+    await AuthRepository.createPasswordResetToken(
+      db,
+      user.id,
+      tokenHash,
+      expiresAt,
+    );
+
+    // Prepare set password URL with token hash as query param
+    const setPasswordUrl = `${process.env.FRONTEND_URL}/set-password/${tokenHash}`;
+
+    // Send welcome email with set password link
+    await sendWelcomePasswordEmail(c, userEmail, userName, setPasswordUrl);
+
+    return resetToken;
+  }
+
   static async setPassword(
     db: D1Database,
     kv: KVNamespace,
@@ -564,6 +608,7 @@ export class AuthService {
       db,
       storedToken.userId,
       newPasswordHash,
+      UserStatus.ACTIVE,
     );
     await AuthRepository.markPasswordResetTokenAsUsed(db, storedToken.id);
     await this.revokeAllUserSessions(kv, storedToken.userId);

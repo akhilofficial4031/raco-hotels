@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { eq as dEq } from "drizzle-orm";
 
+import { type UserStatus } from "../../../shared/types/user";
 import { role, permission, rolePermission } from "../../drizzle/schema";
 import { passwordResetTokens } from "../../drizzle/schema/password_reset_token";
 import { user } from "../../drizzle/schema/user";
@@ -45,17 +46,30 @@ export class AuthRepository {
     db: D1Database,
     id: number,
     passwordHash: string,
+    status?: UserStatus,
   ): Promise<DatabaseUser | null> {
     const database = getDb(db);
-
-    const result = await database
-      .update(user)
-      .set({
-        passwordHash,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(user.id, id))
-      .returning();
+    let result: any;
+    if (status) {
+      result = await database
+        .update(user)
+        .set({
+          passwordHash,
+          status,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(user.id, id))
+        .returning();
+    } else {
+      result = await database
+        .update(user)
+        .set({
+          passwordHash,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(user.id, id))
+        .returning();
+    }
 
     return (result[0] as DatabaseUser) || null;
   }

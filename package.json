@@ -3,7 +3,8 @@
   "workspaces": [
     "packages/*",
     "frontend",
-    "backend"
+    "backend",
+    "shared"
   ],
   "packageManager": "yarn@4.6.0",
   "scripts": {

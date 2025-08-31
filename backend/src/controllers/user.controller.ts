@@ -62,7 +62,7 @@ export class UserController {
         const userData = await c.req.json();
 
         try {
-          const newUser = await UserService.createUser(c.env.DB, userData);
+          const newUser = await UserService.createUser(c, c.env.DB, userData);
           return UserResponse.userCreated(c, newUser);
         } catch (error) {
           if (error instanceof Error) {

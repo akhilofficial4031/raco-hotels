@@ -78,6 +78,24 @@ export async function sendWelcomeEmail(
 }
 
 /**
+ * Send welcome email with set password link to new user
+ */
+export async function sendWelcomePasswordEmail(
+  c: AppContext,
+  to: string,
+  userName: string,
+  setPasswordUrl: string,
+) {
+  const html = renderWelcomeEmail({ userName, loginUrl: setPasswordUrl });
+
+  return sendMail(c, {
+    to,
+    subject: "Welcome to Raco Hotels - Set Your Password",
+    html,
+  });
+}
+
+/**
  * Send booking confirmation email
  */
 export async function sendBookingConfirmation(
