@@ -114,6 +114,28 @@ export class CustomerRepository {
   }
 
   /**
+   * Find customer by phone
+   */
+  static async findByPhone(
+    db: D1Database,
+    phone: string,
+  ): Promise<DatabaseCustomer | null> {
+    const database = getDb(db);
+    const [customer] = await database
+      .select()
+      .from(customerTable)
+      .where(
+        or(
+          eq(customerTable.phone, phone),
+          eq(customerTable.alternatePhone, phone),
+        ),
+      )
+      .limit(1);
+
+    return customer ? this.transformDatabaseCustomer(customer as any) : null;
+  }
+
+  /**
    * Update customer
    */
   static async update(

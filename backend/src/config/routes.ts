@@ -29,6 +29,9 @@ export const PUBLIC_ROUTES = [
   // Hotel routes - only GET method is public
   "GET:/hotels",
 
+  // Booking routes - temporarily public for testing
+  "POST:/bookings",
+
   // Add other public routes here as needed
   // "/public-endpoint",
   // "GET:/some-route",

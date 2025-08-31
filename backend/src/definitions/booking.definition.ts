@@ -11,6 +11,12 @@ import {
   BookingFeedbackRequestSchema,
   PendingBookingsQuerySchema,
   PendingBookingsResponseSchema,
+  BookingsQuerySchema,
+  BookingsResponseSchema,
+  CreateDirectBookingRequestSchema,
+  CreateBookingRequestSchema,
+  BookingDetailsResponseSchema,
+  UpdateBookingRequestSchema,
 } from "../schemas";
 
 export const BookingRouteDefinitions = {
@@ -396,6 +402,117 @@ export const BookingRouteDefinitions = {
     successDescription:
       "Pending bookings retrieved successfully with pagination and filters applied",
     querySchema: PendingBookingsQuerySchema,
+    includeBadRequest: true,
+  }),
+
+  listBookings: createRoute({
+    method: "get",
+    path: "/bookings",
+    summary: "List all bookings",
+    description: `Retrieve a list of all bookings with filters and pagination.
+
+**User Types:** Staff, Admin Only (Authentication Required)
+
+**Authentication:** Required - User must be logged in with appropriate permissions
+
+**Permission Required:** bookings.read
+
+**Use Cases:**
+- Admin dashboard for viewing all bookings
+- Filtering bookings by status, hotel, or date range
+- Searching for specific bookings
+- Generating reports
+
+**Query Parameters:**
+- **page**: Page number for pagination (default: 1)
+- **limit**: Items per page (default: 20, max: 100)
+- **hotelId**: Filter by specific hotel
+- **status**: Filter by booking status (e.g., confirmed, cancelled)
+- **query**: Search by reference code or customer name
+- **checkInDateStart** / **checkInDateEnd**: Filter by check-in date range
+- **createdAtStart** / **createdAtEnd**: Filter by creation date range
+- **sortBy**: Sort field (created_at, check_in_date, total_amount_cents)
+- **sortOrder**: Sort direction (asc, desc)`,
+    tags: [ApiTags.BOOKINGS],
+    successSchema: BookingsResponseSchema,
+    successDescription:
+      "Bookings retrieved successfully with pagination and filters applied",
+    querySchema: BookingsQuerySchema,
+    includeBadRequest: true,
+  }),
+
+  createDirectBooking: createRoute({
+    method: "post",
+    path: "/bookings/direct",
+    summary: "Create a direct booking",
+    description:
+      "Create a complete booking for a customer directly, typically used by staff.",
+    tags: [ApiTags.BOOKINGS],
+    successSchema: BookingConfirmationResponseSchema,
+    successDescription: "Direct booking created successfully.",
+    requestSchema: CreateDirectBookingRequestSchema,
+    includeBadRequest: true,
+  }),
+
+  createBooking: createRoute({
+    method: "post",
+    path: "/bookings",
+    summary: "Create a new booking",
+    description: "Create a new booking with rooms and addons.",
+    tags: [ApiTags.BOOKINGS],
+    successSchema: BookingConfirmationResponseSchema,
+    successDescription: "Booking created successfully.",
+    requestSchema: CreateBookingRequestSchema,
+    includeBadRequest: true,
+  }),
+
+  cancelBooking: createRoute({
+    method: "patch",
+    path: "/bookings/{id}/cancel",
+    summary: "Cancel a booking",
+    description: "Cancel a specific booking by its ID.",
+    tags: [ApiTags.BOOKINGS],
+    successSchema: BookingResponseSchema,
+    successDescription: "Booking cancelled successfully.",
+    pathParamsSchema: BookingPathParamsSchema,
+    includeBadRequest: true,
+  }),
+
+  checkoutBooking: createRoute({
+    method: "patch",
+    path: "/bookings/{id}/checkout",
+    summary: "Check out a booking",
+    description: "Check out a specific booking by its ID.",
+    tags: [ApiTags.BOOKINGS],
+    successSchema: BookingResponseSchema,
+    successDescription: "Booking checked out successfully.",
+    pathParamsSchema: BookingPathParamsSchema,
+    includeBadRequest: true,
+  }),
+
+  getBookingById: createRoute({
+    method: "get",
+    path: "/bookings/{id}",
+    summary: "Get a booking by ID",
+    description: "Retrieve all details for a specific booking by its ID.",
+    tags: [ApiTags.BOOKINGS],
+    successSchema: BookingDetailsResponseSchema,
+    successDescription: "Booking details retrieved successfully.",
+    pathParamsSchema: BookingPathParamsSchema,
+    includeNotFound: true,
+  }),
+
+  updateBooking: createRoute({
+    method: "put",
+    path: "/bookings/{id}",
+    summary: "Update a booking",
+    description: "Update details for a specific booking by its ID.",
+    tags: [ApiTags.BOOKINGS],
+    requestSchema: UpdateBookingRequestSchema,
+    successSchema: BookingDetailsResponseSchema,
+    successDescription: "Booking details updated successfully.",
+    pathParamsSchema: BookingPathParamsSchema,
+    includeNotFound: true,
     includeBadRequest: true,
   }),
 };

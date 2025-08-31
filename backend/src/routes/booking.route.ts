@@ -18,55 +18,104 @@ const bookingRoutes = new OpenAPIHono<{
 // Apply authentication middleware to all booking routes
 bookingRoutes.use("*", smartAuthMiddleware);
 
+bookingRoutes.openapi(
+  BookingRouteDefinitions.createBooking,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
+    BookingController.createBooking(c as AppContext),
+  ),
+);
+
+bookingRoutes.openapi(
+  BookingRouteDefinitions.cancelBooking,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
+    BookingController.cancelBooking(c as AppContext),
+  ),
+);
+
+bookingRoutes.openapi(
+  BookingRouteDefinitions.checkoutBooking,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
+    BookingController.checkoutBooking(c as AppContext),
+  ),
+);
+
 // Create a new booking
-bookingRoutes.openapi(
-  BookingRouteDefinitions.createDraft,
-  smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
-    BookingController.createDraft(c as AppContext),
-  ),
-);
+// bookingRoutes.openapi(
+//   BookingRouteDefinitions.createDraft,
+//   smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
+//     BookingController.createDraft(c as AppContext),
+//   ),
+// );
+
+// bookingRoutes.openapi(
+//   BookingRouteDefinitions.processPayment,
+//   smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
+//     BookingController.processPayment(c as AppContext),
+//   ),
+// );
+
+// bookingRoutes.openapi(
+//   BookingRouteDefinitions.confirm,
+//   smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
+//     BookingController.confirm(c as AppContext),
+//   ),
+// );
+
+// // Feedback reuses bookings_update for simplicity; could be separate permission
+// bookingRoutes.openapi(
+//   BookingRouteDefinitions.feedback,
+//   smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
+//     BookingController.createDraft(c as AppContext),
+//   ),
+// );
+
+// bookingRoutes.openapi(
+//   BookingRouteDefinitions.convertDraft,
+//   smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
+//     BookingController.convertDraft(c as AppContext),
+//   ),
+// );
+
+// bookingRoutes.openapi(
+//   BookingRouteDefinitions.confirmFromDraft,
+//   smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
+//     BookingController.confirmFromDraft(c as AppContext),
+//   ),
+// );
+
+// bookingRoutes.openapi(
+//   BookingRouteDefinitions.getPendingBookings,
+//   smartPermissionHandler(PERMISSIONS.BOOKINGS_READ, (c) =>
+//     BookingController.getPendingBookings(c as AppContext),
+//   ),
+// );
 
 bookingRoutes.openapi(
-  BookingRouteDefinitions.processPayment,
-  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
-    BookingController.processPayment(c as AppContext),
-  ),
-);
-
-bookingRoutes.openapi(
-  BookingRouteDefinitions.confirm,
-  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
-    BookingController.confirm(c as AppContext),
-  ),
-);
-
-// Feedback reuses bookings_update for simplicity; could be separate permission
-bookingRoutes.openapi(
-  BookingRouteDefinitions.feedback,
-  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
-    BookingController.createDraft(c as AppContext),
-  ),
-);
-
-bookingRoutes.openapi(
-  BookingRouteDefinitions.convertDraft,
-  smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
-    BookingController.convertDraft(c as AppContext),
-  ),
-);
-
-bookingRoutes.openapi(
-  BookingRouteDefinitions.confirmFromDraft,
-  smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
-    BookingController.confirmFromDraft(c as AppContext),
-  ),
-);
-
-bookingRoutes.openapi(
-  BookingRouteDefinitions.getPendingBookings,
+  BookingRouteDefinitions.listBookings,
   smartPermissionHandler(PERMISSIONS.BOOKINGS_READ, (c) =>
-    BookingController.getPendingBookings(c as AppContext),
+    BookingController.listBookings(c as AppContext),
   ),
 );
+
+bookingRoutes.openapi(
+  BookingRouteDefinitions.getBookingById,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_READ, (c) =>
+    BookingController.getBookingById(c as AppContext),
+  ),
+);
+
+bookingRoutes.openapi(
+  BookingRouteDefinitions.updateBooking,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
+    BookingController.updateBooking(c as AppContext),
+  ),
+);
+
+// bookingRoutes.openapi(
+//   BookingRouteDefinitions.createDirectBooking,
+//   smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
+//     BookingController.createDirectBooking(c as AppContext),
+//   ),
+// );
 
 export default bookingRoutes;

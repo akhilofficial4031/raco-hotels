@@ -9,6 +9,8 @@ import {
   CustomersListResponseSchema,
   CustomerBookingHistoryResponseSchema,
   FindCustomerByEmailResponseSchema,
+  FindCustomerByPhoneQuerySchema,
+  FindCustomerByPhoneResponseSchema,
 } from "../schemas";
 
 export const CustomerRouteDefinitions = {
@@ -350,6 +352,42 @@ export const CustomerRouteDefinitions = {
 - Show customer booking history when relevant`,
     tags: ["Customers"],
     successSchema: FindCustomerByEmailResponseSchema,
+    successDescription: "Customer search completed",
+  }),
+
+  findByPhone: createRoute({
+    method: "get",
+    path: "/customers/find-by-phone",
+    summary: "Find customer by phone number",
+    description: `Find existing customer by phone number.
+
+**User Types:** Staff, Admin
+
+**Authentication:** Required
+
+**Permission Required:** customers.read
+
+**Query Parameters:**
+- **phone**: Customer phone number (required)
+
+**Use Cases:**
+- Quick customer lookup during booking process by phone
+- Phone-based customer identification
+- Customer service inquiries over the phone
+
+**Response Data:**
+- Customer profile if found, null if not found
+- Boolean 'found' flag for easy checking
+- Appropriate message based on result
+
+**Frontend Integration:**
+- Use during booking flow to check existing customers by phone
+- Implement phone-based customer search`,
+    tags: ["Customers"],
+    request: {
+      query: FindCustomerByPhoneQuerySchema,
+    },
+    successSchema: FindCustomerByPhoneResponseSchema,
     successDescription: "Customer search completed",
   }),
 

@@ -16,7 +16,18 @@ if (!rootElement) {
 createRoot(rootElement).render(
   <React.StrictMode>
     <SidebarProvider>
-      <SWRConfig value={{ fetcher }}>
+      <SWRConfig
+        value={{
+          fetcher,
+          revalidateOnFocus: false,
+          revalidateOnReconnect: false,
+          revalidateIfStale: false,
+          dedupingInterval: 2 * 60 * 1000, // 2 minutes
+          errorRetryCount: 0,
+          errorRetryInterval: 1000,
+          refreshInterval: 0, // Disable automatic refresh
+        }}
+      >
         <RouterProvider router={router} />
       </SWRConfig>
     </SidebarProvider>

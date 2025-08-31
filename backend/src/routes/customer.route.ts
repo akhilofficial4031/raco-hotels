@@ -82,6 +82,14 @@ customerRoutes.openapi(
   ),
 );
 
+// Find customer by phone
+customerRoutes.openapi(
+  CustomerRouteDefinitions.findByPhone,
+  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+    CustomerController.getByPhone(c as AppContext),
+  ),
+);
+
 // Find or create customer
 customerRoutes.openapi(
   CustomerRouteDefinitions.findOrCreate,

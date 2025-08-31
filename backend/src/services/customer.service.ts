@@ -85,6 +85,16 @@ export class CustomerService {
   }
 
   /**
+   * Get customer by phone
+   */
+  static async getCustomerByPhone(
+    db: D1Database,
+    phone: string,
+  ): Promise<DatabaseCustomer | null> {
+    return await CustomerRepository.findByPhone(db, phone);
+  }
+
+  /**
    * Update customer information
    */
   static async updateCustomer(

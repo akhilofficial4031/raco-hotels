@@ -20,6 +20,8 @@ export const roomInventory = sqliteTable(
       }),
     date: text("date").notNull(),
     availableRooms: integer("available_rooms").notNull().default(0),
+    priceCents: integer("price_cents").notNull().default(0),
+    currencyCode: text("currency_code").notNull().default("INR"),
     overbookLimit: integer("overbook_limit").notNull().default(0),
     closed: integer("closed").notNull().default(0),
     updatedAt: text("updated_at")

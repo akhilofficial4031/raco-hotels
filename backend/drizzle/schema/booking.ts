@@ -34,7 +34,11 @@ export const booking = sqliteTable(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
-    status: text("status").notNull().default("reserved"),
+    status: text("status", {
+      enum: ["confirmed", "checkedin", "checkedout", "cancelled"],
+    })
+      .notNull()
+      .default("checkedin"),
     source: text("source").notNull().default("web"),
     checkInDate: text("check_in_date").notNull(),
     checkOutDate: text("check_out_date").notNull(),
@@ -45,7 +49,11 @@ export const booking = sqliteTable(
     taxAmountCents: integer("tax_amount_cents").notNull().default(0),
     feeAmountCents: integer("fee_amount_cents").notNull().default(0),
     discountAmountCents: integer("discount_amount_cents").notNull().default(0),
+    amountPaidCents: integer("amount_paid_cents").notNull().default(0),
     balanceDueCents: integer("balance_due_cents").notNull().default(0),
+    paymentStatus: text("payment_status").notNull().default("pending"),
+    paymentMethod: text("payment_method"),
+    paymentProcessor: text("payment_processor"),
     notes: text("notes"),
     cancelledAt: text("cancelled_at"),
     cancellationReason: text("cancellation_reason"),

@@ -187,3 +187,13 @@ export const FindCustomerByEmailResponseSchema = z.object({
   customer: CustomerWithStatsResponseSchema.nullable(),
   found: z.boolean(),
 });
+
+// Find customer by phone schema
+export const FindCustomerByPhoneQuerySchema = z.object({
+  phone: z.string().min(1, "Phone number is required"),
+});
+
+export const FindCustomerByPhoneResponseSchema = z.object({
+  customer: CustomerResponseSchema.nullable(),
+  found: z.boolean(),
+});

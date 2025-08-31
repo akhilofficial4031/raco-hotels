@@ -84,6 +84,31 @@ export class CustomerController {
   }
 
   /**
+   * Get customer by phone
+   */
+  static async getByPhone(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const query = c.req.valid("query");
+        const { phone } = query;
+
+        const customer = await CustomerService.getCustomerByPhone(
+          c.env.DB,
+          phone,
+        );
+
+        return ApiResponse.success(c, {
+          customer,
+          found: !!customer,
+          message: customer ? "customer.found" : "customer.notFound",
+        });
+      },
+      "operation.findCustomerByPhoneFailed",
+    );
+  }
+
+  /**
    * Update customer
    */
   static async update(c: AppContext) {

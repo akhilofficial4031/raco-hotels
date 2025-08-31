@@ -26,36 +26,24 @@ export const RoomsAvailabilityQueryParamsSchema = z
   })
   .openapi("RoomsAvailabilityQueryParams");
 
-export const AvailableRoomTypeSchema = z
-  .object({
-    roomTypeId: z.number().int().openapi({ example: 2 }),
-    hotelId: z.number().int().openapi({ example: 1 }),
-    name: z.string().openapi({ example: "Deluxe King" }),
-    maxOccupancy: z.number().int().openapi({ example: 3 }),
-    basePriceCents: z.number().int().openapi({ example: 12000 }),
-    currencyCode: z.string().openapi({ example: "INR" }),
-    availableCount: z.number().int().openapi({ example: 4 }),
-    nightlyPricesCents: z
-      .array(z.number().int())
-      .openapi({ example: [12000, 12000, 13000] }),
-    images: z
-      .array(
-        z.object({
-          id: z.number().int(),
-          url: z.string(),
-          alt: z.string().nullish(),
-        }),
-      )
-      .optional(),
-    amenities: z.array(z.string()).optional(),
-  })
-  .openapi("AvailableRoomType");
+export const RoomSchema = z.object({
+  id: z.number().int(),
+  hotelId: z.number().int(),
+  roomTypeId: z.number().int(),
+  roomNumber: z.string(),
+  floor: z.string().nullable(),
+  description: z.string().nullable(),
+  status: z.string(),
+  isActive: z.number().int(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
 
 export const RoomsAvailabilityResponseSchema = z
   .object({
     success: z.boolean(),
     data: z.object({
-      results: z.array(AvailableRoomTypeSchema),
+      results: z.array(RoomSchema),
       message: z.string().optional(),
     }),
   })
