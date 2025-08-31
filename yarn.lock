@@ -2070,7 +2070,6 @@ __metadata:
   dependencies:
     "@ant-design/icons": "npm:^6.0.0"
     "@hookform/resolvers": "npm:^5.2.1"
-    "@raco-hotels/shared": "workspace:*"
     "@types/react": "npm:^18.2.67"
     "@types/react-dom": "npm:^18.2.22"
     "@vitejs/plugin-react": "npm:^4.3.2"
@@ -2085,7 +2084,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@raco-hotels/shared@workspace:*, @raco-hotels/shared@workspace:shared":
+"@raco-hotels/shared@workspace:shared":
   version: 0.0.0-use.local
   resolution: "@raco-hotels/shared@workspace:shared"
   dependencies:
