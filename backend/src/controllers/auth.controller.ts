@@ -461,4 +461,45 @@ export class AuthController {
       "operation.verifyAuthFailed",
     );
   }
+
+  // POST /auth/forgot-password - Forgot password
+  static async forgotPassword(c: AppContext) {
+    const TOKEN_EXPIRY_DAYS = parseInt(
+      process.env.PASSWORD_RESET_TOKEN_EXPIRY_DAYS || "7",
+    );
+
+    return handleAsyncRoute(c, async () => {
+      const { email } = await c.req.json();
+
+      await AuthService.createPasswordResetToken(
+        c,
+        c.env.DB,
+        email,
+        TOKEN_EXPIRY_DAYS,
+      );
+
+      return c.json({
+        success: true,
+        message: getLocalizedMessage(c, "auth.passwordResetEmailSent"),
+      });
+    });
+  }
+
+  // POST /auth/reset-password - Reset password
+  static async setPassword(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const { token, password } = await c.req.json();
+
+        await AuthService.setPassword(c.env.DB, c.env.KV, token, password);
+
+        return c.json({
+          success: true,
+          message: getLocalizedMessage(c, "auth.passwordResetSuccessful"),
+        });
+      },
+      "operation.resetPasswordFailed",
+    );
+  }
 }

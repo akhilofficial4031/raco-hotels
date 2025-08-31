@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
 import { eq as dEq } from "drizzle-orm";
 
+import { type UserStatus } from "../../../shared/types/user";
 import { role, permission, rolePermission } from "../../drizzle/schema";
+import { passwordResetTokens } from "../../drizzle/schema/password_reset_token";
 import { user } from "../../drizzle/schema/user";
 import { getDb } from "../db";
 
@@ -44,17 +46,30 @@ export class AuthRepository {
     db: D1Database,
     id: number,
     passwordHash: string,
+    status?: UserStatus,
   ): Promise<DatabaseUser | null> {
     const database = getDb(db);
-
-    const result = await database
-      .update(user)
-      .set({
-        passwordHash,
-        updatedAt: new Date().toISOString(),
-      })
-      .where(eq(user.id, id))
-      .returning();
+    let result: any;
+    if (status) {
+      result = await database
+        .update(user)
+        .set({
+          passwordHash,
+          status,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(user.id, id))
+        .returning();
+    } else {
+      result = await database
+        .update(user)
+        .set({
+          passwordHash,
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(user.id, id))
+        .returning();
+    }
 
     return (result[0] as DatabaseUser) || null;
   }
@@ -199,5 +214,53 @@ export class AuthRepository {
     } catch {
       return [];
     }
+  }
+
+  static async findPasswordResetTokenByToken(db: D1Database, token: string) {
+    const database = getDb(db);
+    const result = await database
+      .select()
+      .from(passwordResetTokens)
+      .where(eq(passwordResetTokens.tokenHash, token))
+      .limit(1);
+
+    return result[0] || null;
+  }
+
+  static async markPasswordResetTokenAsUsed(
+    db: D1Database,
+    tokenId: number,
+  ): Promise<void> {
+    const database = getDb(db);
+    await database
+      .update(passwordResetTokens)
+      .set({ used: 1 })
+      .where(eq(passwordResetTokens.id, tokenId));
+  }
+
+  static async deletePasswordResetToken(
+    db: D1Database,
+    userId: number,
+  ): Promise<void> {
+    const database = getDb(db);
+    await database
+      .delete(passwordResetTokens)
+      .where(eq(passwordResetTokens.userId, userId));
+  }
+
+  static async createPasswordResetToken(
+    db: D1Database,
+    userId: number,
+    token: string,
+    expiresAt: Date,
+  ): Promise<void> {
+    const database = getDb(db);
+    await database.insert(passwordResetTokens).values({
+      userId,
+      tokenHash: token,
+      createdAt: new Date().toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      used: 0,
+    });
   }
 }

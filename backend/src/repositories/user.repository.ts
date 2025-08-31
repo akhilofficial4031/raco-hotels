@@ -1,7 +1,8 @@
 import { eq, and, like, or, desc, count } from "drizzle-orm";
 
+import { UserStatus } from "../../../shared/types/user";
 import { user } from "../../drizzle/schema/user";
-import { USER_ROLES, USER_STATUS } from "../constants";
+import { USER_ROLES } from "../constants";
 import { getDb } from "../db";
 
 import type {
@@ -52,9 +53,21 @@ export class UserRepository {
 
     const total = totalResult[0]?.count || 0;
 
-    // Get users with pagination
+    // Get users with pagination (excluding sensitive password fields)
     const users = await database
-      .select()
+      .select({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        customerId: user.customerId,
+        lastLoginAt: user.lastLoginAt,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })
       .from(user)
       .where(whereClause)
       .orderBy(desc(user.createdAt))
@@ -71,7 +84,19 @@ export class UserRepository {
   ): Promise<DatabaseUser | null> {
     const database = getDb(db);
     const result = await database
-      .select()
+      .select({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        customerId: user.customerId,
+        lastLoginAt: user.lastLoginAt,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })
       .from(user)
       .where(eq(user.id, id))
       .limit(1);
@@ -86,9 +111,21 @@ export class UserRepository {
   ): Promise<DatabaseUser | null> {
     const database = getDb(db);
     const result = await database
-      .select()
+      .select({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        customerId: user.customerId,
+        lastLoginAt: user.lastLoginAt,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })
       .from(user)
-      .where(eq(user.email, email))
+      .where(eq(user.email, email && eq(user.status, UserStatus.ACTIVE)))
       .limit(1);
 
     return (result[0] as DatabaseUser) || null;
@@ -107,7 +144,7 @@ export class UserRepository {
       fullName: userData.fullName || null,
       phone: userData.phone || null,
       role: userData.role || USER_ROLES.GUEST,
-      status: userData.status || USER_STATUS.ACTIVE,
+      status: userData.status || UserStatus.ACTIVE,
     };
 
     const result = await database.insert(user).values(newUser).returning();
@@ -219,7 +256,19 @@ export class UserRepository {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const result = await database
-      .select()
+      .select({
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        phone: user.phone,
+        role: user.role,
+        status: user.status,
+        customerId: user.customerId,
+        lastLoginAt: user.lastLoginAt,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      })
       .from(user)
       .where(eq(user.createdAt, thirtyDaysAgo.toISOString()))
       .orderBy(desc(user.createdAt))

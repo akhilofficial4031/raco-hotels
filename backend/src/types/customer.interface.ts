@@ -29,14 +29,27 @@ export interface DatabaseCustomer {
   marketingOptIn: number; // 0 = no, 1 = yes
 
   // System fields
-  source: "web" | "front_office" | "phone" | "email" | "mobile_app";
   status: "active" | "inactive" | "blocked";
   notes?: string | null;
+  hasUserAccount: boolean;
+  firstBookingSource:
+    | "web"
+    | "front_office"
+    | "phone"
+    | "email"
+    | "mobile_app"
+    | "walk_in";
+  preferredPaymentMethod: string | null;
+  vipStatus: "regular" | "silver" | "gold" | "platinum" | null;
+  preferredContactMethod: "email" | "phone" | "sms" | null;
+  languagePreference: string | null;
+  timeZone: string | null;
 
   // Timestamps
   createdAt: string;
   updatedAt: string;
-  lastBookingAt?: string | null;
+  lastBookingAt: string | null;
+  lastContactAt: string | null;
 }
 
 export interface CreateCustomerData {
@@ -72,9 +85,22 @@ export interface CreateCustomerData {
   source?: "web" | "front_office" | "phone" | "email" | "mobile_app";
   status?: "active" | "inactive" | "blocked";
   notes?: string;
+  hasUserAccount?: boolean;
+  firstBookingSource?:
+    | "web"
+    | "front_office"
+    | "phone"
+    | "email"
+    | "mobile_app"
+    | "walk_in";
+  preferredPaymentMethod?: string;
+  vipStatus?: "regular" | "silver" | "gold" | "platinum";
+  preferredContactMethod?: "email" | "phone" | "sms";
+  languagePreference?: string;
+  timeZone?: string;
 }
 
-export interface UpdateCustomerData extends Partial<CreateCustomerData> {
+export interface UpdateCustomerData extends CreateCustomerData {
   id: number;
 }
 
@@ -91,12 +117,20 @@ export interface CustomerSearchFilters {
   limit?: number;
   sortBy?: "id" | "fullName" | "email" | "createdAt" | "lastBookingAt";
   sortOrder?: "asc" | "desc";
+  firstBookingSource?:
+    | "web"
+    | "front_office"
+    | "phone"
+    | "email"
+    | "mobile_app"
+    | "walk_in";
+  vipStatus?: "regular" | "silver" | "gold" | "platinum";
 }
 
 export interface CustomerWithBookingStats extends DatabaseCustomer {
   totalBookings: number;
   totalSpentCents: number;
-  lastBookingDate?: string | null;
+  lastBookingAt: string | null;
 }
 
 export interface CustomerBookingHistory {

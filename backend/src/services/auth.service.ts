@@ -1,10 +1,15 @@
 import { scrypt } from "@noble/hashes/scrypt";
+import { sha256 } from "@noble/hashes/sha256";
 import { randomBytes } from "@noble/hashes/utils";
 
+import { UserStatus } from "../../../shared/types/user";
 import { getMessage, DEFAULT_LOCALE } from "../config/messages";
-import { USER_STATUS } from "../constants";
 import { AuthRepository } from "../repositories/auth.repository";
 import { UserRepository } from "../repositories/user.repository";
+import {
+  sendPasswordResetEmail,
+  sendWelcomePasswordEmail,
+} from "../utils/mail";
 
 import type { DatabaseUser } from "../types";
 
@@ -50,7 +55,7 @@ export class AuthService {
     }
 
     // Check if user is active
-    if (user.status !== USER_STATUS.ACTIVE) {
+    if (user.status !== UserStatus.ACTIVE) {
       throw new Error(getMessage("user.accountDisabled", DEFAULT_LOCALE));
     }
 
@@ -103,7 +108,7 @@ export class AuthService {
     userId: number,
   ): Promise<DatabaseUser | null> {
     const user = await UserRepository.findById(db, userId);
-    if (!user || user.status !== USER_STATUS.ACTIVE) {
+    if (!user || user.status !== UserStatus.ACTIVE) {
       return null;
     }
     return this.sanitizeUser(user);
@@ -396,6 +401,48 @@ export class AuthService {
     return Buffer.from(combined).toString("base64");
   }
 
+  // Generate URL-friendly UUID v4
+  static generateUUID(): string {
+    const bytes = randomBytes(16);
+
+    // Set version (4) and variant (2) bits according to RFC 4122
+    bytes[6] = (bytes[6] & 0x0f) | 0x40; // Version 4
+    bytes[8] = (bytes[8] & 0x3f) | 0x80; // Variant 10
+
+    // Convert to UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    const hex = Array.from(bytes, (byte) =>
+      byte.toString(16).padStart(2, "0"),
+    ).join("");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
+  }
+
+  // Create URL-friendly hash for tokens (using SHA-256 + base64url encoding)
+  static async hashTokenForStorage(token: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(token);
+    const hash = sha256(data);
+
+    // Use base64url encoding (URL-friendly base64)
+    return Buffer.from(hash)
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=/g, "");
+  }
+
+  // Verify token against URL-friendly hash
+  static async verifyToken(
+    token: string,
+    storedHash: string,
+  ): Promise<boolean> {
+    try {
+      const computedHash = await this.hashTokenForStorage(token);
+      return computedHash === storedHash;
+    } catch {
+      return false;
+    }
+  }
+
   // Verify password against hash
   static async verifyPassword(
     password: string,
@@ -447,5 +494,123 @@ export class AuthService {
       "Token cleanup relies on TTL. Manual cleanup not implemented. KV:",
       !!kv,
     );
+  }
+
+  static async createPasswordResetToken(
+    c: any, // Context for accessing env vars
+    db: D1Database,
+    userEmail: string,
+    tokenExpiryDays: number,
+  ) {
+    const user = await UserRepository.findByEmail(db, userEmail);
+    if (!user) {
+      return;
+    }
+
+    // Delete existing tokens for user
+    await AuthRepository.deletePasswordResetToken(db, user.id);
+
+    // Generate URL-friendly UUID v4 token
+    const resetToken = this.generateUUID();
+    // Create URL-friendly hash for database storage
+    const tokenHash = await this.hashTokenForStorage(resetToken);
+
+    const createdAt = new Date();
+    const expiresAt = new Date(
+      createdAt.getTime() + tokenExpiryDays * 86400000,
+    );
+
+    await AuthRepository.createPasswordResetToken(
+      db,
+      user.id,
+      tokenHash,
+      expiresAt,
+    );
+
+    // Prepare reset URL with token and userId as query params
+    const resetUrl = `${process.env.FRONTEND_URL}/set-password/${tokenHash}`;
+
+    // Send password reset email
+    await sendPasswordResetEmail(c, userEmail, resetUrl, tokenExpiryDays);
+
+    return resetToken;
+  }
+
+  static async createWelcomePasswordToken(
+    c: any, // Context for accessing env vars
+    db: D1Database,
+    userEmail: string,
+    userName: string,
+    tokenExpiryDays: number = 7,
+  ) {
+    const user = await UserRepository.findByEmail(db, userEmail);
+    if (!user) {
+      return;
+    }
+
+    // Delete existing tokens for user
+    await AuthRepository.deletePasswordResetToken(db, user.id);
+
+    // Generate URL-friendly UUID v4 token
+    const resetToken = this.generateUUID();
+    // Create URL-friendly hash for database storage
+    const tokenHash = await this.hashTokenForStorage(resetToken);
+
+    const createdAt = new Date();
+    const expiresAt = new Date(
+      createdAt.getTime() + tokenExpiryDays * 86400000,
+    );
+
+    await AuthRepository.createPasswordResetToken(
+      db,
+      user.id,
+      tokenHash,
+      expiresAt,
+    );
+
+    // Prepare set password URL with token hash as query param
+    const setPasswordUrl = `${process.env.FRONTEND_URL}/set-password/${tokenHash}`;
+
+    // Send welcome email with set password link
+    await sendWelcomePasswordEmail(c, userEmail, userName, setPasswordUrl);
+
+    return resetToken;
+  }
+
+  static async setPassword(
+    db: D1Database,
+    kv: KVNamespace,
+    token: string,
+    newPassword: string,
+  ) {
+    const storedToken = await AuthRepository.findPasswordResetTokenByToken(
+      db,
+      token,
+    );
+
+    if (
+      !storedToken ||
+      storedToken.used ||
+      new Date(storedToken.expiresAt) < new Date()
+    ) {
+      throw new Error(getMessage("auth.invalidOrExpiredToken", DEFAULT_LOCALE));
+    }
+
+    const isTokenValid = token === storedToken.tokenHash;
+    if (!isTokenValid) {
+      throw new Error(getMessage("auth.invalidOrExpiredToken", DEFAULT_LOCALE));
+    }
+
+    this.validatePasswordStrength(newPassword);
+    const newPasswordHash = await this.hashPassword(newPassword);
+
+    await AuthRepository.updatePassword(
+      db,
+      storedToken.userId,
+      newPasswordHash,
+      UserStatus.ACTIVE,
+    );
+    await AuthRepository.markPasswordResetTokenAsUsed(db, storedToken.id);
+    await this.revokeAllUserSessions(kv, storedToken.userId);
   }
 }

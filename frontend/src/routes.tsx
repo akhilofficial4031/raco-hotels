@@ -1,6 +1,7 @@
-import { Suspense, lazy } from "react";
+import { Component, Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router";
 
+import CustomerPage from "./pages/Customer";
 import Hotels from "./pages/Hotels";
 import FullScreenSpinner from "./shared/components/FullScreenSpinner";
 import { AuthProvider } from "./shared/contexts/AuthContext";
@@ -25,6 +26,8 @@ const NewBookings = lazy(() => import("./pages/New-Bookings"));
 const ViewBooking = lazy(() => import("./pages/View-Booking"));
 const EditBooking = lazy(() => import("./pages/Edit-Booking"));
 
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const SetPassword = lazy(() => import("./pages/SetPasswotd"));
 // Helper function to wrap lazy components with Suspense
 const withSuspense = (Component: React.ComponentType) => {
   return function SuspenseWrapper(props: any) {
@@ -175,6 +178,61 @@ const router = createBrowserRouter([
             ],
           },
           {
+            path: "addons",
+            Component: withSuspense(Addons),
+            handle: {
+              crumb: () => ({
+                label: "Addons",
+                href: "/addons",
+              }),
+            },
+          },
+          {
+            path: "addons/configuration/:id",
+            Component: withSuspense(AddonConfiguration),
+            handle: {
+              crumb: () => ({
+                label: "Addon Configuration",
+                href: "/addons",
+              }),
+            },
+          },
+          {
+            path: "rooms",
+            handle: {
+              crumb: () => ({
+                label: "Rooms",
+                href: "/rooms",
+              }),
+            },
+            children: [
+              {
+                index: true,
+                Component: withSuspense(Rooms),
+              },
+              {
+                path: "add",
+                Component: withSuspense(AddRoomPage),
+                handle: {
+                  crumb: () => ({
+                    label: "Add Room",
+                    href: "/rooms/add",
+                  }),
+                },
+              },
+              {
+                path: "edit/:id",
+                Component: withSuspense(Rooms),
+                handle: {
+                  crumb: () => ({
+                    label: "Edit Room",
+                    href: "/rooms",
+                  }),
+                },
+              },
+            ],
+          },
+          {
             path: "hotels",
             handle: {
               crumb: () => ({
@@ -230,6 +288,16 @@ const router = createBrowserRouter([
             },
           },
           {
+            path: "customers",
+            Component: withSuspense(CustomerPage),
+            handle: {
+              crumb: () => ({
+                label: "Customers",
+                href: "/customers",
+              }),
+            },
+          },
+          {
             path: "bookings",
             handle: {
               crumb: () => ({
@@ -275,6 +343,16 @@ const router = createBrowserRouter([
             ],
           },
           {
+            path: "promo-codes",
+            Component: withSuspense(PromoCode),
+            handle: {
+              crumb: () => ({
+                label: "Promo Codes",
+                href: "/promo-codes",
+              }),
+            },
+          },
+          {
             path: "*",
             Component: withSuspense(NotFound),
           },
@@ -286,6 +364,14 @@ const router = createBrowserRouter([
           {
             path: "/login",
             Component: withSuspense(Login),
+          },
+          {
+            path: "/forgot-password",
+            Component: withSuspense(ForgotPassword),
+          },
+          {
+            path: "/set-password/:token",
+            Component: withSuspense(SetPassword),
           },
         ],
       },

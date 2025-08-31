@@ -37,7 +37,6 @@ export class AddonRepository {
       conditions.push(
         or(
           like(addonTable.name, `%${search}%`),
-          like(addonTable.slug, `%${search}%`),
           like(addonTable.description, `%${search}%`),
         ),
       );
@@ -92,15 +91,15 @@ export class AddonRepository {
     return (rows[0] as DatabaseAddon) || null;
   }
 
-  static async findBySlug(
+  static async findByName(
     db: D1Database,
-    slug: string,
+    name: string,
   ): Promise<DatabaseAddon | null> {
     const database = getDb(db);
     const rows = await database
       .select()
       .from(addonTable)
-      .where(eq(addonTable.slug, slug))
+      .where(eq(addonTable.name, name))
       .limit(1);
     return (rows[0] as DatabaseAddon) || null;
   }

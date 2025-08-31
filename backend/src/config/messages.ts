@@ -34,6 +34,8 @@ export interface Messages {
     userNotFound: string;
     verified: string;
     allSessionsRevoked: string;
+    passwordResetEmailSent: string;
+    passwordResetSuccessful: string;
   };
 
   // Password validation messages
@@ -197,6 +199,8 @@ const enMessages: Messages = {
     userNotFound: "User not found",
     verified: "Authentication verified",
     allSessionsRevoked: "All sessions revoked successfully",
+    passwordResetEmailSent: "Password reset email sent successfully",
+    passwordResetSuccessful: "Password reset successfully",
   },
 
   password: {
@@ -352,6 +356,9 @@ const esMessages: Messages = {
     userNotFound: "Usuario no encontrado",
     verified: "Autenticación verificada",
     allSessionsRevoked: "Todas las sesiones revocadas exitosamente",
+    passwordResetEmailSent:
+      "Email de restablecimiento de contraseña enviado exitosamente",
+    passwordResetSuccessful: "Contraseña restablecida exitosamente",
   },
 
   password: {
@@ -513,6 +520,9 @@ const frMessages: Messages = {
     userNotFound: "Utilisateur non trouvé",
     verified: "Authentification vérifiée",
     allSessionsRevoked: "Toutes les sessions révoquées avec succès",
+    passwordResetEmailSent:
+      "Email de restablecimiento de contraseña enviado exitosamente",
+    passwordResetSuccessful: "Mot de passe réinitialisé avec succès",
   },
 
   password: {

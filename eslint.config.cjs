@@ -24,6 +24,7 @@ module.exports = [
       '**/coverage/**',
       '**/drizzle/**/meta/**',
       '**/prisma/**/migrations/**',
+      'shared/types/**',
       '**/*.json',
       '**/*.toml',
       '**/*.sql',

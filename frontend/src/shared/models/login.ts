@@ -11,6 +11,15 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+  success: boolean;
+}
+
 export interface LoginUserResponse {
   id: number;
   email: string;
@@ -19,4 +28,19 @@ export interface LoginUserResponse {
   status: string;
   token?: string;
   refreshToken?: string;
+}
+
+export interface SetPasswordRequest {
+  token: string;
+  password: string;
+}
+
+export interface SetPasswordFormData {
+  password: string;
+  confirmPassword: string;
+}
+
+export interface SetPasswordResponse {
+  message: string;
+  success: boolean;
 }

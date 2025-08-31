@@ -1,7 +1,9 @@
 // Removed crypto imports as they are now in AuthService
 
+import { UserStatus } from "../../../shared/types/user";
 import { getMessage, DEFAULT_LOCALE } from "../config/messages";
-import { USER_ROLES, USER_STATUS } from "../constants";
+import { USER_ROLES } from "../constants";
+import { AuthService } from "./auth.service";
 import { UserRepository } from "../repositories/user.repository";
 
 import type {
@@ -20,6 +22,7 @@ import type { z } from "zod";
 export class UserService {
   // Create a new user with validation
   static async createUser(
+    c: any,
     db: D1Database,
     userData: z.infer<typeof CreateUserRequestSchema>,
   ): Promise<DatabaseUser> {
@@ -29,32 +32,24 @@ export class UserService {
       throw new Error(getMessage("user.alreadyExists", DEFAULT_LOCALE));
     }
 
-    let passwordHash: string | null = null;
-
-    // Only process password if provided
-    if (userData.password) {
-      // Import AuthService for password operations
-      const { AuthService } = await import("./auth.service");
-
-      // Validate password strength
-      AuthService.validatePasswordStrength(userData.password);
-
-      // Hash password
-      passwordHash = await AuthService.hashPassword(userData.password);
-    }
-
     // Create user data
     const createData: CreateUserData = {
       email: userData.email,
-      passwordHash,
       fullName: userData.fullName,
       phone: userData.phone,
       role: userData.role || USER_ROLES.GUEST,
-      status: USER_STATUS.ACTIVE,
+      status: userData.status || UserStatus.PENDING_ACTIVATION,
     };
 
     // Create user
     const newUser = await UserRepository.create(db, createData);
+    await AuthService.createWelcomePasswordToken(
+      c,
+      db,
+      newUser.email,
+      newUser.fullName || "User",
+      7,
+    );
 
     // Remove password hash from response
     return this.sanitizeUser(newUser);
@@ -171,9 +166,9 @@ export class UserService {
     }
 
     const newStatus =
-      existingUser.status === USER_STATUS.ACTIVE
-        ? USER_STATUS.DISABLED
-        : USER_STATUS.ACTIVE;
+      existingUser.status === UserStatus.ACTIVE
+        ? UserStatus.DISABLED
+        : UserStatus.ACTIVE;
 
     const updatedUser = await UserRepository.update(db, id, {
       status: newStatus,
@@ -239,7 +234,7 @@ export class UserService {
 
     if (
       userData.status &&
-      !Object.values(USER_STATUS).includes(userData.status)
+      !Object.values(UserStatus).includes(userData.status)
     ) {
       errors.push(getMessage("validation.invalidStatus", DEFAULT_LOCALE));
     }
