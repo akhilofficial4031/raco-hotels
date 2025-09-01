@@ -1,0 +1,1 @@
+CREATE INDEX `idx_customer_alternate_phone` ON `customer` (`alternate_phone`);

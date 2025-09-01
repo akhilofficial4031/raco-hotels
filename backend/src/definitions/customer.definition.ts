@@ -393,7 +393,7 @@ export const CustomerRouteDefinitions = {
 - Use during booking flow to check existing customers by phone
 - Implement phone-based customer search`,
     tags: ["Customers"],
-    request: {
+    requestSchema: {
       query: FindCustomerByPhoneQuerySchema,
     },
     successSchema: FindCustomerByPhoneResponseSchema,

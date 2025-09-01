@@ -26,7 +26,39 @@ customerRoutes.openapi(
   ),
 );
 
-// Get customer by ID
+// Find customer by phone (must come before {id} routes)
+customerRoutes.openapi(
+  CustomerRouteDefinitions.findByPhone,
+  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+    CustomerController.getByPhone(c as AppContext),
+  ),
+);
+
+// Find customer by email
+// customerRoutes.openapi(
+//   CustomerRouteDefinitions.findByEmail,
+//   smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+//     CustomerController.getByEmail(c as AppContext),
+//   ),
+// );
+
+// Find or create customer
+customerRoutes.openapi(
+  CustomerRouteDefinitions.findOrCreate,
+  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+    CustomerController.findOrCreate(c as AppContext),
+  ),
+);
+
+// Search customers
+// customerRoutes.openapi(
+//   CustomerRouteDefinitions.search,
+//   smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+//     CustomerController.search(c as AppContext),
+//   ),
+// );
+
+// Get customer by ID (must come after specific routes)
 customerRoutes.openapi(
   CustomerRouteDefinitions.getById,
   smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
@@ -50,14 +82,6 @@ customerRoutes.openapi(
   ),
 );
 
-// Search customers
-// customerRoutes.openapi(
-//   CustomerRouteDefinitions.search,
-//   smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
-//     CustomerController.search(c as AppContext),
-//   ),
-// );
-
 // Get customer booking history
 customerRoutes.openapi(
   CustomerRouteDefinitions.getBookingHistory,
@@ -71,30 +95,6 @@ customerRoutes.openapi(
   CustomerRouteDefinitions.getStats,
   smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
     CustomerController.getStats(c as AppContext),
-  ),
-);
-
-// Find customer by email
-// customerRoutes.openapi(
-//   CustomerRouteDefinitions.findByEmail,
-//   smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
-//     CustomerController.getByEmail(c as AppContext),
-//   ),
-// );
-
-// Find customer by phone
-customerRoutes.openapi(
-  CustomerRouteDefinitions.findByPhone,
-  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
-    CustomerController.getByPhone(c as AppContext),
-  ),
-);
-
-// Find or create customer
-customerRoutes.openapi(
-  CustomerRouteDefinitions.findOrCreate,
-  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
-    CustomerController.findOrCreate(c as AppContext),
   ),
 );
 

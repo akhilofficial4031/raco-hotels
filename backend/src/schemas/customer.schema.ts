@@ -222,7 +222,7 @@ export const FindCustomerByEmailResponseSchema = z.object({
 
 // Find customer by phone schema
 export const FindCustomerByPhoneQuerySchema = z.object({
-  phone: z.string().min(1, "Phone number is required"),
+  phone: z.string(),
 });
 
 export const FindCustomerByPhoneResponseSchema = z.object({

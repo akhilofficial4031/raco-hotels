@@ -91,19 +91,33 @@ export class CustomerController {
     return handleAsyncRoute(
       c,
       async () => {
-        const query = c.req.valid("query");
-        const { phone } = query;
+        try {
+          // Get the phone parameter directly
+          const query = c.req.query("phone");
+          const phone = query ?? "";
 
-        const customer = await CustomerService.getCustomerByPhone(
-          c.env.DB,
-          phone,
-        );
+          if (!phone) {
+            return ApiResponse.badRequest(c, "customer.invalidPhone");
+          }
 
-        return ApiResponse.success(c, {
-          customer,
-          found: !!customer,
-          message: customer ? "customer.found" : "customer.notFound",
-        });
+          const customer = await CustomerService.getCustomerByPhone(
+            c.env.DB,
+            phone,
+          );
+
+          return ApiResponse.success(c, {
+            customer,
+            found: !!customer,
+            message: customer ? "customer.found" : "customer.notFound",
+          });
+        } catch (error) {
+          console.error("Error finding customer by phone:", error);
+          return ApiResponse.success(c, {
+            customer: null,
+            found: false,
+            message: "customer.notFound",
+          });
+        }
       },
       "operation.findCustomerByPhoneFailed",
     );

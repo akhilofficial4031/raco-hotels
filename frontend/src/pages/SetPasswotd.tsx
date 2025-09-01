@@ -2,7 +2,7 @@ import { LockOutlined, QuestionCircleOutlined } from "@ant-design/icons";
 import { Alert, Button, Input, message } from "antd";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 
 import {
   PasswordStrengthValidator,
@@ -21,7 +21,7 @@ const SetPassword = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [tokenError, setTokenError] = useState<string | null>(null);
-
+  const navigate = useNavigate();
   // Check if token is present
   useEffect(() => {
     if (!token || token.trim() === "") {
@@ -79,6 +79,7 @@ const SetPassword = () => {
       );
 
       message.success(response.message);
+      navigate("/login");
     } catch (error) {
       console.error("Error:", error);
     } finally {

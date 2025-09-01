@@ -72,6 +72,9 @@ export const customer = sqliteTable(
     // Remove unique constraint on email since customers can have same email as users
     customerEmailIdx: index("idx_customer_email").on(t.email),
     customerPhoneIdx: index("idx_customer_phone").on(t.phone),
+    customerAlternatePhoneIdx: index("idx_customer_alternate_phone").on(
+      t.alternatePhone,
+    ),
     customerNameIdx: index("idx_customer_name").on(t.fullName),
     customerStatusIdx: index("idx_customer_status").on(t.status),
     customerFirstBookingSourceIdx: index(

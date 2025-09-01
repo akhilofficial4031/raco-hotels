@@ -11,6 +11,9 @@ export const CustomerDataSchema = z.object({
   emergencyContactName: z.string().optional(),
   emergencyContactPhone: z.string().optional(),
   notes: z.string().optional(),
+  firstBookingSource: z
+    .enum(["web", "front_office", "phone", "email", "mobile_app", "walk_in"])
+    .optional(),
 });
 
 export type CustomerData = z.infer<typeof CustomerDataSchema>;

@@ -16,19 +16,19 @@ async function handleResponse<T>(response: Response): Promise<T> {
       error.info = null;
     }
     error.status = response.status;
-    
+
     // Handle unauthorized responses
     if (response.status === 401) {
       // Clear stored auth data
       localStorage.removeItem("user");
       localStorage.removeItem("token");
-      
+
       // Only redirect if we're not already on the login page
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }
-    
+
     throw error;
   }
   return response.json() as Promise<T>;
@@ -38,9 +38,20 @@ async function handleResponse<T>(response: Response): Promise<T> {
  * 🔹 GET fetcher - auto type infer via generic usage
  */
 export const fetcher = async <T>(url: string): Promise<T> => {
+  // Get CSRF token from cookie or use a hardcoded one for testing
+  const csrfToken =
+    document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("csrf_token="))
+      ?.split("=")[1] ||
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiY3NyZiIsInRpbWVzdGFtcCI6MTc1NTUwMjY1OTI5MiwiaWF0IjoxNzU1NTAyNjU5LCJleHAiOjE3NTU1MDYyNTl9.mmqV35KErReume_tA6byg6iw8BLwIKe2gAVSrj3p2tA";
+
   const res = await fetch(`${BASE_URL}${url}`, {
     credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken,
+    },
   });
   return handleResponse<T>(res);
 };

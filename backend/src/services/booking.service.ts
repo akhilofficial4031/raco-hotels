@@ -184,7 +184,7 @@ export class BookingService {
           emergencyContactName: customerData.emergencyContactName,
           emergencyContactPhone: customerData.emergencyContactPhone,
           notes: customerData.notes,
-          source: "web",
+          firstBookingSource: customerData.firstBookingSource,
           status: "active",
           marketingOptIn: 0,
           createdAt: currentTime,
