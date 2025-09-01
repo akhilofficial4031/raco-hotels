@@ -92,6 +92,7 @@ export type {
   CustomerSearchFilters,
   CustomerWithBookingStats,
   CustomerBookingHistory,
+  CustomerDetailsResponse,
 } from "./customer.interface";
 
 // Hotel-related types

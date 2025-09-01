@@ -1,8 +1,8 @@
 import React from "react";
 import { Navigate } from "react-router";
 
-import { useAuth } from "../contexts/AuthContext";
 import FullScreenSpinner from "./FullScreenSpinner";
+import { useAuth } from "../contexts/AuthContext";
 
 interface GuestGuardProps {
   children: React.ReactNode;

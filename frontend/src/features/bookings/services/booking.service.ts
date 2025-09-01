@@ -1,6 +1,6 @@
-import { fetcher, mutationFetcher } from "../../../utils/swrFetcher";
 import { type ApiResponse } from "../../../shared/models";
 import { type Booking } from "../../../shared/models/bookings";
+import { fetcher, mutationFetcher } from "../../../utils/swrFetcher";
 
 export const getBookingById = async (
   id: string,

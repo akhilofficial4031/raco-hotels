@@ -229,3 +229,229 @@ export const FindCustomerByPhoneResponseSchema = z.object({
   customer: CustomerResponseSchema.nullable(),
   found: z.boolean(),
 });
+
+// Customer details response schema
+export const CustomerDetailsResponseSchema = z.object({
+  customer: z.object({
+    id: z.number(),
+    email: z.string(),
+    fullName: z.string(),
+    phone: z.string().nullable(),
+    alternatePhone: z.string().nullable(),
+    dateOfBirth: z.string().nullable(),
+    gender: z.enum(["male", "female", "other"]).nullable(),
+    nationality: z.string().nullable(),
+    idType: z.string().nullable(),
+    idNumber: z.string().nullable(),
+    addressLine1: z.string().nullable(),
+    addressLine2: z.string().nullable(),
+    city: z.string().nullable(),
+    state: z.string().nullable(),
+    country: z.string().nullable(),
+    postalCode: z.string().nullable(),
+    dietaryPreferences: z.array(z.string()).nullable(),
+    specialRequests: z.array(z.string()).nullable(),
+    emergencyContactName: z.string().nullable(),
+    emergencyContactPhone: z.string().nullable(),
+    loyaltyNumber: z.string().nullable(),
+    marketingOptIn: z.boolean(),
+    status: z.enum(["active", "inactive", "blocked"]),
+    notes: z.string().nullable(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    lastBookingAt: z.string().nullable(),
+    totalBookings: z.number(),
+    totalSpentCents: z.number(),
+    vipStatus: z.enum(["regular", "silver", "gold", "platinum"]).nullable(),
+    preferredPaymentMethod: z.string().nullable(),
+    preferredContactMethod: z.enum(["email", "phone", "sms"]).nullable(),
+    languagePreference: z.string().nullable(),
+    timeZone: z.string().nullable(),
+    hasUserAccount: z.boolean(),
+    firstBookingSource: z.enum([
+      "web",
+      "front_office",
+      "phone",
+      "email",
+      "mobile_app",
+      "walk_in",
+    ]),
+  }),
+  currentBooking: z
+    .object({
+      id: z.number(),
+      referenceCode: z.string(),
+      hotel: z.object({
+        name: z.string(),
+      }),
+      room: z.object({
+        roomNumber: z.string(),
+        floor: z.string().optional(),
+      }),
+      checkInDate: z.string(),
+      checkOutDate: z.string(),
+      status: z.string(),
+    })
+    .optional(),
+  bookingHistory: z.object({
+    past: z.array(
+      z.object({
+        id: z.number(),
+        referenceCode: z.string(),
+        hotel: z.object({
+          id: z.number(),
+          name: z.string(),
+        }),
+        status: z.string(),
+        checkInDate: z.string(),
+        checkOutDate: z.string(),
+        totalAmountCents: z.number(),
+        currencyCode: z.string(),
+        createdAt: z.string(),
+        numAdults: z.number(),
+        numChildren: z.number(),
+        items: z.array(
+          z.object({
+            room_type: z.object({
+              name: z.string(),
+            }),
+            room: z.object({
+              roomNumber: z.string(),
+            }),
+          }),
+        ),
+        payments: z.array(
+          z.object({
+            amountCents: z.number(),
+            status: z.string(),
+            method: z.string(),
+            createdAt: z.string(),
+          }),
+        ),
+      }),
+    ),
+    active: z.array(
+      z.object({
+        id: z.number(),
+        referenceCode: z.string(),
+        hotel: z.object({
+          id: z.number(),
+          name: z.string(),
+        }),
+        status: z.string(),
+        checkInDate: z.string(),
+        checkOutDate: z.string(),
+        totalAmountCents: z.number(),
+        currencyCode: z.string(),
+        createdAt: z.string(),
+        numAdults: z.number(),
+        numChildren: z.number(),
+        items: z.array(
+          z.object({
+            room_type: z.object({
+              name: z.string(),
+            }),
+            room: z.object({
+              roomNumber: z.string(),
+            }),
+          }),
+        ),
+        payments: z.array(
+          z.object({
+            amountCents: z.number(),
+            status: z.string(),
+            method: z.string(),
+            createdAt: z.string(),
+          }),
+        ),
+      }),
+    ),
+    future: z.array(
+      z.object({
+        id: z.number(),
+        referenceCode: z.string(),
+        hotel: z.object({
+          id: z.number(),
+          name: z.string(),
+        }),
+        status: z.string(),
+        checkInDate: z.string(),
+        checkOutDate: z.string(),
+        totalAmountCents: z.number(),
+        currencyCode: z.string(),
+        createdAt: z.string(),
+        numAdults: z.number(),
+        numChildren: z.number(),
+        items: z.array(
+          z.object({
+            room_type: z.object({
+              name: z.string(),
+            }),
+            room: z.object({
+              roomNumber: z.string(),
+            }),
+          }),
+        ),
+        payments: z.array(
+          z.object({
+            amountCents: z.number(),
+            status: z.string(),
+            method: z.string(),
+            createdAt: z.string(),
+          }),
+        ),
+      }),
+    ),
+  }),
+  promoUsage: z.array(
+    z.object({
+      id: z.string(),
+      promoCode: z.object({
+        code: z.string(),
+        type: z.string(),
+        value: z.number(),
+      }),
+      booking: z.object({
+        referenceCode: z.string(),
+        totalAmountCents: z.number(),
+        currencyCode: z.string(),
+      }),
+      amountCents: z.number(),
+      usedAt: z.string(),
+    }),
+  ),
+  spendingAnalytics: z.object({
+    totalSpentCents: z.number(),
+    averageBookingValueCents: z.number(),
+    lastBookingAmountCents: z.number(),
+    mostVisitedHotel: z.object({
+      name: z.string(),
+      visits: z.number(),
+    }),
+    spendingByHotel: z.array(
+      z.object({
+        hotelName: z.string(),
+        totalSpentCents: z.number(),
+        bookingCount: z.number(),
+      }),
+    ),
+    monthlySpending: z.array(
+      z.object({
+        month: z.string(),
+        amountCents: z.number(),
+      }),
+    ),
+  }),
+  paymentHistory: z.array(
+    z.object({
+      id: z.number(),
+      bookingReference: z.string(),
+      amountCents: z.number(),
+      currencyCode: z.string(),
+      status: z.string(),
+      method: z.string(),
+      processor: z.string(),
+      createdAt: z.string(),
+    }),
+  ),
+});

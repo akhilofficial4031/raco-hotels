@@ -12,9 +12,6 @@ export const HTTP_STATUS = {
 
 // User Roles
 export const USER_ROLES = {
-  // Customer is an alias for guest (users who book). Kept as alias to avoid DB migrations
-  CUSTOMER: "guest",
-  GUEST: "guest",
   STAFF: "staff",
   ADMIN: "admin",
 } as const;

@@ -1,4 +1,4 @@
-import { eq, and, like, or, desc, count } from "drizzle-orm";
+import { eq, and, like, or, desc, count, sql } from "drizzle-orm";
 
 import { UserStatus } from "../../../shared/types/user";
 import { user } from "../../drizzle/schema/user";
@@ -62,7 +62,6 @@ export class UserRepository {
         phone: user.phone,
         role: user.role,
         status: user.status,
-        customerId: user.customerId,
         lastLoginAt: user.lastLoginAt,
         emailVerified: user.emailVerified,
         createdAt: user.createdAt,
@@ -91,7 +90,6 @@ export class UserRepository {
         phone: user.phone,
         role: user.role,
         status: user.status,
-        customerId: user.customerId,
         lastLoginAt: user.lastLoginAt,
         emailVerified: user.emailVerified,
         createdAt: user.createdAt,
@@ -118,7 +116,6 @@ export class UserRepository {
         phone: user.phone,
         role: user.role,
         status: user.status,
-        customerId: user.customerId,
         lastLoginAt: user.lastLoginAt,
         emailVerified: user.emailVerified,
         createdAt: user.createdAt,
@@ -143,7 +140,7 @@ export class UserRepository {
       passwordHash: userData.passwordHash || null,
       fullName: userData.fullName || null,
       phone: userData.phone || null,
-      role: userData.role || USER_ROLES.GUEST,
+      role: userData.role || USER_ROLES.STAFF,
       status: userData.status || UserStatus.ACTIVE,
     };
 
@@ -234,7 +231,6 @@ export class UserRepository {
       .groupBy(user.role);
 
     const counts: Record<UserRole, number> = {
-      [USER_ROLES.GUEST]: 0,
       [USER_ROLES.STAFF]: 0,
       [USER_ROLES.ADMIN]: 0,
     };
@@ -263,14 +259,13 @@ export class UserRepository {
         phone: user.phone,
         role: user.role,
         status: user.status,
-        customerId: user.customerId,
         lastLoginAt: user.lastLoginAt,
         emailVerified: user.emailVerified,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       })
       .from(user)
-      .where(eq(user.createdAt, thirtyDaysAgo.toISOString()))
+      .where(sql`${user.createdAt} >= ${thirtyDaysAgo.toISOString()}`)
       .orderBy(desc(user.createdAt))
       .limit(limit);
 

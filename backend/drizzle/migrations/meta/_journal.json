@@ -15,6 +15,13 @@
       "when": 1756702626752,
       "tag": "0001_typical_wendell_vaughn",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1756723875271,
+      "tag": "0002_solid_lester",
+      "breakpoints": true
     }
   ]
 }

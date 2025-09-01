@@ -296,4 +296,32 @@ export class CustomerController {
       "operation.findOrCreateCustomerFailed",
     );
   }
+
+  /**
+   * Get comprehensive customer details
+   */
+  static async getCustomerDetails(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const { id } = c.req.param();
+        const customerId = parseInt(id, 10);
+
+        if (isNaN(customerId)) {
+          return ApiResponse.badRequest(c, "customer.invalidId");
+        }
+
+        const details = await CustomerService.getCustomerDetails(
+          c.env.DB,
+          customerId,
+        );
+
+        return ApiResponse.success(c, {
+          ...details,
+          message: "customer.detailsRetrieved",
+        });
+      },
+      "operation.getCustomerDetailsFailed",
+    );
+  }
 }

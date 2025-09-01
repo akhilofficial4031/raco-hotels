@@ -7,6 +7,7 @@ import type {
   DatabaseCustomer,
   CustomerWithBookingStats,
   CustomerBookingHistory,
+  CustomerDetailsResponse,
 } from "../types";
 
 export class CustomerService {
@@ -366,5 +367,26 @@ export class CustomerService {
     const d2 = new Date(date2);
     const timeDifference = d2.getTime() - d1.getTime();
     return Math.ceil(timeDifference / (1000 * 3600 * 24));
+  }
+
+  /**
+   * Get comprehensive customer details
+   * Returns customer information, current booking, booking history, promo usage, spending analytics, and payment history
+   */
+  static async getCustomerDetails(
+    db: D1Database,
+    customerId: number,
+  ): Promise<CustomerDetailsResponse> {
+    const customer = await CustomerRepository.findById(db, customerId);
+    if (!customer) {
+      throw new Error("customer.notFound");
+    }
+
+    const details = await CustomerRepository.getCustomerDetails(db, customerId);
+    if (!details) {
+      throw new Error("customer.detailsNotFound");
+    }
+
+    return details;
   }
 }

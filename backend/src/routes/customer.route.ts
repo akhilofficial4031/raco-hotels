@@ -105,4 +105,12 @@ customerRoutes.openapi(
   ),
 );
 
+// Get comprehensive customer details
+customerRoutes.openapi(
+  CustomerRouteDefinitions.getCustomerDetails,
+  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+    CustomerController.getCustomerDetails(c as AppContext),
+  ),
+);
+
 export default customerRoutes;

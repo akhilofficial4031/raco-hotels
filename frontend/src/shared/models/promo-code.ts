@@ -1,5 +1,5 @@
-import { type Hotel } from "./hotels";
 import { type Pagination } from "./base";
+import { type Hotel } from "./hotels";
 
 export interface PromoCode {
   id: number;

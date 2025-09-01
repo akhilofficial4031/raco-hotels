@@ -13,6 +13,7 @@ import {
   FindCustomerByPhoneResponseSchema,
   CustomerSearchQuerySchema,
   FindCustomerByEmailQuerySchema,
+  CustomerDetailsResponseSchema,
 } from "../schemas";
 
 export const CustomerRouteDefinitions = {
@@ -470,5 +471,58 @@ export const CustomerRouteDefinitions = {
     }),
     successDescription: "Customer found or created successfully",
     includeBadRequest: true,
+  }),
+
+  getCustomerDetails: createRoute({
+    method: "get",
+    path: "/customers/{id}/details",
+    summary: "Get comprehensive customer details",
+    description: `Get complete customer information including profile, current booking, booking history, promo usage, spending analytics, and payment history.
+
+**User Types:** Staff, Admin
+
+**Authentication:** Required
+
+**Permission Required:** customers.read
+
+**Response Data:**
+- **customer**: Complete customer profile with booking statistics
+- **currentBooking**: Current active booking if any (checked-in status)
+- **bookingHistory**: All customer bookings categorized as past, active, and future
+- **promoUsage**: Promotional codes used by customer with discount amounts
+- **spendingAnalytics**: Comprehensive spending patterns and insights
+- **paymentHistory**: Complete payment transaction history
+
+**Booking History Categories:**
+- **past**: Completed bookings (checked-out, cancelled, refunded)
+- **active**: Current bookings (checked-in or confirmed)
+- **future**: Upcoming bookings (future check-in dates)
+
+**Spending Analytics Include:**
+- Total spent and average booking value
+- Most visited hotel and visit count
+- Spending breakdown by hotel
+- Monthly spending trends (last 12 months)
+
+**Use Cases:**
+- Complete customer profile management
+- Customer relationship management (CRM)
+- Personalized service delivery
+- Loyalty program management
+- Revenue analysis and forecasting
+- Customer service support
+- Marketing and campaign targeting
+
+**Frontend Integration:**
+- Use for comprehensive customer dashboard
+- Display customer lifetime value metrics
+- Show booking patterns and preferences
+- Generate detailed customer reports
+- Support personalized marketing campaigns
+- Enable proactive customer service`,
+    tags: ["Customers"],
+    successSchema: CustomerDetailsResponseSchema,
+    successDescription: "Customer details retrieved successfully",
+    includeNotFound: true,
   }),
 };

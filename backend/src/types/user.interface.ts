@@ -16,7 +16,6 @@ export interface DatabaseUser extends BaseEntity {
   phone: string | null;
   role: UserRole;
   status: UserStatus;
-  customerId?: number | null;
   lastLoginAt?: string | null;
   passwordResetToken?: string | null;
   passwordResetExpiresAt?: string | null;
@@ -33,7 +32,6 @@ export interface SafeUserData extends BaseEntity {
   phone: string | null;
   role: UserRole;
   status: UserStatus;
-  customerId?: number | null;
   lastLoginAt?: string | null;
   emailVerified?: number;
 }
