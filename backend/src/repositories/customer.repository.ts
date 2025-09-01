@@ -105,6 +105,12 @@ export class CustomerRepository {
     return customer ? this.transformDatabaseCustomer(customer as any) : null;
   }
 
+  static async findAll(db: D1Database): Promise<DatabaseCustomer[]> {
+    const database = getDb(db);
+    const customers = await database.select().from(customerTable);
+    return customers.map((c) => this.transformDatabaseCustomer(c as any));
+  }
+
   /**
    * Find customer by email
    */

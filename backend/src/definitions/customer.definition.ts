@@ -62,6 +62,21 @@ export const CustomerRouteDefinitions = {
     includeBadRequest: true,
   }),
 
+  getCustomers: createRoute({
+    method: "get",
+    path: "/customers",
+    summary: "Get all customers",
+    description: "Retrieves all the customers",
+    tags: ["Customers"],
+    requestSchema: {
+      query: CustomerSearchQuerySchema,
+    },
+    successSchema: CustomersListResponseSchema,
+    successDescription: "Customers retrieved successfully",
+    includeBadRequest: true,
+    includeNotFound: true,
+  }),
+
   getById: createRoute({
     method: "get",
     path: "/customers/{id}",

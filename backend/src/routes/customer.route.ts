@@ -66,6 +66,13 @@ customerRoutes.openapi(
   ),
 );
 
+customerRoutes.openapi(
+  CustomerRouteDefinitions.getCustomers,
+  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+    CustomerController.getCustomers(c as AppContext),
+  ),
+);
+
 // Update customer
 customerRoutes.openapi(
   CustomerRouteDefinitions.update,

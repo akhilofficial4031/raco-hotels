@@ -1,7 +1,8 @@
-import { Component, Suspense, lazy } from "react";
+import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router";
 
 import CustomerPage from "./pages/Customer";
+import CustomerDetails from "./pages/CustomerDetails";
 import Hotels from "./pages/Hotels";
 import FullScreenSpinner from "./shared/components/FullScreenSpinner";
 import { AuthProvider } from "./shared/contexts/AuthContext";
@@ -289,13 +290,28 @@ const router = createBrowserRouter([
           },
           {
             path: "customers",
-            Component: withSuspense(CustomerPage),
             handle: {
               crumb: () => ({
                 label: "Customers",
                 href: "/customers",
               }),
             },
+            children: [
+              {
+                index: true,
+                Component: withSuspense(CustomerPage),
+              },
+              {
+                path: ":id",
+                Component: withSuspense(CustomerDetails), // TODO: Replace with CustomerView component when created
+                handle: {
+                  crumb: () => ({
+                    label: "Customer Details",
+                    href: "/customers", // This will be dynamic based on customer
+                  }),
+                },
+              },
+            ],
           },
           {
             path: "bookings",

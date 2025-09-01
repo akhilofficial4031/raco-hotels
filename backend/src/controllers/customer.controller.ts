@@ -27,6 +27,23 @@ export class CustomerController {
   }
 
   /**
+   * Get all customers
+   */
+  static async getCustomers(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const customers = await CustomerService.getAllCustomers(c.env.DB);
+        return ApiResponse.success(c, {
+          customers,
+          message: "customers.retrieved",
+        });
+      },
+      "operation.getCustomersFailed",
+    );
+  }
+
+  /**
    * Get customer by ID
    */
   static async getById(c: AppContext) {

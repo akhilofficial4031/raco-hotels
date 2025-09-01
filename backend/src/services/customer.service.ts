@@ -54,6 +54,10 @@ export class CustomerService {
     return await CustomerRepository.findById(db, id);
   }
 
+  static async getAllCustomers(db: D1Database): Promise<DatabaseCustomer[]> {
+    return await CustomerRepository.findAll(db);
+  }
+
   /**
    * Get customer by email
    * Useful for checking existing customers during booking process

@@ -47,6 +47,10 @@ export interface CustomerListResponse {
   pagination: PaginationResponse;
 }
 
+export interface CustomersListResponseSchema {
+  data: CustomerListResponse;
+}
+
 export interface CreateCustomerPayload {
   email: string;
   fullName: string;
