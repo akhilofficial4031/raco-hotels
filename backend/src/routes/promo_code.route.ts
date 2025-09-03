@@ -46,6 +46,13 @@ promoCodeRoutes.openapi(
 );
 
 promoCodeRoutes.openapi(
+  PromoCodeRouteDefinitions.getPromoCodeByCode,
+  smartPermissionHandler(PERMISSIONS.PROMO_CODES_READ, (c) =>
+    PromoCodeController.getPromoCodeByCode(c as AppContext),
+  ),
+);
+
+promoCodeRoutes.openapi(
   PromoCodeRouteDefinitions.deletePromoCode,
   smartPermissionHandler(PERMISSIONS.PROMO_CODES_DELETE, (c) =>
     PromoCodeController.deletePromoCode(c as AppContext),

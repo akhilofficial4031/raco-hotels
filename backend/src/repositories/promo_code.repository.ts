@@ -1,4 +1,4 @@
-import { and, count, desc, eq, like } from "drizzle-orm";
+import { and, count, desc, eq, like, gte, isNull, lte, or } from "drizzle-orm";
 
 import { promoCode as promoCodeTable } from "../../drizzle/schema";
 import { getDb } from "../db";
@@ -57,6 +57,35 @@ export class PromoCodeRepository {
       .select()
       .from(promoCodeTable)
       .where(eq(promoCodeTable.id, id))
+      .limit(1);
+    return (rows[0] as any) || null;
+  }
+
+  static async findValidCode(
+    db: D1Database,
+    hotelId: number,
+    code: string,
+  ): Promise<DatabasePromoCode | null> {
+    const database = getDb(db);
+    const currentDate = new Date().toISOString();
+    const rows = await database
+      .select()
+      .from(promoCodeTable)
+      .where(
+        and(
+          eq(promoCodeTable.hotelId, hotelId),
+          eq(promoCodeTable.code, code),
+          eq(promoCodeTable.isActive, 1),
+          or(
+            isNull(promoCodeTable.startDate),
+            lte(promoCodeTable.startDate, currentDate),
+          ),
+          or(
+            isNull(promoCodeTable.endDate),
+            gte(promoCodeTable.endDate, currentDate),
+          ),
+        ),
+      )
       .limit(1);
     return (rows[0] as any) || null;
   }

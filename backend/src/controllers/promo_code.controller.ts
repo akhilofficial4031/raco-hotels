@@ -40,6 +40,24 @@ export class PromoCodeController {
     );
   }
 
+  static async getPromoCodeByCode(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const code = c.req.param("code");
+        const hotelId = parseInt(c.req.param("hotelId"), 10);
+        const item = await PromoCodeService.getValidPromoCodeByCode(
+          c.env.DB,
+          hotelId,
+          code,
+        );
+        if (!item) return ApiResponse.notFound(c, "Promo code not found");
+        return ApiResponse.success(c, { promoCode: item });
+      },
+      "operation.getPromoCodeByCodeFailed",
+    );
+  }
+
   static async createPromoCode(c: AppContext) {
     return handleAsyncRoute(
       c,

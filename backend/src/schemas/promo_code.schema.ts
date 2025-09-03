@@ -50,6 +50,19 @@ export const PromoCodePathParamsSchema = z
   })
   .openapi("PromoCodePathParams");
 
+export const PromoCodeCodeParamsSchema = z
+  .object({
+    code: z.string().openapi({ example: "SUMMER25" }),
+    hotelId: z.string().openapi({ example: "1" }),
+  })
+  .openapi("PromoCodeCodeParams");
+
+export const ValidatePromoCodeQuerySchema = z
+  .object({
+    hotelId: z.string().openapi({ example: "1" }),
+  })
+  .openapi("ValidatePromoCodeQuery");
+
 export const PromoCodeQueryParamsSchema = z
   .object({
     hotelId: z.string().optional().openapi({ example: "1" }),

@@ -7,8 +7,12 @@ export interface PromoCode {
   code: string;
   type: "percent" | "fixed";
   value: number;
-  startDate: string | null;
-  endDate: string | null;
+  startDate?: string;
+  endDate?: string;
+  minNights?: number;
+  minAmountCents?: number;
+  maxDiscountCents?: number;
+  usageLimit?: number;
   usageCount: number;
   isActive: number;
   createdAt: string;

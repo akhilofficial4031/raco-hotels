@@ -10,15 +10,19 @@ import {
   List,
   Row,
   Space,
+  Tag,
   Typography,
+  message,
 } from "antd";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { type CustomerData } from "./schemas";
 import { type Addon } from "../../shared/models/addon";
+import { type PromoCode } from "../../shared/models/promo-code";
 import { type RoomTypeWithRelations } from "../../shared/models/room-type";
 import { type IRoom } from "../../shared/models/rooms";
+import { validatePromoCode } from "../../shared/services/promo-code.service";
 
 const { Title, Text } = Typography;
 
@@ -96,13 +100,23 @@ const ReviewAndSubmit = ({
 
   const subtotal = roomTotal + addOnsTotal;
   const taxes = subtotal * 0.18; // Example tax rate
-  const total = subtotal + taxes;
 
-  const [amountPaid, setAmountPaid] = useState(
-    mode === "create" ? total / 100 : 0,
-  );
   const [promoCode, setPromoCode] = useState("");
+  const [appliedPromoCode, setAppliedPromoCode] = useState<PromoCode | null>(
+    null,
+  );
+  const [discount, setDiscount] = useState(0);
+  const [isApplying, setIsApplying] = useState(false);
 
+  const total = subtotal + taxes - discount;
+
+  const [amountPaid, setAmountPaid] = useState(0);
+
+  useEffect(() => {
+    if (mode === "create") {
+      setAmountPaid(total / 100);
+    }
+  }, [total, mode]);
   const handleAmountPaidChange = (value: number | null) => {
     setAmountPaid(value || 0);
   };
@@ -115,6 +129,42 @@ const ReviewAndSubmit = ({
     } else {
       onSubmit();
     }
+  };
+
+  const handleApplyPromoCode = async () => {
+    if (!promoCode.trim() || !bookingDetails?.hotelId) return;
+    setIsApplying(true);
+    try {
+      const validPromoCode = await validatePromoCode(
+        bookingDetails.hotelId,
+        promoCode,
+      );
+      let calculatedDiscount = 0;
+      if (validPromoCode.type === "fixed") {
+        calculatedDiscount = validPromoCode.value;
+      } else if (validPromoCode.type === "percent") {
+        calculatedDiscount = (subtotal * validPromoCode.value) / 100;
+        if (
+          validPromoCode.maxDiscountCents &&
+          calculatedDiscount > validPromoCode.maxDiscountCents
+        ) {
+          calculatedDiscount = validPromoCode.maxDiscountCents;
+        }
+      }
+      setDiscount(calculatedDiscount);
+      setAppliedPromoCode(validPromoCode);
+      setPromoCode("");
+      void message.success("Promo code applied successfully!");
+    } catch {
+      void message.error("Invalid or expired promo code.");
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
+  const handleRemovePromoCode = () => {
+    setAppliedPromoCode(null);
+    setDiscount(0);
   };
 
   if (mode === "edit") {
@@ -271,6 +321,14 @@ const ReviewAndSubmit = ({
               <Descriptions.Item label="Taxes & Fees (18%)">
                 <Text>{`₹${(taxes / 100).toLocaleString()}`}</Text>
               </Descriptions.Item>
+              {appliedPromoCode && (
+                <Descriptions.Item label="Discount">
+                  <Text
+                    strong
+                    style={{ color: "green" }}
+                  >{`-₹${(discount / 100).toLocaleString()}`}</Text>
+                </Descriptions.Item>
+              )}
               <Descriptions.Item label="Total Amount">
                 <Title level={3}>{`₹${(total / 100).toLocaleString()}`}</Title>
               </Descriptions.Item>
@@ -280,14 +338,27 @@ const ReviewAndSubmit = ({
 
             <Form layout="vertical">
               <Form.Item label="Promo Code">
-                <Space.Compact style={{ width: "100%" }}>
-                  <Input
-                    placeholder="Enter promo code"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                  />
-                  <Button type="default">Apply</Button>
-                </Space.Compact>
+                {!appliedPromoCode ? (
+                  <Space.Compact style={{ width: "100%" }}>
+                    <Input
+                      placeholder="Enter promo code"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      disabled={isApplying}
+                    />
+                    <Button
+                      type="default"
+                      onClick={handleApplyPromoCode}
+                      loading={isApplying}
+                    >
+                      Apply
+                    </Button>
+                  </Space.Compact>
+                ) : (
+                  <Tag closable onClose={handleRemovePromoCode}>
+                    {appliedPromoCode.code}
+                  </Tag>
+                )}
               </Form.Item>
 
               <Form.Item

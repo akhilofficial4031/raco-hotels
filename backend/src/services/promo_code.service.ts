@@ -31,6 +31,14 @@ export class PromoCodeService {
     return await PromoCodeRepository.findById(db, id);
   }
 
+  static async getValidPromoCodeByCode(
+    db: D1Database,
+    hotelId: number,
+    code: string,
+  ) {
+    return await PromoCodeRepository.findValidCode(db, hotelId, code);
+  }
+
   static async getPromoCodes(
     db: D1Database,
     query: z.infer<typeof PromoCodeQueryParamsSchema>,
