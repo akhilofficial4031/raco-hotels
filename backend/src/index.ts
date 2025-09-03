@@ -39,21 +39,37 @@ const app = new OpenAPIHono<{
   Variables: AppVariables;
 }>();
 
-// Add CORS middleware
+// Add CORS middleware - must be first
 app.use(
   "*",
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5173"], // Frontend dev servers
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      "https://raco-admin-fe.pages.dev",
+    ], // Frontend dev servers
     allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowHeaders: [
       "Content-Type",
       "Authorization",
       "Accept-Language",
       "X-CSRF-Token",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+      "Referer",
+      "User-Agent",
     ],
+    exposeHeaders: ["Set-Cookie"],
     credentials: true, // Allow cookies to be sent
+    maxAge: 86400, // Cache preflight for 24 hours
   }),
 );
+
+// Explicit OPTIONS handler for preflight requests
+app.options("*", (_c) => {
+  return new Response(null, { status: 204 });
+});
 
 // Add security headers middleware
 app.use("*", securityHeadersMiddleware);

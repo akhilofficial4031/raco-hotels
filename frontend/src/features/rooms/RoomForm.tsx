@@ -1,8 +1,9 @@
 /* eslint-disable no-unused-vars */
 import { Form, Input, Select } from "antd";
 import { Controller } from "react-hook-form";
-import { IRoom, RoomStatus } from "../../shared/models/rooms";
 import useSWR from "swr";
+
+import { IRoom, RoomStatus } from "../../shared/models/rooms";
 import { getHotels } from "../hotels/services/hotel.service";
 import { getRoomTypesByHotel } from "../room-type/services/room-type.service";
 

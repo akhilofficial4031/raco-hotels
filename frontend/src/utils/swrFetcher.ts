@@ -4,7 +4,7 @@ export interface APIError extends Error {
   status?: number;
 }
 
-export const BASE_URL = "http://localhost:8787/api";
+export const BASE_URL = import.meta.env.VITE_API_URL;
 
 // 🔹 Shared error handler
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -16,19 +16,19 @@ async function handleResponse<T>(response: Response): Promise<T> {
       error.info = null;
     }
     error.status = response.status;
-    
+
     // Handle unauthorized responses
     if (response.status === 401) {
       // Clear stored auth data
       localStorage.removeItem("user");
       localStorage.removeItem("token");
-      
+
       // Only redirect if we're not already on the login page
       if (window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }
-    
+
     throw error;
   }
   return response.json() as Promise<T>;
