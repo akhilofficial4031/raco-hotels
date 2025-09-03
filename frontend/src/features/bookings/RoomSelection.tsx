@@ -84,6 +84,15 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
   const availableRooms = availabilityData?.data?.results || [];
   const allAddons = addonsData?.data?.addons || [];
 
+  const allRoomsToDisplay = useMemo(() => {
+    const roomMap = new Map<number, IRoom>();
+    // Add available rooms
+    availableRooms.forEach((room) => roomMap.set(room.id, room));
+    // Add/overwrite with initial selected rooms to ensure they are present
+    initialSelectedRooms.forEach((room) => roomMap.set(room.id, room));
+    return Array.from(roomMap.values());
+  }, [availableRooms, initialSelectedRooms]);
+
   const roomTypeDetails = useMemo(() => {
     return roomTypesData?.data.roomTypes.find(
       (rt: RoomTypeWithRelations) => rt.id === roomTypeId,
@@ -99,9 +108,9 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
   }, [allAddons, roomTypeDetails]);
 
   const groupedRooms = useMemo(() => {
-    if (!availableRooms) return {};
+    if (!allRoomsToDisplay) return {};
 
-    const sortedRooms = [...availableRooms].sort((a, b) => {
+    const sortedRooms = [...allRoomsToDisplay].sort((a, b) => {
       return a.roomNumber.localeCompare(b.roomNumber, undefined, {
         numeric: true,
         sensitivity: "base",
@@ -116,7 +125,7 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
       acc[floor].push(room);
       return acc;
     }, {});
-  }, [availableRooms]);
+  }, [allRoomsToDisplay]);
 
   if (isLoadingAvailability || isLoadingAddons) {
     return <Spin />;
@@ -173,26 +182,37 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
             className="shadow-sm border-gray-200 !mb-2"
           >
             <div className="flex flex-wrap gap-2">
-              {groupedRooms[floor].map((room: IRoom) => (
-                <Popover
-                  key={room.id}
-                  content={`Status: ${room.status}`}
-                  title="Room Details"
-                >
-                  <div
-                    className={`h-16 w-16 flex flex-col items-center justify-center rounded-md cursor-pointer text-gray-500 ${
-                      selectedRooms.some((r) => r.id === room.id)
-                        ? "border-2 border-blue-500"
-                        : room.status === RoomStatus.Available
-                          ? "border border-green-500"
-                          : "border border-gray-300 bg-gray-300"
-                    }`}
-                    onClick={() => handleRoomSelect(room)}
+              {groupedRooms[floor].map((room: IRoom) => {
+                const isSelected = selectedRooms.some((r) => r.id === room.id);
+                const isAvailable = room.status === RoomStatus.Available;
+                const isSelectable = isAvailable || isSelected;
+                return (
+                  <Popover
+                    key={room.id}
+                    content={`Status: ${room.status}`}
+                    title="Room Details"
                   >
-                    <span>{room.roomNumber}</span>
-                  </div>
-                </Popover>
-              ))}
+                    <div
+                      className={`h-16 w-16 flex flex-col items-center justify-center rounded-md text-gray-500 ${
+                        isSelectable ? "cursor-pointer" : "cursor-not-allowed"
+                      } ${
+                        isSelected
+                          ? "border-2 border-blue-500"
+                          : isAvailable
+                            ? "border border-green-500"
+                            : "border border-gray-300 bg-gray-300"
+                      }`}
+                      onClick={() => {
+                        if (isSelectable) {
+                          handleRoomSelect(room);
+                        }
+                      }}
+                    >
+                      <span>{room.roomNumber}</span>
+                    </div>
+                  </Popover>
+                );
+              })}
             </div>
           </Card>
         ))
