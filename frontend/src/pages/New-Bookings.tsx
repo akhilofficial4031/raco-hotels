@@ -7,6 +7,7 @@ import CustomerInformationForm from "../features/bookings/CustomerInformationFor
 import ReviewAndSubmit from "../features/bookings/ReviewAndSubmit";
 import RoomSelection from "../features/bookings/RoomSelection";
 import { type CustomerData } from "../features/bookings/schemas";
+import { type PromoCode } from "../shared/models/promo-code";
 import { type RoomTypeWithRelations } from "../shared/models/room-type";
 import { mutationFetcher } from "../utils/swrFetcher";
 
@@ -21,6 +22,7 @@ interface BookingData {
   selectedAddons?: Addon[];
   customerData?: CustomerData;
   roomTypeDetails?: RoomTypeWithRelations;
+  appliedPromoCode?: PromoCode | null;
 }
 
 const NewBookings = () => {
@@ -59,7 +61,11 @@ const NewBookings = () => {
     setCurrentStep((prev) => prev - 1);
   };
 
-  const handleSubmit = async (paymentDetails?: { amountPaidCents: number }) => {
+  const handlePromoCodeChange = (promoCode: PromoCode | null) => {
+    setBookingData((prev) => ({ ...prev, appliedPromoCode: promoCode }));
+  };
+
+  const handleSubmit = async (paymentDetails: { amountPaidCents: number }) => {
     setIsSubmitting(true);
     try {
       const payload = {
@@ -101,7 +107,8 @@ const NewBookings = () => {
           id: bookingData.roomTypeDetails?.id,
           basePriceCents: bookingData.roomTypeDetails?.basePriceCents,
         },
-        amountPaidCents: paymentDetails?.amountPaidCents ?? 0,
+        amountPaidCents: paymentDetails.amountPaidCents,
+        promoCode: bookingData.appliedPromoCode?.code,
       };
 
       await mutationFetcher("/bookings", {
@@ -181,6 +188,8 @@ const NewBookings = () => {
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             mode="create"
+            appliedPromoCode={bookingData.appliedPromoCode}
+            onPromoCodeChange={handlePromoCodeChange}
           />
         ) : null,
     },

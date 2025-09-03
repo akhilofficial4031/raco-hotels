@@ -6,9 +6,11 @@ import {
   bookingItems,
   bookingAddon,
   customer,
+  bookingPromotion,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { BookingRepository } from "../repositories/booking.repository";
+import { PromoCodeRepository } from "../repositories/promo_code.repository";
 
 import type { BookingsQuerySchema, CreateBookingRequest } from "../schemas";
 import type { z } from "zod";
@@ -116,6 +118,7 @@ export class BookingService {
       selectedRooms,
       selectedAddons,
       roomTypeDetails,
+      promoCode,
     } = bookingRequest;
 
     // Simplified total calculation
@@ -129,7 +132,49 @@ export class BookingService {
       (total, addon) => total + (addon.priceCents ?? 0),
       0,
     );
-    const totalAmountCents = roomTotal + addOnsTotal;
+    const subtotal = roomTotal + addOnsTotal;
+
+    let discountAmountCents = 0;
+    let validPromoCode = null;
+
+    if (promoCode) {
+      validPromoCode = await PromoCodeRepository.findValidCode(
+        db,
+        hotelId,
+        promoCode,
+      );
+
+      if (validPromoCode) {
+        if (
+          validPromoCode.minAmountCents &&
+          subtotal < validPromoCode.minAmountCents
+        ) {
+          // Promo code not applicable for this amount
+          validPromoCode = null;
+        } else if (
+          validPromoCode.minNights &&
+          nights < validPromoCode.minNights
+        ) {
+          // Promo code not applicable for this duration
+          validPromoCode = null;
+        } else {
+          if (validPromoCode.type === "fixed") {
+            discountAmountCents = validPromoCode.value;
+          } else if (validPromoCode.type === "percent") {
+            discountAmountCents = (subtotal * validPromoCode.value) / 100;
+            if (
+              validPromoCode.maxDiscountCents &&
+              discountAmountCents > validPromoCode.maxDiscountCents
+            ) {
+              discountAmountCents = validPromoCode.maxDiscountCents;
+            }
+          }
+          discountAmountCents = Math.round(discountAmountCents);
+        }
+      }
+    }
+
+    const totalAmountCents = subtotal - discountAmountCents;
     const amountPaidCents = bookingRequest.amountPaidCents || 0;
     const balanceDueCents = totalAmountCents - amountPaidCents;
 
@@ -211,7 +256,7 @@ export class BookingService {
           currencyCode: "INR",
           taxAmountCents: 0,
           feeAmountCents: 0,
-          discountAmountCents: 0,
+          discountAmountCents,
           amountPaidCents,
           balanceDueCents,
           paymentStatus,
@@ -221,6 +266,18 @@ export class BookingService {
           updatedAt: currentTime,
         })
         .returning();
+
+      if (validPromoCode) {
+        await database.insert(bookingPromotion).values({
+          bookingId: newBooking.id,
+          promoCodeId: validPromoCode.id,
+          amountCents: discountAmountCents,
+        });
+
+        await PromoCodeRepository.update(db, validPromoCode.id, {
+          usageCount: (validPromoCode.usageCount || 0) + 1,
+        });
+      }
 
       await database.insert(bookingItems).values(
         selectedRooms.map((r) => ({

@@ -47,9 +47,11 @@ interface BookingData {
 interface ReviewAndSubmitProps {
   bookingData: BookingData;
   onBack: () => void;
-  onSubmit: Function;
+  onSubmit: (details: { amountPaidCents: number }) => void;
   isSubmitting: boolean;
   mode?: "create" | "edit";
+  appliedPromoCode?: PromoCode | null;
+  onPromoCodeChange: (promoCode: PromoCode | null) => void;
 }
 
 const ReviewAndSubmit = ({
@@ -58,6 +60,8 @@ const ReviewAndSubmit = ({
   onSubmit,
   isSubmitting,
   mode = "create",
+  appliedPromoCode,
+  onPromoCodeChange,
 }: ReviewAndSubmitProps) => {
   const {
     bookingDetails,
@@ -101,11 +105,28 @@ const ReviewAndSubmit = ({
   const subtotal = roomTotal + addOnsTotal;
   const taxes = subtotal * 0.18; // Example tax rate
 
-  const [promoCode, setPromoCode] = useState("");
-  const [appliedPromoCode, setAppliedPromoCode] = useState<PromoCode | null>(
-    null,
-  );
   const [discount, setDiscount] = useState(0);
+  useEffect(() => {
+    if (appliedPromoCode) {
+      let calculatedDiscount = 0;
+      if (appliedPromoCode.type === "fixed") {
+        calculatedDiscount = appliedPromoCode.value;
+      } else if (appliedPromoCode.type === "percent") {
+        calculatedDiscount = (subtotal * appliedPromoCode.value) / 100;
+        if (
+          appliedPromoCode.maxDiscountCents &&
+          calculatedDiscount > appliedPromoCode.maxDiscountCents
+        ) {
+          calculatedDiscount = appliedPromoCode.maxDiscountCents;
+        }
+      }
+      setDiscount(Math.round(calculatedDiscount));
+    } else {
+      setDiscount(0);
+    }
+  }, [appliedPromoCode, subtotal]);
+
+  const [promoCodeInput, setPromoCodeInput] = useState("");
   const [isApplying, setIsApplying] = useState(false);
 
   const total = subtotal + taxes - discount;
@@ -127,33 +148,20 @@ const ReviewAndSubmit = ({
     if (mode === "create") {
       onSubmit({ amountPaidCents: Math.round(amountPaid * 100) });
     } else {
-      onSubmit();
+      onSubmit({ amountPaidCents: 0 });
     }
   };
 
   const handleApplyPromoCode = async () => {
-    if (!promoCode.trim() || !bookingDetails?.hotelId) return;
+    if (!promoCodeInput.trim() || !bookingDetails?.hotelId) return;
     setIsApplying(true);
     try {
       const validPromoCode = await validatePromoCode(
         bookingDetails.hotelId,
-        promoCode,
+        promoCodeInput,
       );
-      let calculatedDiscount = 0;
-      if (validPromoCode.type === "fixed") {
-        calculatedDiscount = validPromoCode.value;
-      } else if (validPromoCode.type === "percent") {
-        calculatedDiscount = (subtotal * validPromoCode.value) / 100;
-        if (
-          validPromoCode.maxDiscountCents &&
-          calculatedDiscount > validPromoCode.maxDiscountCents
-        ) {
-          calculatedDiscount = validPromoCode.maxDiscountCents;
-        }
-      }
-      setDiscount(calculatedDiscount);
-      setAppliedPromoCode(validPromoCode);
-      setPromoCode("");
+      onPromoCodeChange(validPromoCode);
+      setPromoCodeInput("");
       void message.success("Promo code applied successfully!");
     } catch {
       void message.error("Invalid or expired promo code.");
@@ -163,8 +171,7 @@ const ReviewAndSubmit = ({
   };
 
   const handleRemovePromoCode = () => {
-    setAppliedPromoCode(null);
-    setDiscount(0);
+    onPromoCodeChange(null);
   };
 
   if (mode === "edit") {
@@ -342,8 +349,8 @@ const ReviewAndSubmit = ({
                   <Space.Compact style={{ width: "100%" }}>
                     <Input
                       placeholder="Enter promo code"
-                      value={promoCode}
-                      onChange={(e) => setPromoCode(e.target.value)}
+                      value={promoCodeInput}
+                      onChange={(e) => setPromoCodeInput(e.target.value)}
                       disabled={isApplying}
                     />
                     <Button
