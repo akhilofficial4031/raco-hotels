@@ -1,6 +1,5 @@
 import { fetcher } from "../../utils/swrFetcher";
 import { type Customer } from "../models/customer";
-import { type ApiResponse } from "../types/api";
 
 export interface CustomerDetailsResponseData {
   data: CustomerDetailsResponse;
