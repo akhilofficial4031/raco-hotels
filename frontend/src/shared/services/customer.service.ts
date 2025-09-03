@@ -1,4 +1,5 @@
-import { fetcher } from "../../utils/swrFetcher";
+import { fetcher, mutationFetcher } from "../../utils/swrFetcher";
+import { type ApiResponse } from "../models";
 import { type Customer } from "../models/customer";
 
 export interface CustomerDetailsResponseData {
@@ -187,4 +188,26 @@ export const getCustomerDetails = async (
   customerId: string | number,
 ): Promise<CustomerDetailsResponseData> => {
   return fetcher(`/customers/${customerId}/details`);
+};
+
+export const updateCustomerById = async (
+  id: string,
+  customerData: Partial<Customer>,
+): Promise<ApiResponse<Customer>> => {
+  return mutationFetcher(`/customers/${id}`, {
+    arg: {
+      method: "PUT",
+      body: customerData,
+    },
+  });
+};
+
+export const deleteCustomer = async (
+  id: string,
+): Promise<ApiResponse<null>> => {
+  return mutationFetcher(`/customers/${id}`, {
+    arg: {
+      method: "DELETE",
+    },
+  });
 };
