@@ -235,15 +235,20 @@ export class AuthService {
   ): Promise<void> {
     const key = TOKEN_PREFIX + tokenId;
 
-    // Get token data to find user ID before deletion
-    const tokenData = await this.getRefreshToken(kv, tokenId);
+    // Get raw token data to find user ID before deletion, avoiding recursive call
+    const data = await kv.get(key);
 
     // Delete token
     await kv.delete(key);
 
     // Remove from user's session list
-    if (tokenData) {
-      await this.removeTokenFromUserSessions(kv, tokenData.userId, tokenId);
+    if (data) {
+      try {
+        const tokenData = JSON.parse(data) as StoredRefreshToken;
+        await this.removeTokenFromUserSessions(kv, tokenData.userId, tokenId);
+      } catch (error) {
+        console.error("Failed to parse token data during revoke:", error);
+      }
     }
   }
 

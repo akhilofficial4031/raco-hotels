@@ -7,7 +7,6 @@ import {
 import {
   Button,
   Dropdown,
-  Menu,
   Modal,
   Pagination,
   Table,
@@ -245,24 +244,22 @@ const RoomType = () => {
       key: "actions",
       render: (_: unknown, record: RoomTypeWithRelations) => (
         <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item
-                key="edit"
-                icon={<EditOutlined />}
-                onClick={() => handleEditRoomType(record)}
-              >
-                Edit
-              </Menu.Item>
-              <Menu.Item
-                key="delete"
-                icon={<DeleteOutlined />}
-                onClick={() => handleDeleteRoomType(record)}
-              >
-                Delete
-              </Menu.Item>
-            </Menu>
-          }
+          menu={{
+            items: [
+              {
+                key: "edit",
+                icon: <EditOutlined />,
+                label: "Edit",
+                onClick: () => handleEditRoomType(record),
+              },
+              {
+                key: "delete",
+                icon: <DeleteOutlined />,
+                label: "Delete",
+                onClick: () => handleDeleteRoomType(record),
+              },
+            ],
+          }}
         >
           <Button icon={<MoreOutlined />} />
         </Dropdown>

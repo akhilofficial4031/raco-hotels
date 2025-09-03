@@ -1,0 +1,54 @@
+/* Customer Details Page Styles */
+
+/* Main container padding */
+.customer-details-container {
+  padding: 24px !important;
+}
+
+/* Card components padding */
+.customer-card {
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+}
+
+/* Customer header spacing */
+.customer-header {
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+}
+
+/* Section headings */
+.section-heading {
+  margin-bottom: 16px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Info sections padding */
+.info-section {
+  padding: 16px !important;
+  margin-bottom: 16px !important;
+}
+
+/* Data groups padding */
+.data-group {
+  padding: 12px !important;
+  margin-bottom: 12px !important;
+}
+
+/* Alert padding */
+.info-alert {
+  margin-bottom: 24px !important;
+  padding: 12px 24px !important;
+}
+
+/* Tab panels padding */
+.tab-panel {
+  padding: 16px !important;
+}
+
+/* Empty state containers */
+.empty-state {
+  padding: 32px !important;
+  text-align: center;
+}

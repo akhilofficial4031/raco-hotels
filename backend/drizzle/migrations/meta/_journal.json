@@ -8,6 +8,20 @@
       "when": 1756890418302,
       "tag": "0000_orange_marauders",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1756702626752,
+      "tag": "0001_typical_wendell_vaughn",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1756723875271,
+      "tag": "0002_solid_lester",
+      "breakpoints": true
     }
   ]
 }

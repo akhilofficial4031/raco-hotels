@@ -44,7 +44,6 @@ export const customer = sqliteTable(
     notes: text("notes"), // Internal notes by staff
 
     // Web user tracking - indicates if this customer has/had a user account
-    hasUserAccount: integer("has_user_account").notNull().default(0), // 0 = no, 1 = yes
     firstBookingSource: text("first_booking_source").notNull().default("web"), // Track how they first booked
 
     // Customer analytics and tracking
@@ -72,6 +71,9 @@ export const customer = sqliteTable(
     // Remove unique constraint on email since customers can have same email as users
     customerEmailIdx: index("idx_customer_email").on(t.email),
     customerPhoneIdx: index("idx_customer_phone").on(t.phone),
+    customerAlternatePhoneIdx: index("idx_customer_alternate_phone").on(
+      t.alternatePhone,
+    ),
     customerNameIdx: index("idx_customer_name").on(t.fullName),
     customerStatusIdx: index("idx_customer_status").on(t.status),
     customerFirstBookingSourceIdx: index(
@@ -81,9 +83,6 @@ export const customer = sqliteTable(
       t.lastBookingAt,
     ),
     customerVipStatusIdx: index("idx_customer_vip_status").on(t.vipStatus),
-    customerHasUserAccountIdx: index("idx_customer_has_user_account").on(
-      t.hasUserAccount,
-    ),
     customerTotalBookingsIdx: index("idx_customer_total_bookings").on(
       t.totalBookings,
     ),
@@ -116,10 +115,6 @@ export const customer = sqliteTable(
     customerMarketingOptInCheck: check(
       "ck_customer_marketing_opt_in",
       sql`${t.marketingOptIn} IN (0,1)`,
-    ),
-    customerHasUserAccountCheck: check(
-      "ck_customer_has_user_account",
-      sql`${t.hasUserAccount} IN (0,1)`,
     ),
     customerVipStatusCheck: check(
       "ck_customer_vip_status",

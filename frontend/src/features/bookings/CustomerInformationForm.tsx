@@ -1,9 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, Input, Button, Row, Col, Space } from "antd";
+import { Form, Input, Button, Row, Col, Space, message } from "antd";
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { type CustomerData, CustomerDataSchema } from "./schemas";
+import { findCustomerByPhone } from "../../shared/services/customer.service";
 
 const { TextArea } = Input;
 
@@ -22,13 +24,80 @@ const CustomerInformationForm = ({
     control,
     handleSubmit,
     formState: { errors },
+    setValue,
   } = useForm<CustomerData>({
     resolver: zodResolver(CustomerDataSchema),
     defaultValues: initialData,
   });
 
+  const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
+  const [lastSearchedPhone, setLastSearchedPhone] = useState<string>("");
+
+  // Phone number validation function
+  const validatePhoneNumber = (phone: string): boolean => {
+    // Basic phone number validation - at least 7 digits, can include spaces, dashes, parentheses, plus signs
+    const phoneRegex = /^[+]?[\d\s\-()]{7,}$/;
+    return phoneRegex.test(phone.trim());
+  };
+
+  // Search customer by phone number
+  const searchCustomerByPhone = async (phone: string) => {
+    if (!phone.trim() || !validatePhoneNumber(phone)) {
+      return;
+    }
+
+    // Don't search if we already searched this phone number
+    if (lastSearchedPhone === phone.trim()) {
+      return;
+    }
+
+    setIsSearchingCustomer(true);
+    setLastSearchedPhone(phone.trim());
+
+    try {
+      const response = await findCustomerByPhone(phone.trim());
+
+      if (response.data.found && response.data.customer) {
+        const customer = response.data.customer;
+
+        // Map customer data to form fields
+        const formData: Partial<CustomerData> = {
+          fullName: customer.fullName,
+          email: customer.email,
+          phone: customer.phone,
+          alternatePhone: customer.alternatePhone || "",
+          nationality: customer.nationality || "",
+          idType: customer.idType || "",
+          idNumber: customer.idNumber || "",
+          emergencyContactName: customer.emergencyContactName || "",
+          emergencyContactPhone: customer.emergencyContactPhone || "",
+          notes: customer.notes || "",
+        };
+
+        // Populate form fields
+        Object.entries(formData).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            setValue(key as keyof CustomerData, value);
+          }
+        });
+
+        message.success("Customer found and form populated with existing data");
+      }
+    } catch (error) {
+      console.error("Error searching customer:", error);
+      message.error("Failed to search customer. Please try again.");
+    } finally {
+      setIsSearchingCustomer(false);
+    }
+  };
+
+  // Handle phone number blur
+  const handlePhoneBlur = (phone: string) => {
+    searchCustomerByPhone(phone);
+  };
+
   const onSubmit = (data: CustomerData) => {
-    console.log(data);
+    data.firstBookingSource = "front_office";
     onNext(data);
   };
 
@@ -36,6 +105,36 @@ const CustomerInformationForm = ({
     <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
       <h2 style={{ marginBottom: "24px" }}>Primary Contact Information</h2>
       <Row gutter={24}>
+        <Col span={12}>
+          <Form.Item
+            label={
+              <Space>
+                Phone Number
+                {isSearchingCustomer && (
+                  <span style={{ fontSize: "12px", color: "#1890ff" }}>
+                    Searching...
+                  </span>
+                )}
+              </Space>
+            }
+            required
+            validateStatus={errors.phone ? "error" : ""}
+            help={errors.phone?.message}
+          >
+            <Controller
+              name="phone"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  placeholder="Enter customer's phone number"
+                  onBlur={(e) => handlePhoneBlur(e.target.value)}
+                  disabled={isSearchingCustomer}
+                />
+              )}
+            />
+          </Form.Item>
+        </Col>
         <Col span={12}>
           <Form.Item
             label="Full Name"
@@ -52,6 +151,8 @@ const CustomerInformationForm = ({
             />
           </Form.Item>
         </Col>
+      </Row>
+      <Row gutter={24}>
         <Col span={12}>
           <Form.Item
             label="Email"
@@ -68,24 +169,6 @@ const CustomerInformationForm = ({
                   placeholder="Enter customer's email"
                   type="email"
                 />
-              )}
-            />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={24}>
-        <Col span={12}>
-          <Form.Item
-            label="Phone Number"
-            required
-            validateStatus={errors.phone ? "error" : ""}
-            help={errors.phone?.message}
-          >
-            <Controller
-              name="phone"
-              control={control}
-              render={({ field }) => (
-                <Input {...field} placeholder="Enter customer's phone number" />
               )}
             />
           </Form.Item>

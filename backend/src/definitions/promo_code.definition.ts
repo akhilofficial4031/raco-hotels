@@ -6,6 +6,7 @@ import {
   PromoCodeResponseSchema,
   CreatePromoCodeRequestSchema,
   UpdatePromoCodeRequestSchema,
+  PromoCodeCodeParamsSchema,
 } from "../schemas";
 
 export const PromoCodeRouteDefinitions = {
@@ -29,6 +30,17 @@ export const PromoCodeRouteDefinitions = {
     successSchema: PromoCodeResponseSchema,
     successDescription: "Promo code retrieved successfully",
     paramsSchema: PromoCodePathParamsSchema,
+    includeNotFound: true,
+  }),
+  getPromoCodeByCode: createRoute({
+    method: "get",
+    path: "/promo-codes/validate/{hotelId}/{code}",
+    summary: "Validate promo code",
+    description: "Validate a promo code for a specific hotel",
+    tags: [ApiTags.PROMOTIONS],
+    successSchema: PromoCodeResponseSchema,
+    successDescription: "Promo code retrieved successfully",
+    paramsSchema: PromoCodeCodeParamsSchema,
     includeNotFound: true,
   }),
   createPromoCode: createRoute({

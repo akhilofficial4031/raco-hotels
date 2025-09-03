@@ -6,6 +6,7 @@ import { type TableHeaderProps } from "../models/tableHeader";
 
 const TableHeader: React.FC<TableHeaderProps> = ({
   searchPlaceholder = "",
+  title,
   showAddButton = true,
   showSearch = true,
   showFilter = false,
@@ -31,15 +32,18 @@ const TableHeader: React.FC<TableHeaderProps> = ({
   };
   return (
     <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-2 border border-gray-200">
-      {showSearch && (
-        <Input
-          placeholder={`Search ${searchPlaceholder}`}
-          className="!w-64"
-          value={searchValue}
-          onChange={handleSearchChange}
-          allowClear
-        />
-      )}
+      <div className="flex items-center gap-4">
+        {title && <h2 className="text-xl font-semibold">{title}</h2>}
+        {showSearch && (
+          <Input
+            placeholder={`Search ${searchPlaceholder}`}
+            className="!w-64"
+            value={searchValue}
+            onChange={handleSearchChange}
+            allowClear
+          />
+        )}
+      </div>
       <div className="flex gap-2">
         {showFilter && (
           <Badge dot={hasActiveFilters} color="blue">

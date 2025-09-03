@@ -27,6 +27,23 @@ export class CustomerController {
   }
 
   /**
+   * Get all customers
+   */
+  static async getCustomers(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const customers = await CustomerService.getAllCustomers(c.env.DB);
+        return ApiResponse.success(c, {
+          customers,
+          message: "customers.retrieved",
+        });
+      },
+      "operation.getCustomersFailed",
+    );
+  }
+
+  /**
    * Get customer by ID
    */
   static async getById(c: AppContext) {
@@ -91,19 +108,33 @@ export class CustomerController {
     return handleAsyncRoute(
       c,
       async () => {
-        const query = c.req.valid("query");
-        const { phone } = query;
+        try {
+          // Get the phone parameter directly
+          const query = c.req.query("phone");
+          const phone = query ?? "";
 
-        const customer = await CustomerService.getCustomerByPhone(
-          c.env.DB,
-          phone,
-        );
+          if (!phone) {
+            return ApiResponse.badRequest(c, "customer.invalidPhone");
+          }
 
-        return ApiResponse.success(c, {
-          customer,
-          found: !!customer,
-          message: customer ? "customer.found" : "customer.notFound",
-        });
+          const customer = await CustomerService.getCustomerByPhone(
+            c.env.DB,
+            phone,
+          );
+
+          return ApiResponse.success(c, {
+            customer,
+            found: !!customer,
+            message: customer ? "customer.found" : "customer.notFound",
+          });
+        } catch (error) {
+          console.error("Error finding customer by phone:", error);
+          return ApiResponse.success(c, {
+            customer: null,
+            found: false,
+            message: "customer.notFound",
+          });
+        }
       },
       "operation.findCustomerByPhoneFailed",
     );
@@ -263,6 +294,34 @@ export class CustomerController {
         });
       },
       "operation.findOrCreateCustomerFailed",
+    );
+  }
+
+  /**
+   * Get comprehensive customer details
+   */
+  static async getCustomerDetails(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const { id } = c.req.param();
+        const customerId = parseInt(id, 10);
+
+        if (isNaN(customerId)) {
+          return ApiResponse.badRequest(c, "customer.invalidId");
+        }
+
+        const details = await CustomerService.getCustomerDetails(
+          c.env.DB,
+          customerId,
+        );
+
+        return ApiResponse.success(c, {
+          ...details,
+          message: "customer.detailsRetrieved",
+        });
+      },
+      "operation.getCustomerDetailsFailed",
     );
   }
 }

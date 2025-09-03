@@ -57,34 +57,32 @@ const Breadcrumbs: React.FC = () => {
             const isFirst = index === 0;
 
             return (
-              <>
-                <React.Fragment key={item.href}>
-                  {/* Separator */}
-                  {index > 0 && (
-                    <span className="text-gray-400 select-none">/</span>
+              <React.Fragment key={item.href}>
+                {/* Separator */}
+                {index > 0 && (
+                  <span className="text-gray-400 select-none">/</span>
+                )}
+
+                {/* Breadcrumb Item */}
+                <div className="flex items-center">
+                  {isFirst && <HomeOutlined className="mr-1 text-gray-500" />}
+
+                  {isLast ? (
+                    // Current page - not clickable
+                    <span className="font-medium text-gray-900">
+                      {item.label}
+                    </span>
+                  ) : (
+                    // Previous pages - clickable links
+                    <Link
+                      to={item.href}
+                      className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                    >
+                      {item.label}
+                    </Link>
                   )}
-
-                  {/* Breadcrumb Item */}
-                  <div className="flex items-center">
-                    {isFirst && <HomeOutlined className="mr-1 text-gray-500" />}
-
-                    {isLast ? (
-                      // Current page - not clickable
-                      <span className="font-medium text-gray-900">
-                        {item.label}
-                      </span>
-                    ) : (
-                      // Previous pages - clickable links
-                      <Link
-                        to={item.href}
-                        className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
-                      >
-                        {item.label}
-                      </Link>
-                    )}
-                  </div>
-                </React.Fragment>
-              </>
+                </div>
+              </React.Fragment>
             );
           })}
         </div>

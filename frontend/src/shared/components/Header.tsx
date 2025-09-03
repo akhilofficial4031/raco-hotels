@@ -6,9 +6,9 @@ import {
 import { Avatar, Button, Dropdown, type MenuProps, Space } from "antd";
 
 import Breadcrumbs from "./Breadcrumbs";
+import { mutationFetcher } from "../../utils/swrFetcher";
 import { useAuth } from "../contexts/AuthContext";
 import { useSidebar } from "../hooks/useSidebar";
-import { mutationFetcher } from "../../utils/swrFetcher";
 
 const Header = () => {
   const { isOpen, toggleSidebar } = useSidebar();

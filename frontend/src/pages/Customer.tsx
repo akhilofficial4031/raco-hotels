@@ -1,17 +1,20 @@
-import { Table, type TableProps } from "antd";
+import { EyeOutlined } from "@ant-design/icons";
+import { Button, Table, type TableProps } from "antd";
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import useSWR from "swr";
 
 import TableHeader from "../shared/components/TableHeader";
 import {
   type Customer,
   type CustomerListParam,
-  type CustomerListResponse,
+  type CustomersListResponseSchema,
 } from "../shared/models";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher } from "../utils/swrFetcher";
 
 const CustomerPage = () => {
+  const navigate = useNavigate();
   const [filterParams, setFilterParams] = useState<CustomerListParam>({
     page: 1,
     limit: 10,
@@ -27,7 +30,7 @@ const CustomerPage = () => {
     data: response,
     error,
     isLoading,
-  } = useSWR<CustomerListResponse>(`/customers?${queryString}`, fetcher, {
+  } = useSWR<CustomersListResponseSchema>(`/customers${queryString}`, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     shouldRetryOnError: false,
@@ -35,6 +38,10 @@ const CustomerPage = () => {
 
   const handleSearch = (value: string) => {
     setFilterParams((prev) => ({ ...prev, search: value, page: 1 }));
+  };
+
+  const handleViewCustomer = (record: Customer) => {
+    navigate(`/customers/${record.id}`);
   };
 
   const columns: TableProps<Customer>["columns"] = [
@@ -54,19 +61,27 @@ const CustomerPage = () => {
       key: "phone",
     },
     {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
+      title: "VIP Status",
+      dataIndex: "vipStatus",
+      key: "vipStatus",
     },
     {
-      title: "Source",
-      dataIndex: "source",
-      key: "source",
+      title: "Emergency Contact Phone",
+      dataIndex: "emergencyContactPhone",
+      key: "emergencyContactPhone",
     },
     {
-      title: "Total Bookings",
-      dataIndex: "totalBookings",
-      key: "totalBookings",
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Button
+          icon={<EyeOutlined />}
+          type="link"
+          onClick={() => handleViewCustomer(record)}
+        >
+          View
+        </Button>
+      ),
     },
   ];
 
@@ -83,7 +98,7 @@ const CustomerPage = () => {
       />
       <div className="bg-white p-2 rounded-lg mb-2 border border-gray-200">
         <Table
-          dataSource={response?.customers}
+          dataSource={response?.data.customers}
           className="!bg-white"
           bordered={true}
           columns={columns}

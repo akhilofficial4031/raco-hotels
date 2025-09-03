@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = (userData: LoginUserResponse) => {
     setUser(userData);
     localStorage.setItem("user", JSON.stringify(userData));
-    
+
     // If user was trying to access a protected route, redirect them there
     // Otherwise redirect to dashboard
     const from = location.state?.from?.pathname || "/dashboard";
