@@ -118,7 +118,7 @@ const CustomerHeader: React.FC<CustomerHeaderProps> = ({
           </div>
         </div>
       </div>
-      <Dropdown overlay={menu} trigger={["click"]}>
+      <Dropdown menu={{ items: menu.props.items }} trigger={["click"]}>
         <Button icon={<MoreOutlined />} size="large" />
       </Dropdown>
     </div>

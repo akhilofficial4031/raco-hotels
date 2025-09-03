@@ -100,7 +100,7 @@ function ViewBooking() {
             Booking #{booking.referenceCode}
           </Title>
         </div>
-        <Dropdown overlay={menu} trigger={["click"]}>
+        <Dropdown menu={{ items: menu.props.items }} trigger={["click"]}>
           <Button icon={<MoreOutlined />} />
         </Dropdown>
       </div>

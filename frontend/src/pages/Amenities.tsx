@@ -9,7 +9,6 @@ import {
 import {
   Button,
   Dropdown,
-  Menu,
   Modal,
   Pagination,
   Table,
@@ -276,24 +275,22 @@ const Amenities = () => {
         // Normal display case
         return (
           <Dropdown
-            overlay={
-              <Menu>
-                <Menu.Item
-                  key="edit"
-                  icon={<EditOutlined />}
-                  onClick={() => handleEdit(record)}
-                >
-                  Edit
-                </Menu.Item>
-                <Menu.Item
-                  key="delete"
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleDeleteAmenity(record)}
-                >
-                  Delete
-                </Menu.Item>
-              </Menu>
-            }
+            menu={{
+              items: [
+                {
+                  key: "edit",
+                  icon: <EditOutlined />,
+                  label: "Edit",
+                  onClick: () => handleEdit(record),
+                },
+                {
+                  key: "delete",
+                  icon: <DeleteOutlined />,
+                  label: "Delete",
+                  onClick: () => handleDeleteAmenity(record),
+                },
+              ],
+            }}
           >
             <Button icon={<MoreOutlined />} />
           </Dropdown>

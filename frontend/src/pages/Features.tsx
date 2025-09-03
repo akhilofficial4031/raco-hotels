@@ -4,15 +4,7 @@ import {
   ExclamationCircleOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
-import {
-  Button,
-  Dropdown,
-  Menu,
-  Modal,
-  Pagination,
-  Table,
-  message,
-} from "antd";
+import { Button, Dropdown, Modal, Pagination, Table, message } from "antd";
 import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
@@ -171,24 +163,22 @@ const Features = () => {
       key: "actions",
       render: (_: unknown, record: Feature) => (
         <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item
-                key="edit"
-                icon={<EditOutlined />}
-                onClick={() => handleEditFeature(record)}
-              >
-                Edit
-              </Menu.Item>
-              <Menu.Item
-                key="delete"
-                icon={<DeleteOutlined />}
-                onClick={() => handleDeleteFeature(record)}
-              >
-                Delete
-              </Menu.Item>
-            </Menu>
-          }
+          menu={{
+            items: [
+              {
+                key: "edit",
+                icon: <EditOutlined />,
+                label: "Edit",
+                onClick: () => handleEditFeature(record),
+              },
+              {
+                key: "delete",
+                icon: <DeleteOutlined />,
+                label: "Delete",
+                onClick: () => handleDeleteFeature(record),
+              },
+            ],
+          }}
         >
           <Button icon={<MoreOutlined />} />
         </Dropdown>

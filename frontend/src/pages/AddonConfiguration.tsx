@@ -9,7 +9,6 @@ import {
   Dropdown,
   Form,
   InputNumber,
-  Menu,
   Modal,
   Pagination,
   Table,
@@ -164,24 +163,22 @@ const AddonConfigurationPage = () => {
       key: "actions",
       render: (_: unknown, record: AddonConfiguration) => (
         <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item
-                key="edit"
-                icon={<EditOutlined />}
-                onClick={() => handleEdit(record)}
-              >
-                Edit
-              </Menu.Item>
-              <Menu.Item
-                key="delete"
-                icon={<DeleteOutlined />}
-                onClick={() => handleDelete(record)}
-              >
-                Delete
-              </Menu.Item>
-            </Menu>
-          }
+          menu={{
+            items: [
+              {
+                key: "edit",
+                icon: <EditOutlined />,
+                label: "Edit",
+                onClick: () => handleEdit(record),
+              },
+              {
+                key: "delete",
+                icon: <DeleteOutlined />,
+                label: "Delete",
+                onClick: () => handleDelete(record),
+              },
+            ],
+          }}
         >
           <Button icon={<MoreOutlined />} />
         </Dropdown>

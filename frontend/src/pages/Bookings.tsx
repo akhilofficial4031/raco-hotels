@@ -9,7 +9,7 @@ import {
 import {
   Button,
   Dropdown,
-  Menu,
+  type MenuProps,
   Modal,
   Pagination,
   Table,
@@ -177,56 +177,40 @@ const Bookings = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: unknown, record: Booking) => (
-        <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item
-                key="view"
-                icon={<EyeOutlined />}
-                onClick={() => navigate(`/bookings/${record.id}`)}
-              >
-                View Details
-              </Menu.Item>
-              <Menu.Item
-                key="edit"
-                icon={<EditOutlined />}
-                onClick={() => navigate(`/bookings/${record.id}/edit`)}
-              >
-                Edit
-              </Menu.Item>
-              {record.status === "checkedin" && (
-                <Menu.Item
-                  key="checkout"
-                  icon={<CheckCircleOutlined />}
-                  onClick={() => handleCheckoutBooking(record)}
-                >
-                  Checkout
-                </Menu.Item>
-              )}
-              {(record.status === "confirmed" ||
-                record.status === "checkedin") && (
-                <Menu.Item
-                  key="cancel"
-                  icon={<CloseCircleOutlined />}
-                  onClick={() => handleCancelBooking(record)}
-                >
-                  Cancel
-                </Menu.Item>
-              )}
-              {/* <Menu.Item
-                key="delete"
-                icon={<DeleteOutlined />}
-                onClick={() => handleDeleteBooking(record)}
-              >
-                Delete
-              </Menu.Item> */}
-            </Menu>
-          }
-        >
-          <Button icon={<MoreOutlined />} />
-        </Dropdown>
-      ),
+      render: (_: unknown, record: Booking) => {
+        const menuItems = [
+          {
+            key: "view",
+            icon: <EyeOutlined />,
+            label: "View Details",
+            onClick: () => navigate(`/bookings/${record.id}`),
+          },
+          {
+            key: "edit",
+            icon: <EditOutlined />,
+            label: "Edit",
+            onClick: () => navigate(`/bookings/${record.id}/edit`),
+          },
+          record.status === "checkedin" && {
+            key: "checkout",
+            icon: <CheckCircleOutlined />,
+            label: "Checkout",
+            onClick: () => handleCheckoutBooking(record),
+          },
+          (record.status === "confirmed" || record.status === "checkedin") && {
+            key: "cancel",
+            icon: <CloseCircleOutlined />,
+            label: "Cancel",
+            onClick: () => handleCancelBooking(record),
+          },
+        ].filter(Boolean) as Required<MenuProps>["items"];
+
+        return (
+          <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
+            <Button icon={<MoreOutlined />} />
+          </Dropdown>
+        );
+      },
     },
   ];
 

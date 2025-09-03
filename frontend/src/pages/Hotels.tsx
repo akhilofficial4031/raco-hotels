@@ -7,7 +7,6 @@ import {
 import {
   Button,
   Dropdown,
-  Menu,
   Modal,
   Pagination,
   Table,
@@ -302,24 +301,22 @@ const Hotels = () => {
       key: "actions",
       render: (_: unknown, record: Hotel) => (
         <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item
-                key="edit"
-                icon={<EditOutlined />}
-                onClick={() => handleEditHotel(record)}
-              >
-                Edit
-              </Menu.Item>
-              <Menu.Item
-                key="delete"
-                icon={<DeleteOutlined />}
-                onClick={() => handleDeleteHotel(record)}
-              >
-                Delete
-              </Menu.Item>
-            </Menu>
-          }
+          menu={{
+            items: [
+              {
+                key: "edit",
+                icon: <EditOutlined />,
+                label: "Edit",
+                onClick: () => handleEditHotel(record),
+              },
+              {
+                key: "delete",
+                icon: <DeleteOutlined />,
+                label: "Delete",
+                onClick: () => handleDeleteHotel(record),
+              },
+            ],
+          }}
         >
           <Button icon={<MoreOutlined />} />
         </Dropdown>

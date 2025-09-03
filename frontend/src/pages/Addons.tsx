@@ -5,15 +5,7 @@ import {
   MoreOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import {
-  Button,
-  Dropdown,
-  Menu,
-  Modal,
-  Pagination,
-  Table,
-  message,
-} from "antd";
+import { Button, Dropdown, Modal, Pagination, Table, message } from "antd";
 import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
@@ -194,31 +186,28 @@ const Addons = () => {
       key: "actions",
       render: (_: unknown, record: Addon) => (
         <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item
-                key="edit"
-                icon={<EditOutlined />}
-                onClick={() => handleEditAddon(record)}
-              >
-                Edit
-              </Menu.Item>
-              <Menu.Item
-                key="config"
-                icon={<SettingOutlined />}
-                onClick={() => handleViewConfiguration(record)}
-              >
-                View Configuration
-              </Menu.Item>
-              <Menu.Item
-                key="delete"
-                icon={<DeleteOutlined />}
-                onClick={() => handleDeleteAddon(record)}
-              >
-                Delete
-              </Menu.Item>
-            </Menu>
-          }
+          menu={{
+            items: [
+              {
+                key: "edit",
+                icon: <EditOutlined />,
+                label: "Edit",
+                onClick: () => handleEditAddon(record),
+              },
+              {
+                key: "config",
+                icon: <SettingOutlined />,
+                label: "View Configuration",
+                onClick: () => handleViewConfiguration(record),
+              },
+              {
+                key: "delete",
+                icon: <DeleteOutlined />,
+                label: "Delete",
+                onClick: () => handleDeleteAddon(record),
+              },
+            ],
+          }}
         >
           <Button icon={<MoreOutlined />} />
         </Dropdown>
