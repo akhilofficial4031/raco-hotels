@@ -1,61 +1,24 @@
-import { useState, useEffect } from "react";
+import useSWR from "swr";
 
-import {
-  getCustomerDetails,
-  type CustomerDetailsResponse,
-} from "../../../shared/services/customer.service";
+import { fetcher } from "../../../utils/swrFetcher";
+
+import type { CustomerDetailsResponse } from "../../../shared/services/customer.service";
 
 export const useCustomerDetails = (customerId: string | undefined) => {
-  const [data, setData] = useState<CustomerDetailsResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, error, isLoading, mutate } = useSWR<CustomerDetailsResponse>(
+    customerId ? `/customers/${customerId}/details` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false, // Prevent refetch on window focus
+      revalidateOnReconnect: false, // Prevent refetch on reconnect
+      dedupingInterval: 60000, // Cache for 1 minute to prevent duplicate requests
+    },
+  );
 
-  useEffect(() => {
-    const fetchCustomerDetails = async () => {
-      if (!customerId) {
-        setError("Customer ID is required");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await getCustomerDetails(customerId);
-        console.log("Customer data received:", response); // TODO: Remove after debugging
-        setData(response.data);
-      } catch (err) {
-        console.error("Failed to fetch customer details:", err);
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Failed to fetch customer details",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCustomerDetails();
-  }, [customerId]);
-
-  const refetch = async () => {
-    if (!customerId) return;
-
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await getCustomerDetails(customerId);
-      setData(response.data);
-    } catch (err) {
-      console.error("Failed to fetch customer details:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to fetch customer details",
-      );
-    } finally {
-      setLoading(false);
-    }
+  return {
+    data: data || null,
+    loading: isLoading,
+    error: error?.message || null,
+    refetch: mutate,
   };
-
-  return { data, loading, error, refetch };
 };

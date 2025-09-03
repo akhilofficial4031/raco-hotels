@@ -32,6 +32,13 @@ export interface Customer {
   totalBookings: number;
   totalSpentCents: number;
   lastBookingDate: string | null;
+  vipStatus: "regular" | "silver" | "gold" | "platinum";
+  preferredPaymentMethod: string | null;
+  preferredContactMethod: "email" | "phone" | "sms";
+  languagePreference: string;
+  timeZone: string | null;
+  hasUserAccount: boolean;
+  firstBookingSource: string;
 }
 
 export interface CustomerListParam {

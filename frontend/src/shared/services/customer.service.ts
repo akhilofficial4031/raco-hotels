@@ -1,5 +1,6 @@
 import { fetcher } from "../../utils/swrFetcher";
 import { type Customer } from "../models/customer";
+import { type ApiResponse } from "../types/api";
 
 export interface CustomerDetailsResponseData {
   data: CustomerDetailsResponse;
@@ -179,7 +180,7 @@ export const findCustomerByPhone = async (
 };
 
 /**
- * Get comprehensive customer details by ID
+ * Get comprehensive customer details by ID (legacy function - use SWR directly instead)
  * @param customerId - The customer ID to fetch details for
  * @returns Promise containing comprehensive customer details
  */
