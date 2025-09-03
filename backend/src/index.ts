@@ -47,7 +47,8 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       "https://raco-admin-fe.pages.dev",
-    ], // Frontend dev servers
+      ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []), // Add production frontend URL if set
+    ],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowHeaders: [
       "Content-Type",
@@ -67,7 +68,7 @@ app.use(
 );
 
 // Explicit OPTIONS handler for preflight requests
-app.options("*", (_c) => {
+app.options("*", () => {
   return new Response(null, { status: 204 });
 });
 
