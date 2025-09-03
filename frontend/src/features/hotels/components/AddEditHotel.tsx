@@ -130,7 +130,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
     formState: { errors },
   } = useForm<CreateHotelPayload>({
     resolver: zodResolver(hotelSchema),
-    mode: "onChange",
+    mode: "onBlur",
     defaultValues: {
       name: "",
       slug: "",
@@ -195,16 +195,16 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
         state: hotel.state || "",
         postalCode: hotel.postalCode || "",
         countryCode: hotel.countryCode || "",
-        latitude: hotel.latitude || undefined,
-        longitude: hotel.longitude || undefined,
+        latitude: hotel.latitude ?? undefined,
+        longitude: hotel.longitude ?? undefined,
         timezone: hotel.timezone || "",
-        starRating: hotel.starRating || undefined,
+        starRating: hotel.starRating ?? undefined,
         checkInTime: hotel.checkInTime || "",
         checkOutTime: hotel.checkOutTime || "",
         locationInfo: hotel.locationInfo || [],
         amenities: amenityIds,
         features: featureIds,
-        isActive: hotel.isActive || 1,
+        isActive: hotel.isActive ?? 1,
       };
 
       reset(resetData, { keepDefaultValues: false });
@@ -242,26 +242,83 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
   }, [hotel, reset, isEditMode]);
 
   const handleFormSubmit = (formData: CreateHotelPayload) => {
-    const cleanedData = {
-      ...formData,
-      email: formData.email || undefined,
-      phone: formData.phone || undefined,
-      addressLine1: formData.addressLine1 || undefined,
-      addressLine2: formData.addressLine2 || undefined,
-      city: formData.city || undefined,
-      state: formData.state || undefined,
-      postalCode: formData.postalCode || undefined,
-      countryCode: formData.countryCode || undefined,
-      timezone: formData.timezone || undefined,
-      checkInTime: formData.checkInTime || undefined,
-      checkOutTime: formData.checkOutTime || undefined,
-      description: formData.description || undefined,
+    // Validate required fields before proceeding
+    if (!formData.name || formData.name.trim() === "") {
+      message.error("Hotel name is required");
+      return;
+    }
+
+    if (!formData.slug || formData.slug.trim() === "") {
+      message.error("Hotel slug is required");
+      return;
+    }
+
+    const cleanedData: CreateHotelPayload = {
+      // Required fields - ensure they're never undefined or empty
+      name: formData.name.trim(),
+      slug: formData.slug.trim(),
+      // Clean optional fields - convert empty strings to undefined
+      email:
+        formData.email && formData.email.trim()
+          ? formData.email.trim()
+          : undefined,
+      phone:
+        formData.phone && formData.phone.trim()
+          ? formData.phone.trim()
+          : undefined,
+      addressLine1:
+        formData.addressLine1 && formData.addressLine1.trim()
+          ? formData.addressLine1.trim()
+          : undefined,
+      addressLine2:
+        formData.addressLine2 && formData.addressLine2.trim()
+          ? formData.addressLine2.trim()
+          : undefined,
+      city:
+        formData.city && formData.city.trim()
+          ? formData.city.trim()
+          : undefined,
+      state:
+        formData.state && formData.state.trim()
+          ? formData.state.trim()
+          : undefined,
+      postalCode:
+        formData.postalCode && formData.postalCode.trim()
+          ? formData.postalCode.trim()
+          : undefined,
+      countryCode:
+        formData.countryCode && formData.countryCode.trim()
+          ? formData.countryCode.trim()
+          : undefined,
+      timezone:
+        formData.timezone && formData.timezone.trim()
+          ? formData.timezone.trim()
+          : undefined,
+      checkInTime:
+        formData.checkInTime && formData.checkInTime.trim()
+          ? formData.checkInTime.trim()
+          : undefined,
+      checkOutTime:
+        formData.checkOutTime && formData.checkOutTime.trim()
+          ? formData.checkOutTime.trim()
+          : undefined,
+      description:
+        formData.description && formData.description.trim()
+          ? formData.description.trim()
+          : undefined,
+      // Handle numeric and array fields
+      latitude: formData.latitude || undefined,
+      longitude: formData.longitude || undefined,
+      starRating: formData.starRating || undefined,
       locationInfo: formData.locationInfo?.length
         ? formData.locationInfo
         : undefined,
       amenities: formData.amenities?.length ? formData.amenities : undefined,
       features: formData.features?.length ? formData.features : undefined,
+      isActive: formData.isActive ?? 1,
     };
+
+    console.log("Form data being submitted:", cleanedData);
 
     // Pass image data to parent
     onSubmit(
@@ -272,11 +329,16 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
   };
 
   const generateSlug = (name: string) => {
+    if (!name || typeof name !== "string") {
+      return "";
+    }
     return name
       .toLowerCase()
+      .trim()
       .replace(/[^a-z0-9 -]/g, "")
       .replace(/\s+/g, "-")
-      .replace(/-+/g, "-");
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, ""); // Remove leading/trailing dashes
   };
 
   // Image upload handlers
@@ -359,9 +421,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                       <Input
                         size="large"
                         {...field}
+                        value={field.value || ""}
                         onChange={(e) => {
-                          field.onChange(e);
-                          setValue("slug", generateSlug(e.target.value));
+                          const value = e.target.value || "";
+                          field.onChange(value);
+                          // Generate slug without triggering validation to prevent errors
+                          const newSlug = generateSlug(value);
+                          setValue("slug", newSlug, { shouldValidate: false });
                         }}
                       />
                     )}
@@ -378,7 +444,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   <Controller
                     name="slug"
                     control={control}
-                    render={({ field }) => <Input {...field} size="large" />}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                      />
+                    )}
                   />
                 </Form.Item>
               </Col>
@@ -393,7 +465,12 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                 name="description"
                 control={control}
                 render={({ field }) => (
-                  <TextArea rows={4} {...field} size="large" />
+                  <TextArea
+                    rows={4}
+                    {...field}
+                    value={field.value || ""}
+                    size="large"
+                  />
                 )}
               />
             </Form.Item>
@@ -411,8 +488,10 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     render={({ field }) => (
                       <Select
                         {...field}
+                        value={field.value || undefined}
                         placeholder="Select rating"
                         size="large"
+                        allowClear
                       >
                         <Option value={1}>1 Star</Option>
                         <Option value={2}>2 Stars</Option>
@@ -436,6 +515,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     render={({ field }) => (
                       <Input
                         {...field}
+                        value={field.value || ""}
                         type="time"
                         placeholder="15:00"
                         size="large"
@@ -457,6 +537,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     render={({ field }) => (
                       <Input
                         {...field}
+                        value={field.value || ""}
                         type="time"
                         placeholder="11:00"
                         size="large"
@@ -486,7 +567,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   <Controller
                     name="email"
                     control={control}
-                    render={({ field }) => <Input {...field} size="large" />}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                      />
+                    )}
                   />
                 </Form.Item>
               </Col>
@@ -499,7 +586,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   <Controller
                     name="phone"
                     control={control}
-                    render={({ field }) => <Input {...field} size="large" />}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                      />
+                    )}
                   />
                 </Form.Item>
               </Col>
@@ -523,7 +616,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   <Controller
                     name="addressLine1"
                     control={control}
-                    render={({ field }) => <Input {...field} size="large" />}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                      />
+                    )}
                   />
                 </Form.Item>
               </Col>
@@ -536,7 +635,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   <Controller
                     name="addressLine2"
                     control={control}
-                    render={({ field }) => <Input {...field} size="large" />}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                      />
+                    )}
                   />
                 </Form.Item>
               </Col>
@@ -552,7 +657,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   <Controller
                     name="city"
                     control={control}
-                    render={({ field }) => <Input {...field} size="large" />}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                      />
+                    )}
                   />
                 </Form.Item>
               </Col>
@@ -565,7 +676,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   <Controller
                     name="state"
                     control={control}
-                    render={({ field }) => <Input {...field} size="large" />}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                      />
+                    )}
                   />
                 </Form.Item>
               </Col>
@@ -578,7 +695,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   <Controller
                     name="postalCode"
                     control={control}
-                    render={({ field }) => <Input {...field} size="large" />}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                      />
+                    )}
                   />
                 </Form.Item>
               </Col>
@@ -595,7 +718,12 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     name="countryCode"
                     control={control}
                     render={({ field }) => (
-                      <Input {...field} size="large" placeholder="US" />
+                      <Input
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                        placeholder="US"
+                      />
                     )}
                   />
                 </Form.Item>
@@ -612,6 +740,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     render={({ field }) => (
                       <Input
                         {...field}
+                        value={field.value || ""}
                         size="large"
                         placeholder="America/Los_Angeles"
                       />
@@ -631,6 +760,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     render={({ field }) => (
                       <InputNumber
                         {...field}
+                        value={field.value ?? undefined}
                         className="!w-full"
                         placeholder="37.789"
                         step={0.000001}
@@ -652,6 +782,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     render={({ field }) => (
                       <InputNumber
                         {...field}
+                        value={field.value ?? undefined}
                         className="!w-full"
                         placeholder="-122.401"
                         step={0.000001}
@@ -696,6 +827,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     render={({ field }) => (
                       <Select
                         {...field}
+                        value={field.value || []}
                         mode="multiple"
                         placeholder="Select amenities"
                         size="large"
@@ -725,6 +857,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     render={({ field }) => (
                       <Select
                         {...field}
+                        value={field.value || []}
                         mode="multiple"
                         placeholder="Select features"
                         size="large"
@@ -838,7 +971,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                 name="isActive"
                 control={control}
                 render={({ field }) => (
-                  <Select {...field} size="large">
+                  <Select {...field} value={field.value ?? 1} size="large">
                     <Option value={1}>Active</Option>
                     <Option value={0}>Inactive</Option>
                   </Select>

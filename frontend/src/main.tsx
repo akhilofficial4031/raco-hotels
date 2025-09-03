@@ -20,9 +20,10 @@ createRoot(rootElement).render(
         value={{
           fetcher,
           revalidateOnFocus: false,
+          revalidateIfStale: true, // Allow stale data to be revalidated
+          revalidateOnMount: true, // Ensure data fetches when component mounts
+          dedupingInterval: 0,
           revalidateOnReconnect: false,
-          revalidateIfStale: false,
-          dedupingInterval: 2 * 60 * 1000, // 2 minutes
           errorRetryCount: 0,
           errorRetryInterval: 1000,
           refreshInterval: 0, // Disable automatic refresh
