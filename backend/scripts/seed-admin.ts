@@ -33,7 +33,7 @@ async function seedAdminUser() {
     const dbDir = ".wrangler/state/v3/d1/miniflare-D1DatabaseObject/";
     const files = readdirSync(dbDir);
     const dbFile = files.find(
-      (f) => f.endsWith(".sqlite") && f !== "local-db.sqlite",
+      (f) => f.endsWith(".sqlite") && f !== "raco-db.sqlite",
     );
 
     if (!dbFile) {
@@ -77,6 +77,7 @@ async function seedAdminUser() {
       console.log(`   User ID: ${existingAdmin.id}`);
       console.log(`   Role: ${existingAdmin.role}`);
       console.log(`   Status: ${existingAdmin.status}`);
+      console.log(`   passwordHash: ${existingAdmin.passwordHash}`);
       return;
     }
 

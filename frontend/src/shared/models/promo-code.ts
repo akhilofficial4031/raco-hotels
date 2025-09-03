@@ -1,4 +1,4 @@
-import { type Pagination } from "./base";
+import { type PaginationResponse } from "./common";
 import { type Hotel } from "./hotels";
 
 export interface PromoCode {
@@ -26,7 +26,7 @@ export interface PromoCodeWithRelations extends PromoCode {
 export interface PromoCodeListResponse {
   data: {
     promoCodes: PromoCodeWithRelations[];
-    pagination: Pagination;
+    pagination: PaginationResponse;
   };
 }
 

@@ -12,20 +12,41 @@ R2_PUBLIC_BASE_URL = ""
 # Email API key for Resend service
 EMAIL_API_KEY = "re_6iPc8bVN_ND8w2gkDES3YJ31WxLgUJNWP"
 
+
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "raco-bucket"
+
+# Local Development D1 Database (default)
+[[d1_databases]]
+binding = "DB"
+database_name = "raco-db-local"
+database_id = "local-db-id"
+migrations_dir = "drizzle/migrations"
+
+# KV Namespace for local development
 [[kv_namespaces]]
 binding = "KV"
 id = "local-kv"
 preview_id = "local-kv-preview"
 
-[[r2_buckets]]
-binding = "R2_BUCKET"
-bucket_name = "local-r2"
-
-[[d1_databases]]
+# Production environment
+[env.production]
+[[env.production.d1_databases]]
 binding = "DB"
-database_name = "local-db"
-database_id = "local-db-id"
+database_name = "raco-db"
+database_id = "bcc2fbc6-d9bc-48ed-b4e3-6e5e41bacc77"
 migrations_dir = "drizzle/migrations"
+
+[[env.production.kv_namespaces]]
+binding = "KV"
+id = "9c0e2893078246b5a5efa308ed4060a9"
+preview_id = "local-kv-preview"
+
+[[env.production.r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "raco-bucket"
 
 [dev]
 port = 8787

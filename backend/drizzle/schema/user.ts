@@ -8,10 +8,7 @@ import {
   check,
 } from "drizzle-orm/sqlite-core";
 
-import {
-  UserStatus,
-  USER_STATUS_VALUES,
-} from "../../../shared/dist/types/user";
+import { UserStatus, USER_STATUS_VALUES } from "../../../shared/types/user";
 
 export const user = sqliteTable(
   "user",

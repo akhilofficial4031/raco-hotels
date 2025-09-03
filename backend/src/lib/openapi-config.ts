@@ -63,7 +63,7 @@ This API requires both JWT authentication and CSRF tokens for protected operatio
       description: "Local development server",
     },
     {
-      url: "https://api.raco-hotels.com",
+      url: "https://raco-hotels-backend.raco-api.workers.dev",
       description: "Production server",
     },
   ] as object[],

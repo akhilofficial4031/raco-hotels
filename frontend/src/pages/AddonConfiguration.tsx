@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {
   DeleteOutlined,
   EditOutlined,
@@ -193,8 +194,7 @@ const AddonConfigurationPage = () => {
   return (
     <div>
       <TableHeader
-        title={`${addonResponse?.data.addon.name} Configurations`}
-        searchPlaceholder="configurations"
+        searchPlaceholder="Addon"
         showAddButton={false}
         showFilter={false}
         onFilterClick={() => {}}

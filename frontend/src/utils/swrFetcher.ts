@@ -4,7 +4,7 @@ export interface APIError extends Error {
   status?: number;
 }
 
-export const BASE_URL = "http://localhost:8787/api";
+export const BASE_URL = import.meta.env.VITE_API_URL;
 
 // 🔹 Shared error handler
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -43,8 +43,7 @@ export const fetcher = async <T>(url: string): Promise<T> => {
     document.cookie
       .split("; ")
       .find((row) => row.startsWith("csrf_token="))
-      ?.split("=")[1] ||
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiY3NyZiIsInRpbWVzdGFtcCI6MTc1NTUwMjY1OTI5MiwiaWF0IjoxNzU1NTAyNjU5LCJleHAiOjE3NTU1MDYyNTl9.mmqV35KErReume_tA6byg6iw8BLwIKe2gAVSrj3p2tA";
+      ?.split("=")[1] || "";
 
   const res = await fetch(`${BASE_URL}${url}`, {
     credentials: "include",
@@ -76,13 +75,20 @@ export const mutationFetcher = async <TResponse = unknown, TBody = unknown>(
       "mutationFetcher does not support GET requests; use fetcher instead.",
     );
   }
+
+  // Get CSRF token from cookie
+  const csrfToken =
+    document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("csrf_token="))
+      ?.split("=")[1] || "";
+
   const res = await fetch(`${BASE_URL}${url}`, {
     method: method.toUpperCase(),
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      "X-CSRF-Token":
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiY3NyZiIsInRpbWVzdGFtcCI6MTc1NTUwMjY1OTI5MiwiaWF0IjoxNzU1NTAyNjU5LCJleHAiOjE3NTU1MDYyNTl9.mmqV35KErReume_tA6byg6iw8BLwIKe2gAVSrj3p2tA",
+      "X-CSRF-Token": csrfToken,
       ...headers,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -112,12 +118,18 @@ export const multipartMutationFetcher = async <TResponse = unknown>(
     );
   }
 
+  // Get CSRF token from cookie
+  const csrfToken =
+    document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("csrf_token="))
+      ?.split("=")[1] || "";
+
   const res = await fetch(`${BASE_URL}${url}`, {
     method: method.toUpperCase(),
     credentials: "include",
     headers: {
-      "X-CSRF-Token":
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiY3NyZiIsInRpbWVzdGFtcCI6MTc1NTUwMjY1OTI5MiwiaWF0IjoxNzU1NTAyNjU5LCJleHAiOjE3NTU1MDYyNTl9.mmqV35KErReume_tA6byg6iw8BLwIKe2gAVSrj3p2tA",
+      "X-CSRF-Token": csrfToken,
       ...headers,
     },
     body: formData,

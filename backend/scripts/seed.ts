@@ -36,7 +36,7 @@ async function seed() {
     const dbDir = ".wrangler/state/v3/d1/miniflare-D1DatabaseObject/";
     const files = readdirSync(dbDir);
     const dbFile = files.find(
-      (f) => f.endsWith(".sqlite") && f !== "local-db.sqlite",
+      (f) => f.endsWith(".sqlite") && f !== "raco-db.sqlite",
     );
 
     if (!dbFile) {

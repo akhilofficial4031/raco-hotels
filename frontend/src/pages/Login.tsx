@@ -25,7 +25,6 @@ const Login = () => {
   const [apiError, setApiError] = useState<string | null>(null);
 
   const onSubmit = async (data: LoginRequest) => {
-    console.log("Form submitted with data:", data);
     setIsLoading(true);
     setApiError(null);
 

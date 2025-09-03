@@ -22,14 +22,14 @@ export const securityHeadersMiddleware = createMiddleware(async (c, next) => {
     );
   }
 
-  // Content Security Policy
+  // Content Security Policy - relaxed for CORS
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net", // Allow CDN for Swagger UI
     "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net", // Allow CDN for Swagger UI
     "img-src 'self' data: https:",
     "font-src 'self'",
-    "connect-src 'self'",
+    "connect-src 'self' https://raco-admin-fe.pages.dev", // Allow frontend connections
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

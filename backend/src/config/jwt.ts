@@ -39,9 +39,14 @@ export const COOKIE_CONFIG = {
   CSRF_TOKEN_NAME: "csrf_token",
   OPTIONS: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Only secure in production
-    sameSite: "lax" as const, // Changed from strict to lax for better compatibility
+    secure:
+      process.env.NODE_ENV === "production" &&
+      process.env.COOKIE_SECURE !== "false", // Allow disabling secure flag
+    sameSite:
+      (process.env.COOKIE_SAMESITE as "strict" | "lax" | "none") ||
+      (process.env.NODE_ENV === "production" ? "none" : "lax"), // Use "none" for production cross-domain
     path: "/",
+    domain: process.env.COOKIE_DOMAIN || undefined, // Allow setting cookie domain
   },
   ACCESS_TOKEN_MAX_AGE: parseTimeToSeconds(
     process.env.JWT_ACCESS_TOKEN_EXPIRES_IN || "15m",

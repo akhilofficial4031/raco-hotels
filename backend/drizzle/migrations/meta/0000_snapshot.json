@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "6d53baa8-56ea-484f-b6df-262ec76aeb1e",
+  "id": "c3ca8a51-6f0a-4fa1-9c30-c410c136119a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "hotel": {

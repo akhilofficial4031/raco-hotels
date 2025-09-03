@@ -1,6 +1,5 @@
+import { type ICreateRoom, type IRoom } from "../../../shared/models/rooms";
 import { fetcher, mutationFetcher } from "../../../utils/swrFetcher";
-import { type ICreateRoom, type IRoom } from "../../shared/models/rooms";
-import { buildUrlWithParams } from "../../shared/utils/queryParams";
 
 const ROOMS_API_ENDPOINT = "/rooms";
 

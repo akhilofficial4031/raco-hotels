@@ -8,13 +8,17 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit --pretty false",
     "db:generate": "drizzle-kit generate",
-    "db:migrate:apply": "wrangler d1 migrations apply local-db --local",
+    "db:migrate:apply": "wrangler d1 migrations apply DB --local",
+    "db:migrate:apply:prod": "wrangler d1 migrations apply DB --remote --env production",
+    "db:migrate:list": "wrangler d1 migrations list DB --local",
+    "db:migrate:list:prod": "wrangler d1 migrations list DB --remote --env production",
     "db:seed:admin": "tsx scripts/seed-admin.ts",
     "db:seed": "tsx scripts/seed.ts",
     "lint": "eslint . --ext .ts,.tsx,.js",
     "lint:fix": "eslint . --ext .ts,.tsx,.js --fix",
     "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "format:check": "prettier . --check",
+    "deploy": "npx wrangler deploy --env production"
   },
   "dependencies": {
     "@hono/swagger-ui": "^0.5.2",
