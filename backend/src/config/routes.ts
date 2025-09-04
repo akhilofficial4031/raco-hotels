@@ -57,38 +57,45 @@ export function isPublicRoute(path: string, method?: string): boolean {
   // If no method is provided, use the old behavior for backward compatibility
   if (!method) {
     // Check exact matches (routes without method prefix)
-    if (
-      PUBLIC_ROUTES.some(
-        (route) =>
-          typeof route === "string" && !route.includes(":") && route === path,
-      )
-    ) {
+    const exactMatch = PUBLIC_ROUTES.some(
+      (route) =>
+        typeof route === "string" && !route.includes(":") && route === path,
+    );
+    if (exactMatch) {
       return true;
     }
     // Check pattern matches
-    return PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(path));
+    const patternMatch = PUBLIC_ROUTE_PATTERNS.some((pattern) =>
+      pattern.test(path),
+    );
+    return patternMatch;
   }
 
   const upperMethod = method.toUpperCase();
 
-  // Check method-specific routes (e.g., "GET:/hotel")
+  // Check method-specific routes (e.g., "GET:/hotels")
   const methodSpecificRoute = `${upperMethod}:${path}`;
-  if (PUBLIC_ROUTES.includes(methodSpecificRoute as any)) {
+  const methodSpecificMatch = PUBLIC_ROUTES.includes(
+    methodSpecificRoute as any,
+  );
+  if (methodSpecificMatch) {
     return true;
   }
 
   // Check routes without method prefix (all methods allowed)
-  if (
-    PUBLIC_ROUTES.some(
-      (route) =>
-        typeof route === "string" && !route.includes(":") && route === path,
-    )
-  ) {
+  const globalMethodMatch = PUBLIC_ROUTES.some(
+    (route) =>
+      typeof route === "string" && !route.includes(":") && route === path,
+  );
+  if (globalMethodMatch) {
     return true;
   }
 
   // Check pattern matches
-  return PUBLIC_ROUTE_PATTERNS.some((pattern) => pattern.test(path));
+  const patternMatch = PUBLIC_ROUTE_PATTERNS.some((pattern) =>
+    pattern.test(path),
+  );
+  return patternMatch;
 }
 
 /**
@@ -97,5 +104,12 @@ export function isPublicRoute(path: string, method?: string): boolean {
  * @returns normalized path without /api prefix
  */
 export function normalizePath(path: string): string {
-  return path.replace(/^\/api/, "");
+  // Remove /api prefix if present, otherwise return as-is
+  const normalized = path.replace(/^\/api(?=\/|$)/, "");
+  // Ensure path starts with / if not empty
+  return normalized === ""
+    ? "/"
+    : normalized.startsWith("/")
+      ? normalized
+      : `/${normalized}`;
 }
