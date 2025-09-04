@@ -27,6 +27,7 @@ const NewBookings = lazy(() => import("./pages/New-Bookings"));
 const ViewBooking = lazy(() => import("./pages/View-Booking"));
 const EditBooking = lazy(() => import("./pages/Edit-Booking"));
 const EditCustomer = lazy(() => import("./pages/Edit-Customer"));
+const Payment = lazy(() => import("./pages/Payment"));
 
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const SetPassword = lazy(() => import("./pages/SetPasswotd"));
@@ -276,6 +277,16 @@ const router = createBrowserRouter([
               crumb: () => ({
                 label: "Reviews",
                 href: "/reviews",
+              }),
+            },
+          },
+          {
+            path: "payments",
+            Component: withSuspense(Payment),
+            handle: {
+              crumb: () => ({
+                label: "Payment",
+                href: "/payments",
               }),
             },
           },
