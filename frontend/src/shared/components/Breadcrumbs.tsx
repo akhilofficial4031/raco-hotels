@@ -57,7 +57,7 @@ const Breadcrumbs: React.FC = () => {
             const isFirst = index === 0;
 
             return (
-              <React.Fragment key={item.href}>
+              <React.Fragment key={`${item.href}-${index}`}>
                 {/* Separator */}
                 {index > 0 && (
                   <span className="text-gray-400 select-none">/</span>
