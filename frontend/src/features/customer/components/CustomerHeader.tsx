@@ -84,7 +84,7 @@ const CustomerHeader: React.FC<CustomerHeaderProps> = ({
     <div className="flex justify-between items-center bg-white p-6 rounded-lg mb-6 border border-gray-200 shadow-sm customer-header">
       <div className="flex items-center space-x-4 data-group">
         <Avatar size={64} icon={<UserOutlined />} className="bg-blue-500" />
-        <div>
+        <div className="pl-3">
           <Title level={3} className="!m-0">
             {customer.fullName}
           </Title>

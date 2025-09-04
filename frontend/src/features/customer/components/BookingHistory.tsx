@@ -221,12 +221,17 @@ const BookingHistory: React.FC<BookingHistoryProps> = ({ bookingHistory }) => {
       <Tabs defaultActiveKey="active">
         <TabPane
           tab={
-            <Badge count={bookingHistory.active.length} showZero>
-              <span className="flex items-center">
-                <ClockCircleOutlined className="mr-1" />
-                Active
-              </span>
-            </Badge>
+            <span className="flex items-center">
+              <ClockCircleOutlined className="mr-1" />
+              Active
+              <sup>
+                <Badge
+                  count={bookingHistory.active.length}
+                  showZero
+                  className="ml-2"
+                />
+              </sup>
+            </span>
           }
           key="active"
           className="tab-panel"
@@ -243,12 +248,17 @@ const BookingHistory: React.FC<BookingHistoryProps> = ({ bookingHistory }) => {
 
         <TabPane
           tab={
-            <Badge count={bookingHistory.future.length} showZero>
-              <span className="flex items-center">
-                <ExclamationCircleOutlined className="mr-1" />
-                Upcoming
-              </span>
-            </Badge>
+            <span className="flex items-center">
+              <ExclamationCircleOutlined className="mr-1" />
+              Upcoming
+              <sup>
+                <Badge
+                  count={bookingHistory.future.length}
+                  showZero
+                  className="ml-2"
+                />
+              </sup>
+            </span>
           }
           key="future"
         >
@@ -264,12 +274,17 @@ const BookingHistory: React.FC<BookingHistoryProps> = ({ bookingHistory }) => {
 
         <TabPane
           tab={
-            <Badge count={bookingHistory.past.length} showZero>
-              <span className="flex items-center">
-                <CheckCircleOutlined className="mr-1" />
-                Past
-              </span>
-            </Badge>
+            <span className="flex items-center">
+              <CheckCircleOutlined className="mr-1" />
+              Past
+              <sup>
+                <Badge
+                  count={bookingHistory.past.length}
+                  showZero
+                  className="ml-2"
+                />
+              </sup>
+            </span>
           }
           key="past"
         >
