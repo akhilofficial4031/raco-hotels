@@ -24,7 +24,6 @@ import { type CustomerDetailsResponse } from "../../../shared/services/customer.
 type CustomerBooking = CustomerDetailsResponse["bookingHistory"]["past"][0];
 
 const { Text } = Typography;
-const { TabPane } = Tabs;
 
 interface BookingHistoryProps {
   bookingHistory: CustomerDetailsResponse["bookingHistory"];
@@ -209,28 +208,22 @@ const BookingHistory: React.FC<BookingHistoryProps> = ({ bookingHistory }) => {
     />
   );
 
-  return (
-    <Card
-      title={
-        <>
-          <CalendarOutlined /> Booking History
-        </>
-      }
-      className="customer-card"
-    >
-      <Tabs defaultActiveKey="active">
-        <TabPane
-          tab={
-            <Badge count={bookingHistory.active.length} showZero>
-              <span className="flex items-center">
-                <ClockCircleOutlined className="mr-1" />
-                Active
-              </span>
-            </Badge>
-          }
-          key="active"
-          className="tab-panel"
-        >
+  const items = [
+    {
+      key: "active",
+      label: (
+        <span className="flex items-center">
+          <ClockCircleOutlined className="mr-1" />
+          Active
+          <Badge
+            count={bookingHistory.active.length}
+            showZero
+            className="ml-2"
+          />
+        </span>
+      ),
+      children: (
+        <div className="tab-panel">
           {bookingHistory.active.length > 0
             ? renderBookingList(bookingHistory.active, "#1890ff")
             : renderEmptyState(
@@ -239,19 +232,24 @@ const BookingHistory: React.FC<BookingHistoryProps> = ({ bookingHistory }) => {
                 />,
                 "-",
               )}
-        </TabPane>
-
-        <TabPane
-          tab={
-            <Badge count={bookingHistory.future.length} showZero>
-              <span className="flex items-center">
-                <ExclamationCircleOutlined className="mr-1" />
-                Upcoming
-              </span>
-            </Badge>
-          }
-          key="future"
-        >
+        </div>
+      ),
+    },
+    {
+      key: "future",
+      label: (
+        <span className="flex items-center">
+          <ExclamationCircleOutlined className="mr-1" />
+          Upcoming
+          <Badge
+            count={bookingHistory.future.length}
+            showZero
+            className="ml-2"
+          />
+        </span>
+      ),
+      children: (
+        <div>
           {bookingHistory.future.length > 0
             ? renderBookingList(bookingHistory.future, "#52c41a")
             : renderEmptyState(
@@ -260,19 +258,20 @@ const BookingHistory: React.FC<BookingHistoryProps> = ({ bookingHistory }) => {
                 />,
                 "-",
               )}
-        </TabPane>
-
-        <TabPane
-          tab={
-            <Badge count={bookingHistory.past.length} showZero>
-              <span className="flex items-center">
-                <CheckCircleOutlined className="mr-1" />
-                Past
-              </span>
-            </Badge>
-          }
-          key="past"
-        >
+        </div>
+      ),
+    },
+    {
+      key: "past",
+      label: (
+        <span className="flex items-center">
+          <CheckCircleOutlined className="mr-1" />
+          Past
+          <Badge count={bookingHistory.past.length} showZero className="ml-2" />
+        </span>
+      ),
+      children: (
+        <div>
           {bookingHistory.past.length > 0 ? (
             <div>
               <div className="mb-4 flex justify-end">
@@ -295,8 +294,21 @@ const BookingHistory: React.FC<BookingHistoryProps> = ({ bookingHistory }) => {
               "-",
             )
           )}
-        </TabPane>
-      </Tabs>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <Card
+      title={
+        <>
+          <CalendarOutlined /> Booking History
+        </>
+      }
+      className="customer-card"
+    >
+      <Tabs defaultActiveKey="active" items={items} />
     </Card>
   );
 };

@@ -5,10 +5,31 @@ import { SIDEBAR_ITEMS } from "../constants/sidebar";
 import { useSidebar } from "../hooks/useSidebar";
 import { type SidebarItem } from "../models/sidebar";
 
+// Helper function to convert sidebar items to Ant Design Menu items
+const convertToMenuItems = (items: SidebarItem[]): any[] => {
+  return items.map((item) => {
+    if (item.children) {
+      return {
+        key: item.label,
+        icon: item.icon,
+        label: item.label,
+        children: convertToMenuItems(item.children),
+      };
+    }
+    return {
+      key: item.path,
+      icon: item.icon,
+      label: <Link to={item.path}>{item.label}</Link>,
+    };
+  });
+};
+
 const Sidebar = () => {
   const { isOpen } = useSidebar();
   const location = useLocation();
   const sidebarItems: SidebarItem[] = SIDEBAR_ITEMS;
+
+  const menuItems = convertToMenuItems(sidebarItems);
 
   const defaultOpenKey = sidebarItems.find((item) =>
     item.children?.some((child) => location.pathname.includes(child.path)),
@@ -58,23 +79,8 @@ const Sidebar = () => {
         defaultSelectedKeys={selectedKeys}
         defaultOpenKeys={defaultOpenKey ? [defaultOpenKey] : []}
         selectedKeys={selectedKeys}
-      >
-        {sidebarItems.map((item) =>
-          item.children ? (
-            <Menu.SubMenu key={item.label} icon={item.icon} title={item.label}>
-              {item.children.map((child) => (
-                <Menu.Item key={child.path} icon={child.icon}>
-                  <Link to={child.path}>{child.label}</Link>
-                </Menu.Item>
-              ))}
-            </Menu.SubMenu>
-          ) : (
-            <Menu.Item key={item.path} icon={item.icon}>
-              <Link to={item.path}>{item.label}</Link>
-            </Menu.Item>
-          ),
-        )}
-      </Menu>
+        items={menuItems}
+      />
     </aside>
   );
 };

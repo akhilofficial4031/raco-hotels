@@ -9,11 +9,11 @@ import {
   Tag,
   Dropdown,
   Button,
-  Menu,
   Typography,
   Row,
   Col,
   List,
+  type MenuProps,
 } from "antd";
 import { useNavigate, useParams } from "react-router";
 import useSWR from "swr";
@@ -55,22 +55,19 @@ function ViewBooking() {
     }
   };
 
-  const menu = (
-    <Menu>
-      <Menu.Item
-        key="edit"
-        icon={<EditOutlined />}
-        onClick={() => navigate(`/bookings/${id}/edit`)}
-      >
-        Edit
-      </Menu.Item>
-      {booking?.status === "confirmed" && (
-        <Menu.Item key="cancel" icon={<CloseCircleOutlined />}>
-          Cancel Booking
-        </Menu.Item>
-      )}
-    </Menu>
-  );
+  const menuItems = [
+    {
+      key: "edit",
+      icon: <EditOutlined />,
+      label: "Edit",
+      onClick: () => navigate(`/bookings/${id}/edit`),
+    },
+    {
+      key: "cancel",
+      icon: <CloseCircleOutlined />,
+      label: "Cancel Booking",
+    },
+  ].filter(Boolean) as Required<MenuProps>["items"];
 
   if (isLoading) {
     return (
@@ -100,7 +97,7 @@ function ViewBooking() {
             Booking #{booking.referenceCode}
           </Title>
         </div>
-        <Dropdown menu={{ items: menu.props.items }} trigger={["click"]}>
+        <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
           <Button icon={<MoreOutlined />} />
         </Dropdown>
       </div>

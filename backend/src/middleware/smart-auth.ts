@@ -39,6 +39,7 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
     // Check if this is a public route - if so, skip authentication
     const normalizedPath = normalizePath(c.req.path);
     const method = c.req.method;
+
     if (isPublicRoute(normalizedPath, method)) {
       return next();
     }
@@ -59,72 +60,31 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
           payload.userId,
         );
         if (!user) {
-          throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-            message: "User not found or inactive",
-            cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+          // Clear invalid access token
+          setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, "", {
+            ...COOKIE_CONFIG.OPTIONS,
+            maxAge: 0,
           });
+          // Don't throw here, continue to refresh logic
+        } else {
+          // Store user information in context and continue
+          c.set("user", payload);
+          return next();
         }
-
-        // Store user information in context
-        c.set("user", payload);
-        return next();
       } catch {
-        // Access token is invalid/expired, try to refresh it below
+        // Clear invalid access token
+        setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, "", {
+          ...COOKIE_CONFIG.OPTIONS,
+          maxAge: 0,
+        });
+        // Continue to refresh logic below
       }
     }
 
-    // If no access token in cookie but we have a refresh token, check if there's a fresh access token in KV
-    if (!accessToken && refreshToken) {
-      try {
-        const refreshPayload = verifyToken(refreshToken);
-        if (refreshPayload && refreshPayload.tokenId) {
-          // Check if there's a fresh access token in KV storage
-          const storedAccessToken = await AuthService.getAccessToken(
-            c.env.KV,
-            refreshPayload.tokenId,
-          );
-
-          if (storedAccessToken) {
-            try {
-              // Verify the stored access token
-              const payload = verifyToken(storedAccessToken.token);
-
-              // Verify user still exists and is active
-              const user = await AuthService.getUserForToken(
-                c.env.DB,
-                payload.userId,
-              );
-
-              if (user) {
-                // Set the fresh access token as a cookie for future requests
-                setCookie(
-                  c,
-                  COOKIE_CONFIG.ACCESS_TOKEN_NAME,
-                  storedAccessToken.token,
-                  {
-                    ...COOKIE_CONFIG.OPTIONS,
-                    maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
-                  },
-                );
-
-                // Store user information in context
-                c.set("user", payload);
-                return next();
-              }
-            } catch {
-              // Stored access token is invalid, continue to refresh logic
-            }
-          }
-        }
-      } catch {
-        // Continue to refresh logic if refresh token is invalid
-      }
-    }
-
-    // No access token or access token is invalid - try to refresh using refresh token
+    // No valid access token - try to refresh using refresh token
     if (!refreshToken) {
       throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-        message: "No valid tokens found",
+        message: "Authentication required - no valid tokens found",
         cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
       });
     }
@@ -134,10 +94,7 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
       const refreshPayload = verifyToken(refreshToken);
 
       if (!refreshPayload || !refreshPayload.tokenId) {
-        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-          message: "Invalid refresh token",
-          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
-        });
+        throw new Error("Invalid refresh token structure");
       }
 
       // Check if refresh token exists and is valid in KV
@@ -146,11 +103,12 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
         refreshPayload.tokenId,
       );
 
-      if (!storedToken || storedToken.token !== refreshToken) {
-        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-          message: "Invalid refresh token",
-          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
-        });
+      if (!storedToken) {
+        throw new Error("Refresh token not found");
+      }
+
+      if (storedToken.token !== refreshToken) {
+        throw new Error("Refresh token mismatch");
       }
 
       // Get user to ensure they still exist and are active
@@ -160,12 +118,13 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
       );
 
       if (!user) {
-        // Remove invalid token from KV
+        // Clean up invalid tokens
         await AuthService.revokeRefreshToken(c.env.KV, refreshPayload.tokenId);
-        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-          message: "User not found or inactive",
-          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+        setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+          ...COOKIE_CONFIG.OPTIONS,
+          maxAge: 0,
         });
+        throw new Error("User not found or inactive");
       }
 
       // Generate new token ID for security
@@ -183,8 +142,7 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
       const newRefreshToken = generateRefreshToken(newTokenPayload);
       const newCsrfToken = generateCSRFToken();
 
-      // Remove old refresh token and store new tokens
-      await AuthService.revokeRefreshToken(c.env.KV, refreshPayload.tokenId);
+      // Store new tokens in KV first, then clean up old ones
       await Promise.all([
         AuthService.storeRefreshToken(
           c.env.KV,
@@ -199,6 +157,9 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
           user.id,
         ),
       ]);
+
+      // Clean up old refresh token after new ones are stored
+      await AuthService.revokeRefreshToken(c.env.KV, refreshPayload.tokenId);
 
       // Set new cookies
       setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, newAccessToken, {
@@ -223,7 +184,21 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
       // Continue with the request
       return next();
     } catch {
-      // Refresh token is also invalid, user needs to login again
+      // Clear all invalid tokens
+      setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, "", {
+        ...COOKIE_CONFIG.OPTIONS,
+        maxAge: 0,
+      });
+      setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+        ...COOKIE_CONFIG.OPTIONS,
+        maxAge: 0,
+      });
+      setCookie(c, COOKIE_CONFIG.CSRF_TOKEN_NAME, "", {
+        ...COOKIE_CONFIG.OPTIONS,
+        maxAge: 0,
+      });
+
+      // User needs to login again
       throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
         message: "Session expired, please login again",
         cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
@@ -234,7 +209,9 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
       throw error;
     }
 
-    // Handle any other errors
+    console.error("Authentication middleware error:", error);
+
+    // Handle any other errors by requiring re-authentication
     throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
       message: "Authentication failed",
       cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
@@ -263,8 +240,19 @@ export const optionalSmartAuthMiddleware = createMiddleware(async (c, next) => {
         );
         if (user) {
           c.set("user", payload);
+        } else {
+          // Clear invalid access token
+          setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, "", {
+            ...COOKIE_CONFIG.OPTIONS,
+            maxAge: 0,
+          });
         }
       } catch {
+        // Clear invalid access token
+        setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, "", {
+          ...COOKIE_CONFIG.OPTIONS,
+          maxAge: 0,
+        });
         // Try to refresh token if access token is expired
         if (refreshToken) {
           try {
@@ -295,7 +283,7 @@ export const optionalSmartAuthMiddleware = createMiddleware(async (c, next) => {
                   const newRefreshToken = generateRefreshToken(newTokenPayload);
                   const newCsrfToken = generateCSRFToken();
 
-                  // Store new tokens in KV
+                  // Store new tokens in KV first
                   await Promise.all([
                     AuthService.storeRefreshToken(
                       c.env.KV,
@@ -310,6 +298,12 @@ export const optionalSmartAuthMiddleware = createMiddleware(async (c, next) => {
                       user.id,
                     ),
                   ]);
+
+                  // Clean up old token
+                  await AuthService.revokeRefreshToken(
+                    c.env.KV,
+                    refreshPayload.tokenId,
+                  );
 
                   // Set new cookies
                   setCookie(
@@ -339,11 +333,31 @@ export const optionalSmartAuthMiddleware = createMiddleware(async (c, next) => {
                   });
 
                   c.set("user", newTokenPayload);
+                } else {
+                  // User not found, clear refresh token
+                  await AuthService.revokeRefreshToken(
+                    c.env.KV,
+                    refreshPayload.tokenId,
+                  );
+                  setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+                    ...COOKIE_CONFIG.OPTIONS,
+                    maxAge: 0,
+                  });
                 }
+              } else {
+                // Invalid refresh token, clear it
+                setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+                  ...COOKIE_CONFIG.OPTIONS,
+                  maxAge: 0,
+                });
               }
             }
           } catch {
-            // Silently ignore refresh errors for optional auth
+            // Silently ignore refresh errors for optional auth, but clear invalid tokens
+            setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+              ...COOKIE_CONFIG.OPTIONS,
+              maxAge: 0,
+            });
           }
         }
       }

@@ -8,7 +8,7 @@ import {
   CrownOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons";
-import { Avatar, Button, Dropdown, Menu, Space, Tag, Typography } from "antd";
+import { Avatar, Button, Dropdown, Space, Tag, Typography } from "antd";
 import React from "react";
 import { useNavigate } from "react-router";
 
@@ -55,36 +55,36 @@ const CustomerHeader: React.FC<CustomerHeaderProps> = ({
     }
   };
 
-  const menu = (
-    <Menu>
-      <Menu.Item
-        key="edit"
-        icon={<EditOutlined />}
-        onClick={() => navigate(`/customers/${customerId}/edit`)}
-      >
-        Edit Customer
-      </Menu.Item>
-      <Menu.Item
-        key="new-booking"
-        icon={<PlusOutlined />}
-        onClick={() => navigate(`/bookings/create?customerId=${customerId}`)}
-      >
-        Create Booking
-      </Menu.Item>
-      <Menu.Item key="email" icon={<MailOutlined />}>
-        Send Email
-      </Menu.Item>
-      <Menu.Item key="call" icon={<PhoneOutlined />}>
-        Call Customer
-      </Menu.Item>
-    </Menu>
-  );
+  const menuItems = [
+    {
+      key: "edit",
+      icon: <EditOutlined />,
+      label: "Edit",
+      onClick: () => navigate(`/customers/${customerId}/edit`),
+    },
+    {
+      key: "new-booking",
+      icon: <PlusOutlined />,
+      label: "Create Booking",
+      onClick: () => navigate(`/bookings/create?customerId=${customerId}`),
+    },
+    {
+      key: "email",
+      icon: <MailOutlined />,
+      label: "Send Email",
+    },
+    {
+      key: "call",
+      icon: <PhoneOutlined />,
+      label: "Call Customer",
+    },
+  ];
 
   return (
     <div className="flex justify-between items-center bg-white p-6 rounded-lg mb-6 border border-gray-200 shadow-sm customer-header">
       <div className="flex items-center space-x-4 data-group">
         <Avatar size={64} icon={<UserOutlined />} className="bg-blue-500" />
-        <div>
+        <div className="pl-3">
           <Title level={3} className="!m-0">
             {customer.fullName}
           </Title>
@@ -118,7 +118,7 @@ const CustomerHeader: React.FC<CustomerHeaderProps> = ({
           </div>
         </div>
       </div>
-      <Dropdown menu={{ items: menu.props.items }} trigger={["click"]}>
+      <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
         <Button icon={<MoreOutlined />} size="large" />
       </Dropdown>
     </div>

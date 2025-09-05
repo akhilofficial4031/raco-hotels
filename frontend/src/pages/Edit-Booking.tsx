@@ -7,11 +7,14 @@ import useSWR from "swr";
 import BookingDetailsForm from "../features/bookings/BookingDetailsForm";
 import CustomerInformationForm from "../features/bookings/CustomerInformationForm";
 import ReviewAndSubmit from "../features/bookings/ReviewAndSubmit";
+import RoomSelection from "../features/bookings/RoomSelection";
 import { type CustomerData } from "../features/bookings/schemas";
 import { updateBooking } from "../features/bookings/services/booking.service";
 import Spinner from "../shared/components/Spinner";
 import { type ApiResponse } from "../shared/models";
+import { type Addon } from "../shared/models/addon";
 import { type Booking } from "../shared/models/bookings";
+import { type IRoom } from "../shared/models/rooms";
 import { fetcher } from "../utils/swrFetcher";
 
 const { Title } = Typography;
@@ -19,6 +22,8 @@ const { Title } = Typography;
 interface BookingData {
   bookingDetails?: any;
   customerData?: CustomerData;
+  selectedRooms?: IRoom[];
+  selectedAddons?: Addon[];
 }
 
 function EditBooking() {
@@ -53,6 +58,9 @@ function EditBooking() {
           numAdults: booking.numAdults,
           numChildren: booking.numChildren,
           status: booking.status,
+          hotelId: booking.hotelId,
+          roomTypeId: booking.items?.[0]?.room.roomTypeId,
+          numRooms: booking.items?.length,
         },
         customerData: {
           fullName: booking.customer?.fullName ?? "",
@@ -66,6 +74,8 @@ function EditBooking() {
           emergencyContactPhone: booking.customer?.emergencyContactPhone ?? "",
           notes: booking.customer?.notes ?? "",
         },
+        selectedRooms: booking.items?.map((item: any) => item.room),
+        selectedAddons: booking.addons,
       });
     }
   }, [booking]);
@@ -83,9 +93,21 @@ function EditBooking() {
     setCurrentStep(1);
   };
 
+  const handleRoomSelectionFinish = (values: {
+    selectedRooms: IRoom[];
+    selectedAddons: Addon[];
+  }) => {
+    setBookingData((prev) => ({
+      ...prev,
+      selectedRooms: values.selectedRooms,
+      selectedAddons: values.selectedAddons,
+    }));
+    setCurrentStep(2);
+  };
+
   const handleCustomerInfoFinish = (values: CustomerData) => {
     setBookingData((prev) => ({ ...prev, customerData: values }));
-    setCurrentStep(2);
+    setCurrentStep(3);
   };
 
   const handleBack = () => {
@@ -120,6 +142,12 @@ function EditBooking() {
         emergencyContactPhone: bookingData.customerData?.emergencyContactPhone,
         notes: bookingData.customerData?.notes,
       },
+      selectedRooms: bookingData.selectedRooms?.map((room) => ({
+        id: room.id,
+      })),
+      selectedAddons: bookingData.selectedAddons?.map((addon) => ({
+        id: addon.id,
+      })),
     };
 
     try {
@@ -149,6 +177,26 @@ function EditBooking() {
           mode="edit"
         />
       ),
+    },
+    {
+      title: "Room & Add-ons",
+      content: bookingData.bookingDetails ? (
+        <RoomSelection
+          hotelId={bookingData.bookingDetails.hotelId}
+          roomTypeId={bookingData.bookingDetails.roomTypeId}
+          checkInDate={bookingData.bookingDetails.checkInDate.format(
+            "YYYY-MM-DD",
+          )}
+          checkOutDate={bookingData.bookingDetails.checkOutDate.format(
+            "YYYY-MM-DD",
+          )}
+          numRooms={bookingData.bookingDetails.numRooms}
+          onNext={handleRoomSelectionFinish}
+          onBack={handleBack}
+          initialSelectedRooms={bookingData.selectedRooms}
+          initialSelectedAddons={bookingData.selectedAddons}
+        />
+      ) : null,
     },
     {
       title: "Customer Information",

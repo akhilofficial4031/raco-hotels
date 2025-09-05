@@ -320,8 +320,6 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
       isActive: formData.isActive ?? 1,
     };
 
-    console.log("Form data being submitted:", cleanedData);
-
     // Pass image data to parent
     onSubmit(
       cleanedData,

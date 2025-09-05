@@ -23,11 +23,6 @@ function CustomerDetails() {
   const { id } = useParams<{ id: string }>();
   const { data: customerData, loading, error } = useCustomerDetails(id);
 
-  // Debug logging
-  console.log("CustomerDetails - customerData:", customerData);
-  console.log("CustomerDetails - loading:", loading);
-  console.log("CustomerDetails - error:", error);
-
   // Loading state
   if (loading) {
     return (
