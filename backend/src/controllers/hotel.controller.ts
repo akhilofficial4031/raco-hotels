@@ -1,4 +1,8 @@
 import { ApiResponse, HotelResponse, handleAsyncRoute } from "../lib/responses";
+import {
+  CreateHotelRequestSchema,
+  UpdateHotelRequestSchema,
+} from "../schemas/hotel.schema";
 import { HotelService } from "../services/hotel.service";
 
 import type { AppContext } from "../types";
@@ -79,10 +83,13 @@ export class HotelController {
           }
 
           try {
+            // Manually validate the parsed hotel data since automatic validation doesn't work with multipart
+            const validatedData = CreateHotelRequestSchema.parse(hotelData);
+
             const result = await HotelService.createHotelWithImages(
               c.env.DB,
               c.env.R2_BUCKET,
-              hotelData,
+              validatedData,
               imageFiles,
               c.env.R2_PUBLIC_BASE_URL || "",
             );
@@ -102,7 +109,12 @@ export class HotelController {
           // Handle JSON payload (hotel only)
           const payload = await c.req.json();
           try {
-            const created = await HotelService.createHotel(c.env.DB, payload);
+            // Validate the JSON payload
+            const validatedData = CreateHotelRequestSchema.parse(payload);
+            const created = await HotelService.createHotel(
+              c.env.DB,
+              validatedData,
+            );
             // Return as hotel with images format but with empty images array
             return HotelResponse.hotelWithImagesCreated(c, created, []);
           } catch (e) {
@@ -156,11 +168,14 @@ export class HotelController {
           }
 
           try {
+            // Manually validate the parsed hotel data
+            const validatedData = UpdateHotelRequestSchema.parse(hotelData);
+
             const result = await HotelService.updateHotelWithImages(
               c.env.DB,
               c.env.R2_BUCKET,
               id,
-              hotelData,
+              validatedData,
               imageFiles.length > 0 ? imageFiles : undefined,
               replaceImages,
               c.env.R2_PUBLIC_BASE_URL || "",
@@ -185,10 +200,12 @@ export class HotelController {
           // Handle JSON payload (hotel data only)
           const payload = await c.req.json();
           try {
+            // Validate the JSON payload
+            const validatedData = UpdateHotelRequestSchema.parse(payload);
             const updated = await HotelService.updateHotel(
               c.env.DB,
               id,
-              payload,
+              validatedData,
             );
             // Get current images to return complete hotel with images
             const images = await HotelService.getHotelImages(c.env.DB, id);

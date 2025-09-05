@@ -102,6 +102,8 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
 
+  const imageBaseUrl = import.meta.env.VITE_BUCKET_URL;
+
   // Fetch amenities and features for dropdowns
   const { data: amenitiesData } = useSWR(
     "/amenities",
@@ -888,13 +890,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
               {isEditMode && existingImages.length > 0 && !replaceImages && (
                 <div>
                   <h4 className="font-medium mb-3">Current Images</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="flex flex-wrap gap-4">
                     {existingImages.map((image) => (
-                      <div key={image.id} className="relative group">
+                      <div key={image.id} className="relative">
                         <Image
-                          src={image.url}
+                          src={`${imageBaseUrl}/${image.url.replace("r2://", "")}`}
                           alt={image.alt || "Hotel image"}
-                          className="w-full h-24 object-cover rounded-lg"
+                          className="w-full !h-24 object-cover rounded-lg"
                           preview={{
                             mask: <EyeOutlined className="text-white" />,
                           }}

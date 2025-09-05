@@ -44,9 +44,10 @@ export const HotelRouteDefinitions = {
     method: "post",
     path: "/hotels",
     summary: "Create hotel",
-    description: "Create a new hotel with hotel information.",
+    description:
+      "Create a new hotel with hotel information. Supports both JSON and multipart/form-data (with images).",
     tags: [ApiTags.HOTELS],
-    requestSchema: CreateHotelRequestSchema,
+    // Note: No requestSchema due to multipart/form-data support - validation handled in controller
     successSchema: HotelWithImagesResponseSchema,
     successDescription: "Hotel created successfully",
     includeBadRequest: true,
@@ -57,10 +58,11 @@ export const HotelRouteDefinitions = {
     method: "put",
     path: "/hotels/{id}",
     summary: "Update hotel",
-    description: "Update an existing hotel information.",
+    description:
+      "Update an existing hotel information. Supports both JSON and multipart/form-data (with images).",
     tags: [ApiTags.HOTELS],
     paramsSchema: HotelPathParamsSchema,
-    requestSchema: UpdateHotelRequestSchema,
+    // Note: No requestSchema due to multipart/form-data support - validation handled in controller
     successSchema: HotelWithImagesResponseSchema,
     successDescription: "Hotel updated successfully",
     includeBadRequest: true,

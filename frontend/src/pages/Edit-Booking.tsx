@@ -169,6 +169,7 @@ function EditBooking() {
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode="edit"
+          onPromoCodeChange={() => {}}
         />
       ),
     },

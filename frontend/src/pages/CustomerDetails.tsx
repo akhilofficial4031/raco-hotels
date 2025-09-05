@@ -73,8 +73,8 @@ function CustomerDetails() {
     );
   }
 
-  // Destructure with safety checks - handle both direct response and wrapped response
-  const responseData = customerData.data || customerData;
+  // Destructure with safety checks - customerData is already the unwrapped response
+  const responseData = customerData;
   const {
     customer,
     currentBooking,
