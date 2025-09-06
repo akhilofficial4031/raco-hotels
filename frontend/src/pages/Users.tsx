@@ -226,10 +226,10 @@ const Users = () => {
                 icon: <DeleteOutlined />,
                 label: "Delete",
                 onClick: () => handleDeleteUser(record),
-                disabled: record.email === loggedInUser?.email,
               },
             ],
           }}
+          disabled={record.email === loggedInUser?.email}
         >
           <Button icon={<MoreOutlined />} />
         </Dropdown>
