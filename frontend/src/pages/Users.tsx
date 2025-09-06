@@ -5,7 +5,16 @@ import {
   EyeOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
-import { Button, Dropdown, Modal, Pagination, Table, message, Tag } from "antd";
+import {
+  Button,
+  Dropdown,
+  Modal,
+  Pagination,
+  Table,
+  message,
+  Tag,
+  Tooltip,
+} from "antd";
 import { type ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
@@ -122,7 +131,7 @@ const Users = () => {
   };
 
   const handleSearch = (value: string) => {
-    setFilterParams((prev) => ({ ...prev, search: value }));
+    setFilterParams((prev) => ({ ...prev, search: value, page: 1 }));
   };
 
   const handleActivateUser = async (user: User) => {
@@ -144,6 +153,19 @@ const Users = () => {
       title: "Name",
       dataIndex: "fullName",
       key: "fullName",
+      render: (fullName: string, record: User) => {
+        if (record.email === loggedInUser?.email) {
+          return (
+            <div className="flex items-center">
+              <span>{fullName}</span>
+              <Tooltip title="Current Logged User">
+                <span className="ml-2 w-2 h-2 bg-green-500 rounded-full"></span>
+              </Tooltip>
+            </div>
+          );
+        }
+        return fullName;
+      },
     },
     {
       title: "Email",
@@ -204,6 +226,7 @@ const Users = () => {
                 icon: <DeleteOutlined />,
                 label: "Delete",
                 onClick: () => handleDeleteUser(record),
+                disabled: record.email === loggedInUser?.email,
               },
             ],
           }}
@@ -216,11 +239,7 @@ const Users = () => {
 
   useEffect(() => {
     if (response?.data.users) {
-      setFilteredUsers(
-        response?.data.users.filter(
-          (user) => user?.email !== loggedInUser?.email,
-        ),
-      );
+      setFilteredUsers(response?.data.users);
     }
   }, [response]);
 
