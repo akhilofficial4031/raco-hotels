@@ -1,4 +1,4 @@
-import { and, count, desc, eq, like } from "drizzle-orm";
+import { and, count, desc, eq, like, or } from "drizzle-orm";
 
 import {
   hotel as hotelTable,
@@ -48,7 +48,14 @@ export class ReviewRepository {
     if (filters.status) conditions.push(eq(reviewTable.status, filters.status));
     if (filters.search) {
       const pattern = `%${filters.search}%`;
-      conditions.push(like((reviewTable as any).title, pattern));
+      conditions.push(
+        or(
+          like(reviewTable.title, pattern),
+          like(reviewTable.body, pattern),
+          like(hotelTable.name, pattern),
+          like(userTable.fullName, pattern),
+        ),
+      );
     }
 
     const whereClause = conditions.length ? and(...conditions) : undefined;
@@ -57,6 +64,8 @@ export class ReviewRepository {
     const totalResult = await database
       .select({ count: count() })
       .from(reviewTable)
+      .leftJoin(hotelTable, eq(reviewTable.hotelId, hotelTable.id))
+      .leftJoin(userTable, eq(reviewTable.userId, userTable.id))
       .where(whereClause);
     const total = totalResult[0]?.count || 0;
 
