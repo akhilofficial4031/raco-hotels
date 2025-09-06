@@ -22,6 +22,10 @@ export class AmenityRepository {
 
     const conditions = [] as any[];
 
+    if (search) {
+      conditions.push(like(amenityTable.name, `%${search}%`));
+    }
+
     const whereClause = conditions.length ? and(...conditions) : undefined;
 
     const totalResult = await database
@@ -29,10 +33,6 @@ export class AmenityRepository {
       .from(amenityTable)
       .where(whereClause);
     const total = totalResult[0]?.count || 0;
-
-    if (search) {
-      conditions.push(like(amenityTable.name, `%${search}%`));
-    }
 
     const rows = await database
       .select()
