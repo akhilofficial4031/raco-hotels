@@ -1,11 +1,12 @@
 /* eslint-disable no-unused-vars */
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, Input, Button, Row, Col, Space, message } from "antd";
+import { Form, Input, Button, Row, Col, Space, message, Select } from "antd";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { type CustomerData, CustomerDataSchema } from "./schemas";
 import { findCustomerByPhone } from "../../shared/services/customer.service";
+import { nationalities } from "../../utils/nationalities";
 
 const { TextArea } = Input;
 
@@ -27,7 +28,7 @@ const CustomerInformationForm = ({
     setValue,
   } = useForm<CustomerData>({
     resolver: zodResolver(CustomerDataSchema),
-    defaultValues: initialData,
+    defaultValues: initialData ?? { nationality: "Indian" },
   });
 
   const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
@@ -196,7 +197,13 @@ const CustomerInformationForm = ({
               name="nationality"
               control={control}
               render={({ field }) => (
-                <Input {...field} placeholder="Enter nationality" />
+                <Select {...field} placeholder="Select nationality" showSearch>
+                  {nationalities.map((nationality) => (
+                    <Select.Option key={nationality} value={nationality}>
+                      {nationality}
+                    </Select.Option>
+                  ))}
+                </Select>
               )}
             />
           </Form.Item>
