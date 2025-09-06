@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { z } from "zod";
 
+import GenerateRoomsModal from "../../features/rooms/components/GenerateRoomsModal";
 import RoomForm from "../../features/rooms/RoomForm";
 import { createRooms } from "../../features/rooms/services/room.service";
 import { type ICreateRoom, RoomStatus } from "../../shared/models/rooms";
@@ -23,6 +24,7 @@ const addRoomSchema = z.object({
 function AddRoomPage() {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
 
   const {
     control,
@@ -30,6 +32,7 @@ function AddRoomPage() {
     formState: { errors },
     watch,
     resetField,
+    setValue,
   } = useForm<any>({
     resolver: zodResolver(addRoomSchema),
     defaultValues: {
@@ -67,6 +70,10 @@ function AddRoomPage() {
     }
   };
 
+  const handleGenerateRooms = (roomNumbers: string[]) => {
+    setValue("roomNumbers", roomNumbers.join("\n"));
+  };
+
   return (
     <div>
       <Form layout="vertical" onFinish={handleSubmit(handleAddRoom)}>
@@ -79,6 +86,7 @@ function AddRoomPage() {
             errors={errors}
             isEditMode={false}
             selectedHotelId={selectedHotelId}
+            onGenerateClick={() => setIsGenerateModalOpen(true)}
           />
         </Card>
         <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
@@ -100,6 +108,11 @@ function AddRoomPage() {
           </Button>
         </div>
       </Form>
+      <GenerateRoomsModal
+        open={isGenerateModalOpen}
+        onClose={() => setIsGenerateModalOpen(false)}
+        onGenerate={handleGenerateRooms}
+      />
     </div>
   );
 }

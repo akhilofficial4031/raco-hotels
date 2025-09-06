@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { Form, Input, Select } from "antd";
+import { Button, Form, Input, Select } from "antd";
 import { Controller } from "react-hook-form";
 import useSWR from "swr";
 
@@ -14,6 +14,7 @@ interface RoomFormProps {
   errors: any;
   isEditMode: boolean;
   selectedHotelId?: number;
+  onGenerateClick?: () => void;
 }
 
 const RoomForm: React.FC<RoomFormProps> = ({
@@ -21,6 +22,7 @@ const RoomForm: React.FC<RoomFormProps> = ({
   errors,
   isEditMode,
   selectedHotelId,
+  onGenerateClick,
 }) => {
   const { data: hotelsData } = useSWR("/hotels", getHotels);
 
@@ -93,20 +95,30 @@ const RoomForm: React.FC<RoomFormProps> = ({
           />
         </Form.Item>
       ) : (
-        <Form.Item
-          label="Room Numbers (one per line)"
-          required
-          validateStatus={errors.roomNumbers ? "error" : ""}
-          help={errors.roomNumbers?.message as string}
-        >
-          <Controller
-            name="roomNumbers"
-            control={control}
-            render={({ field }) => (
-              <TextArea {...field} placeholder={"101\n102A\n103"} rows={4} />
-            )}
-          />
-        </Form.Item>
+        <>
+          <div className="flex justify-between items-center mb-2">
+            <label
+              htmlFor="roomNumbers"
+              className="ant-form-item-required"
+              style={{ lineHeight: "32px" }}
+            >
+              Room Numbers (one per line)
+            </label>
+            <Button onClick={onGenerateClick}>Generate Room Numbers</Button>
+          </div>
+          <Form.Item
+            validateStatus={errors.roomNumbers ? "error" : ""}
+            help={errors.roomNumbers?.message as string}
+          >
+            <Controller
+              name="roomNumbers"
+              control={control}
+              render={({ field }) => (
+                <TextArea {...field} placeholder={"101\n102A\n103"} rows={4} />
+              )}
+            />
+          </Form.Item>
+        </>
       )}
 
       <Form.Item
