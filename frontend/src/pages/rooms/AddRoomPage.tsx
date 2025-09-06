@@ -8,6 +8,7 @@ import { z } from "zod";
 import GenerateRoomsModal from "../../features/rooms/components/GenerateRoomsModal";
 import RoomForm from "../../features/rooms/RoomForm";
 import { createRooms } from "../../features/rooms/services/room.service";
+import { useQueryParams } from "../../shared/hooks";
 import { type ICreateRoom, RoomStatus } from "../../shared/models/rooms";
 
 const addRoomSchema = z.object({
@@ -15,7 +16,14 @@ const addRoomSchema = z.object({
   roomTypeId: z.number({ message: "Room type is required" }),
   roomNumbers: z
     .string()
-    .min(1, { message: "At least one room number is required" }),
+    .min(1, { message: "At least one room number is required" })
+    .refine(
+      (value) => {
+        const roomCount = value.split("\n").filter(Boolean).length;
+        return roomCount <= 20;
+      },
+      { message: "You can add a maximum of 20 rooms at a time" },
+    ),
   floor: z.string().optional(),
   description: z.string().optional(),
   status: z.nativeEnum(RoomStatus).optional(),
@@ -23,6 +31,7 @@ const addRoomSchema = z.object({
 
 function AddRoomPage() {
   const navigate = useNavigate();
+  const { queryParams } = useQueryParams();
   const [isSaving, setIsSaving] = useState(false);
   const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
 
@@ -36,7 +45,9 @@ function AddRoomPage() {
   } = useForm<any>({
     resolver: zodResolver(addRoomSchema),
     defaultValues: {
-      hotelId: undefined,
+      hotelId: queryParams.get("hotelId")
+        ? Number(queryParams.get("hotelId"))
+        : undefined,
       roomTypeId: undefined,
       roomNumbers: "",
       floor: "",
@@ -62,7 +73,7 @@ function AddRoomPage() {
         .filter(Boolean);
       await createRooms({ ...data, roomNumbers });
       message.success("Rooms added successfully");
-      navigate("/rooms");
+      navigate(`/rooms?hotelId=${data.hotelId}`);
     } catch (error: any) {
       message.error(error.info?.message || "Failed to add rooms");
     } finally {

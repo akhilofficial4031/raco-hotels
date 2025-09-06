@@ -126,6 +126,12 @@ function Rooms() {
     }
   };
 
+  const handleAddRoom = () => {
+    navigate(
+      selectedHotelId ? `/rooms/add?hotelId=${selectedHotelId}` : "/rooms/add",
+    );
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-2 border border-gray-200">
@@ -139,11 +145,7 @@ function Rooms() {
             label: hotel.name,
           }))}
         />
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => navigate("/rooms/add")}
-        >
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddRoom}>
           Add Rooms
         </Button>
       </div>
