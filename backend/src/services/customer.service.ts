@@ -55,8 +55,11 @@ export class CustomerService {
     return await CustomerRepository.findById(db, id);
   }
 
-  static async getAllCustomers(db: D1Database): Promise<DatabaseCustomer[]> {
-    return await CustomerRepository.findAll(db);
+  static async getAllCustomers(
+    db: D1Database,
+    filters: { page?: number; limit?: number; search?: string },
+  ) {
+    return await CustomerRepository.findAll(db, filters);
   }
 
   /**

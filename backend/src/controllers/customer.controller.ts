@@ -1,7 +1,7 @@
 import { ApiResponse, handleAsyncRoute } from "../lib/responses";
 import { CustomerService } from "../services/customer.service";
 
-import type { AppContext } from "../types";
+import type { AppContext, CustomerSearchFilters } from "../types";
 
 export class CustomerController {
   /**
@@ -33,9 +33,14 @@ export class CustomerController {
     return handleAsyncRoute(
       c,
       async () => {
-        const customers = await CustomerService.getAllCustomers(c.env.DB);
+        const { page, limit, search } = c.req.query();
+        const result = await CustomerService.getAllCustomers(c.env.DB, {
+          page: page ? parseInt(page, 10) : 1,
+          limit: limit ? parseInt(limit, 10) : 10,
+          search,
+        });
         return ApiResponse.success(c, {
-          customers,
+          ...result,
           message: "customers.retrieved",
         });
       },
@@ -198,24 +203,32 @@ export class CustomerController {
   /**
    * Search customers with filters
    */
-  // static async search(c: AppContext) {
-  //   return handleAsyncRoute(
-  //     c,
-  //     async () => {
-  //       const query = c.req.valid("");
-  //       const result = await CustomerService.searchCustomers(c.env.DB, query);
-
-  //       return ApiResponse.success(c, {
-  //         ...result,
-  //         message:
-  //           result.customers.length > 0
-  //             ? "customer.searchResults"
-  //             : "customer.noSearchResults",
-  //       });
-  //     },
-  //     "operation.searchCustomersFailed",
-  //   );
-  // }
+  static async searchCustomers(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const query = c.req.query();
+        const filters: CustomerSearchFilters = {
+          ...query,
+          page: query.page ? parseInt(query.page, 10) : undefined,
+          limit: query.limit ? parseInt(query.limit, 10) : undefined,
+          hasBookings:
+            query.hasBookings !== undefined
+              ? query.hasBookings === "true"
+              : undefined,
+        };
+        const result = await CustomerService.searchCustomers(c.env.DB, filters);
+        return ApiResponse.success(c, {
+          ...result,
+          message:
+            result.customers.length > 0
+              ? "customer.searchResults"
+              : "customer.noSearchResults",
+        });
+      },
+      "operation.searchCustomersFailed",
+    );
+  }
 
   /**
    * Get customer booking history

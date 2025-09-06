@@ -111,10 +111,64 @@ export class CustomerRepository {
     return customer ? this.transformDatabaseCustomer(customer as any) : null;
   }
 
-  static async findAll(db: D1Database): Promise<DatabaseCustomer[]> {
+  static async findAll(
+    db: D1Database,
+    filters: { page?: number; limit?: number; search?: string },
+  ) {
     const database = getDb(db);
-    const customers = await database.select().from(customerTable);
-    return customers.map((c) => this.transformDatabaseCustomer(c as any));
+    const page = filters.page || 1;
+    const limit = Math.min(filters.limit || 10, 100);
+    const offset = (page - 1) * limit;
+
+    const conditions: any[] = [];
+    if (filters.search) {
+      const searchTerm = `%${filters.search}%`;
+      conditions.push(
+        or(
+          like(customerTable.fullName, searchTerm),
+          like(customerTable.email, searchTerm),
+          like(customerTable.phone, searchTerm),
+          like(customerTable.alternatePhone, searchTerm),
+        ),
+      );
+    }
+    const whereCondition =
+      conditions.length > 0 ? and(...conditions) : undefined;
+
+    const [totalResult] = await database
+      .select({ count: count() })
+      .from(customerTable)
+      .where(whereCondition);
+
+    const total = totalResult.count;
+    const totalPages = Math.ceil(total / limit);
+
+    const customers = await database
+      .select({
+        id: customerTable.id,
+        fullName: customerTable.fullName,
+        email: customerTable.email,
+        phone: customerTable.phone,
+        vipStatus: customerTable.vipStatus,
+        emergencyContactPhone: customerTable.emergencyContactPhone,
+      })
+      .from(customerTable)
+      .where(whereCondition)
+      .orderBy(desc(customerTable.createdAt))
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      customers,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      },
+    };
   }
 
   /**
@@ -264,6 +318,18 @@ export class CustomerRepository {
 
     // Build where conditions
     const conditions: any[] = [];
+
+    if (filters.search) {
+      const searchTerm = `%${filters.search}%`;
+      conditions.push(
+        or(
+          like(customerTable.email, searchTerm),
+          like(customerTable.fullName, searchTerm),
+          like(customerTable.phone, searchTerm),
+          like(customerTable.alternatePhone, searchTerm),
+        ),
+      );
+    }
 
     if (filters.email) {
       conditions.push(like(customerTable.email, `%${filters.email}%`));

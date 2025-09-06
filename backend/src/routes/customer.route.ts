@@ -51,12 +51,12 @@ customerRoutes.openapi(
 );
 
 // Search customers
-// customerRoutes.openapi(
-//   CustomerRouteDefinitions.search,
-//   smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
-//     CustomerController.search(c as AppContext),
-//   ),
-// );
+customerRoutes.openapi(
+  CustomerRouteDefinitions.search,
+  smartPermissionHandler(PERMISSIONS.CUSTOMERS_READ, (c) =>
+    CustomerController.searchCustomers(c as AppContext),
+  ),
+);
 
 // Get customer by ID (must come after specific routes)
 customerRoutes.openapi(

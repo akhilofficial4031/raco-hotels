@@ -6,7 +6,7 @@ import {
   UpdateCustomerRequestSchema,
   CustomerResponseSchema,
   CustomerWithStatsResponseSchema,
-  CustomersListResponseSchema,
+  CustomerSearchResponseSchema,
   CustomerBookingHistoryResponseSchema,
   FindCustomerByEmailResponseSchema,
   FindCustomerByPhoneQuerySchema,
@@ -14,6 +14,8 @@ import {
   CustomerSearchQuerySchema,
   FindCustomerByEmailQuerySchema,
   CustomerDetailsResponseSchema,
+  CustomersListResponseSchema,
+  CustomerListQuerySchema,
 } from "../schemas";
 
 export const CustomerRouteDefinitions = {
@@ -67,10 +69,10 @@ export const CustomerRouteDefinitions = {
     method: "get",
     path: "/customers",
     summary: "Get all customers",
-    description: "Retrieves all the customers",
+    description: "Retrieves all the customers with a limited set of fields.",
     tags: ["Customers"],
     requestSchema: {
-      query: CustomerSearchQuerySchema,
+      query: CustomerListQuerySchema,
     },
     successSchema: CustomersListResponseSchema,
     successDescription: "Customers retrieved successfully",
@@ -202,7 +204,7 @@ export const CustomerRouteDefinitions = {
 
   search: createRoute({
     method: "get",
-    path: "/customers",
+    path: "/customers/search",
     summary: "Search customers with filters",
     description: `Search and filter customers with pagination.
 
@@ -213,6 +215,7 @@ export const CustomerRouteDefinitions = {
 **Permission Required:** customers.read
 
 **Query Parameters:**
+- **search**: General search term for email, name, or phone
 - **email**: Partial email search (case-insensitive)
 - **fullName**: Partial name search (case-insensitive)
 - **phone**: Search in both primary and alternate phone numbers
@@ -248,7 +251,7 @@ export const CustomerRouteDefinitions = {
     requestSchema: {
       query: CustomerSearchQuerySchema,
     },
-    successSchema: CustomersListResponseSchema,
+    successSchema: CustomerSearchResponseSchema,
     successDescription: "Customers retrieved successfully",
   }),
 

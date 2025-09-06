@@ -81,6 +81,7 @@ export const CustomerPathParamsSchema = z.object({
 
 // Customer search/filter schema
 export const CustomerSearchQuerySchema = z.object({
+  search: z.string().optional(),
   email: z.string().optional(),
   fullName: z.string().optional(),
   phone: z.string().optional(),
@@ -107,6 +108,33 @@ export const CustomerSearchQuerySchema = z.object({
     .enum(["id", "fullName", "email", "createdAt", "lastBookingAt"])
     .optional(),
   sortOrder: z.enum(["asc", "desc"]).optional(),
+});
+
+export const CustomerListQuerySchema = z.object({
+  page: z.string().regex(/^\d+$/).transform(Number).optional(),
+  limit: z.string().regex(/^\d+$/).transform(Number).optional(),
+  search: z.string().optional(),
+});
+
+export const CustomerListItemSchema = z.object({
+  id: z.number(),
+  fullName: z.string(),
+  email: z.string(),
+  phone: z.string().nullable(),
+  vipStatus: z.string().nullable(),
+  emergencyContactPhone: z.string().nullable(),
+});
+
+export const CustomersListResponseSchema = z.object({
+  customers: z.array(CustomerListItemSchema),
+  pagination: z.object({
+    page: z.number(),
+    limit: z.number(),
+    total: z.number(),
+    totalPages: z.number(),
+    hasNext: z.boolean(),
+    hasPrev: z.boolean(),
+  }),
 });
 
 // Customer response schemas
@@ -194,7 +222,7 @@ export const CustomerBookingHistoryResponseSchema = z.object({
   totalSpentCents: z.number(),
 });
 
-export const CustomersListResponseSchema = z.object({
+export const CustomerSearchResponseSchema = z.object({
   customers: z.array(CustomerWithStatsResponseSchema),
   pagination: z.object({
     page: z.number(),
