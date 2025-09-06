@@ -11,6 +11,8 @@ export interface AppBindings {
   // Optional vars from wrangler [vars]
   R2_PUBLIC_BASE_URL?: string;
   EMAIL_API_KEY?: string;
+  ENVIRONMENT?: "development" | "production";
+  CRON_SECRET?: string;
 }
 
 /**

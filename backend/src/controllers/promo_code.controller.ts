@@ -15,7 +15,7 @@ export class PromoCodeController {
           page: String(page),
           limit: String(limit),
           hotelId: query.hotelId,
-          isActive: query.isActive,
+          status: query.status,
           code: query.code,
         } as any);
         return ApiResponse.success(c, {

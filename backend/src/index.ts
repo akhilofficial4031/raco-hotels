@@ -18,6 +18,7 @@ import contentRoutes from "./routes/content.route";
 import customerRoutes from "./routes/customer.route";
 import featureRoutes from "./routes/feature.route";
 import hotelRoutes from "./routes/hotel.route";
+import jobRoutes from "./routes/job.route";
 import promoCodeRoutes from "./routes/promo_code.route";
 import reviewRoutes from "./routes/review.route";
 import roomRoutes from "./routes/room.route";
@@ -111,6 +112,7 @@ app.route("/api", customerRoutes);
 app.route("/api", authRoutes);
 app.route("/api", systemRoutes);
 app.route("/api", addonRoutes);
+app.route("/api", jobRoutes);
 
 // Legacy hotel routes removed in favor of /api/hotels router
 

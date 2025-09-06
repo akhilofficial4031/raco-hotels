@@ -5,6 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 # Optional: expose public URL config to runtime
 [vars]
+ENVIRONMENT = "development"
 # Base URL for accessing public R2 objects (no trailing slash).
 # Example (custom domain): https://assets.example.com
 # Example (R2 public bucket): https://pub-xxxxxx.r2.dev
@@ -51,4 +52,7 @@ bucket_name = "raco-bucket"
 [dev]
 port = 8787
 local_protocol = "http"
+
+[triggers]
+crons = ["0 5 * * *"] # Runs every day at 5 AM UTC
 

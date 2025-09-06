@@ -11,6 +11,7 @@ import {
   Pagination,
   Table,
   Tag,
+  Tabs,
   Typography,
   message,
 } from "antd";
@@ -44,6 +45,7 @@ const PromoCode = () => {
   const [currentPromoCode, setCurrentPromoCode] =
     useState<PromoCodeWithRelations | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("active");
 
   const [filterParams, setFilterParams] = useState<PromoCodeListParamStructure>(
     {
@@ -51,7 +53,7 @@ const PromoCode = () => {
       limit: 10,
       search: "",
       hotelId: "",
-      isActive: "",
+      status: "active",
       dateRange: null,
     },
   );
@@ -158,8 +160,17 @@ const PromoCode = () => {
     setOpenFiltersPanel(true);
   };
 
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+    setFilterParams((prev) => ({
+      ...prev,
+      page: 1,
+      status: key,
+    }));
+  };
+
   const hasActiveFilters = Boolean(
-    filterParams.hotelId || filterParams.isActive || filterParams.dateRange,
+    filterParams.hotelId || filterParams.dateRange,
   );
 
   const getHotelName = (hotelId: number) => {
@@ -240,28 +251,29 @@ const PromoCode = () => {
     {
       title: "Actions",
       key: "actions",
-      render: (_: unknown, record: PromoCodeWithRelations) => (
-        <Dropdown
-          menu={{
-            items: [
-              {
-                key: "edit",
-                icon: <EditOutlined />,
-                label: "Edit",
-                onClick: () => handleEditPromoCode(record),
-              },
-              {
-                key: "delete",
-                icon: <DeleteOutlined />,
-                label: "Delete",
-                onClick: () => handleDeletePromoCode(record),
-              },
-            ],
-          }}
-        >
-          <Button icon={<MoreOutlined />} />
-        </Dropdown>
-      ),
+      render: (_: unknown, record: PromoCodeWithRelations) =>
+        activeTab === "active" ? (
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: "edit",
+                  icon: <EditOutlined />,
+                  label: "Edit",
+                  onClick: () => handleEditPromoCode(record),
+                },
+                {
+                  key: "delete",
+                  icon: <DeleteOutlined />,
+                  label: "Delete",
+                  onClick: () => handleDeletePromoCode(record),
+                },
+              ],
+            }}
+          >
+            <Button icon={<MoreOutlined />} />
+          </Dropdown>
+        ) : null,
     },
   ];
 
@@ -281,6 +293,20 @@ const PromoCode = () => {
         onSearch={handleSearch}
       />
       <div className="bg-white p-2 rounded-lg mb-2 border border-gray-200">
+        <Tabs
+          activeKey={activeTab}
+          onChange={handleTabChange}
+          items={[
+            {
+              label: `Active`,
+              key: "active",
+            },
+            {
+              label: `Past`,
+              key: "past",
+            },
+          ]}
+        />
         <Table
           dataSource={response?.data.promoCodes || []}
           className="!bg-white"

@@ -43,12 +43,12 @@ export class PromoCodeService {
     db: D1Database,
     query: z.infer<typeof PromoCodeQueryParamsSchema>,
   ) {
-    const { page = 1, limit = 10, hotelId, isActive, code } = query as any;
+    const { page = 1, limit = 10, hotelId, status, code } = query as any;
     const { items, total } = await PromoCodeRepository.findAll(
       db,
       {
         hotelId: hotelId ? parseInt(hotelId as any, 10) : undefined,
-        isActive: typeof isActive === "number" ? isActive : undefined,
+        status,
         code,
       },
       { page, limit },
@@ -61,5 +61,9 @@ export class PromoCodeService {
     const existing = await PromoCodeRepository.findById(db, id);
     if (!existing) throw new Error("Promo code not found");
     return await PromoCodeRepository.delete(db, id);
+  }
+
+  static async deactivateExpiredPromoCodes(db: D1Database) {
+    return await PromoCodeRepository.deactivateExpired(db);
   }
 }

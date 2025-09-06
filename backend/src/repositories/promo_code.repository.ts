@@ -1,4 +1,15 @@
-import { and, count, desc, eq, like, gte, isNull, lte, or } from "drizzle-orm";
+import {
+  and,
+  count,
+  desc,
+  eq,
+  like,
+  gte,
+  isNull,
+  lte,
+  or,
+  lt,
+} from "drizzle-orm";
 
 import { promoCode as promoCodeTable } from "../../drizzle/schema";
 import { getDb } from "../db";
@@ -24,8 +35,27 @@ export class PromoCodeRepository {
     const conditions: any[] = [];
     if (filters.hotelId)
       conditions.push(eq(promoCodeTable.hotelId, filters.hotelId));
-    if (typeof filters.isActive === "number")
-      conditions.push(eq(promoCodeTable.isActive, filters.isActive));
+
+    if (filters.status) {
+      const now = new Date().toISOString();
+      if (filters.status === "active") {
+        conditions.push(eq(promoCodeTable.isActive, 1));
+        conditions.push(
+          or(
+            isNull(promoCodeTable.startDate),
+            lte(promoCodeTable.startDate, now),
+          ),
+        );
+        conditions.push(
+          or(isNull(promoCodeTable.endDate), gte(promoCodeTable.endDate, now)),
+        );
+      } else if (filters.status === "past") {
+        conditions.push(
+          or(eq(promoCodeTable.isActive, 0), lt(promoCodeTable.endDate, now)),
+        );
+      }
+    }
+
     if (filters.code)
       conditions.push(like(promoCodeTable.code, `%${filters.code}%`));
 
@@ -141,5 +171,20 @@ export class PromoCodeRepository {
       .where(eq(promoCodeTable.id, id))
       .returning();
     return rows.length > 0;
+  }
+
+  static async deactivateExpired(db: D1Database): Promise<number> {
+    const database = getDb(db);
+    const nowISO = new Date().toISOString();
+
+    const result = await database
+      .update(promoCodeTable)
+      .set({ isActive: 0, updatedAt: nowISO })
+      .where(
+        and(eq(promoCodeTable.isActive, 1), lt(promoCodeTable.endDate, nowISO)),
+      )
+      .returning({ id: promoCodeTable.id });
+
+    return result.length;
   }
 }

@@ -2,7 +2,6 @@ import type {
   HotelScopedEntity,
   ValueType,
   HotelScopedFilters,
-  ActiveStatusFilter,
   DateRangeFilter,
 } from "./common.interface";
 
@@ -26,12 +25,10 @@ export interface DatabasePromoCode extends HotelScopedEntity {
 /**
  * Filters for querying promo codes
  */
-export interface PromoCodeFilters
-  extends HotelScopedFilters,
-    ActiveStatusFilter,
-    DateRangeFilter {
+export interface PromoCodeFilters extends HotelScopedFilters, DateRangeFilter {
   code?: string;
   type?: ValueType;
+  status?: "active" | "past";
 }
 
 /**

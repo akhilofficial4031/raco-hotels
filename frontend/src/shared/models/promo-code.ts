@@ -45,6 +45,6 @@ export interface PromoCodeListParamStructure {
   limit: number;
   search: string;
   hotelId: string;
-  isActive: string;
+  status: string;
   dateRange: [string, string] | null;
 }

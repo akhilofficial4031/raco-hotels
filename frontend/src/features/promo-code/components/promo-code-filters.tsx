@@ -47,7 +47,6 @@ const PromoCodeFilters: React.FC<PromoCodeFiltersProps> = ({
     form.resetFields();
     onApplyFilters({
       hotelId: "",
-      isActive: "",
       dateRange: null,
     });
     onClose();
@@ -79,16 +78,6 @@ const PromoCodeFilters: React.FC<PromoCodeFiltersProps> = ({
               label: hotel.name,
               value: hotel.id,
             }))}
-          />
-        </Form.Item>
-        <Form.Item name="isActive" label="Status">
-          <Select
-            placeholder="Select a status"
-            allowClear
-            options={[
-              { label: "Active", value: "1" },
-              { label: "Inactive", value: "0" },
-            ]}
           />
         </Form.Item>
         <Form.Item name="dateRange" label="Validity Dates">
