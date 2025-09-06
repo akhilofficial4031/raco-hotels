@@ -46,19 +46,9 @@ export const requireAdmin = requireRole("ADMIN");
 export const requireStaffOrAdmin = requireRole("STAFF", "ADMIN");
 
 /**
- * Customer (guest) access middleware
- */
-export const requireCustomer = requireRole("GUEST", "CUSTOMER");
-
-/**
  * Customer or Staff (or Admin) access middleware
  */
-export const requireCustomerOrStaff = requireRole(
-  "GUEST",
-  "CUSTOMER",
-  "STAFF",
-  "ADMIN",
-);
+export const requireCustomerOrStaff = requireRole("STAFF", "ADMIN");
 
 /**
  * Authenticated user (any role) middleware

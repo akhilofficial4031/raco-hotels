@@ -31,6 +31,9 @@ export const PUBLIC_ROUTES = [
   // Hotel routes - only GET method is public
   "GET:/hotels",
 
+  // Room public routes
+  "GET:/public/rooms",
+
   // Booking routes - temporarily public for testing
   "POST:/bookings",
 
@@ -44,7 +47,8 @@ export const PUBLIC_ROUTES = [
  * Useful for dynamic routes or patterns
  */
 export const PUBLIC_ROUTE_PATTERNS: RegExp[] = [
-  // Example: /^\/public\/.*$/,
+  // Public room routes with dynamic IDs
+  /^\/public\/rooms\/[^/]+$/,
 ];
 
 /**

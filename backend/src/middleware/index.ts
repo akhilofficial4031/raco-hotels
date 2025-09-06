@@ -1,6 +1,6 @@
 // Export all middleware for easy importing
 export { authMiddleware, optionalAuthMiddleware } from "./auth";
-export { smartAuthMiddleware, optionalSmartAuthMiddleware } from "./smart-auth";
+export { smartAuthMiddleware } from "./smart-auth";
 export {
   requireRole,
   requireAdmin,
@@ -11,4 +11,3 @@ export {
 } from "./rbac";
 export { csrfMiddleware } from "./csrf";
 export { securityHeadersMiddleware, rateLimitMiddleware } from "./security";
-export { globalAuthMiddleware } from "./public-routes";
