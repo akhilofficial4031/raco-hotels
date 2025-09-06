@@ -2,9 +2,7 @@ import { fetcher, mutationFetcher } from "../../utils/swrFetcher";
 import { type ApiResponse } from "../models";
 import { type Customer } from "../models/customer";
 
-export interface CustomerDetailsResponseData {
-  data: CustomerDetailsResponse;
-}
+export type CustomerDetailsResponseData = ApiResponse<CustomerDetailsResponse>;
 
 export interface CustomerDetailsResponse {
   customer: Customer & {

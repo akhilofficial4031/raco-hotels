@@ -2,7 +2,10 @@ import useSWR from "swr";
 
 import { fetcher } from "../../../utils/swrFetcher";
 
-import type { CustomerDetailsResponseData } from "../../../shared/services/customer.service";
+import {
+  CustomerDetailsResponse,
+  type CustomerDetailsResponseData,
+} from "../../../shared/services/customer.service";
 
 export const useCustomerDetails = (customerId: string | undefined) => {
   const { data, error, isLoading, mutate } =
@@ -17,7 +20,7 @@ export const useCustomerDetails = (customerId: string | undefined) => {
     );
 
   return {
-    data: data || null,
+    data: data?.data || null,
     loading: isLoading,
     error: error?.message || null,
     refetch: mutate,
