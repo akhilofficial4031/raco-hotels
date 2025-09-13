@@ -21,11 +21,272 @@ import {
 import { isPublicRoute, normalizePath } from "../config/routes";
 import { HTTP_STATUS, ERROR_CODES } from "../constants";
 import { AuthService } from "../services/auth.service";
+import { type UserRole } from "../types";
 
 // Extend the context to include user information
 declare module "hono" {
   interface ContextVariableMap {
     user: JWTPayload;
+  }
+}
+
+async function handleAccessToken(c: any) {
+  const accessToken = getCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME);
+
+  if (!accessToken) {
+    return null;
+  }
+
+  try {
+    const payload = verifyToken(accessToken);
+    const user = await AuthService.getUserForToken(c.env.DB, payload.userId);
+
+    if (!user) {
+      console.warn(
+        "Access token user not found, clearing token and attempting refresh",
+      );
+      setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, "", {
+        ...COOKIE_CONFIG.OPTIONS,
+        maxAge: 0,
+      });
+      return null;
+    }
+    return payload;
+  } catch {
+    setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, "", {
+      ...COOKIE_CONFIG.OPTIONS,
+      maxAge: 0,
+    });
+    return null;
+  }
+}
+
+function verifyAndDecodeRefreshToken(
+  c: any,
+  refreshToken: string,
+): JWTPayload & { tokenId: string } {
+  let refreshPayload;
+  try {
+    refreshPayload = verifyToken(refreshToken);
+  } catch {
+    setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+      ...COOKIE_CONFIG.OPTIONS,
+      maxAge: 0,
+    });
+    throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+      message: "Session expired, please login again",
+      cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+    });
+  }
+
+  if (!refreshPayload || !refreshPayload.tokenId) {
+    setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+      ...COOKIE_CONFIG.OPTIONS,
+      maxAge: 0,
+    });
+    throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+      message: "Invalid session, please login again",
+      cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+    });
+  }
+
+  return refreshPayload as JWTPayload & { tokenId: string };
+}
+
+async function validateRefreshTokenInKV(
+  c: any,
+  refreshPayload: { tokenId: string },
+  refreshToken: string,
+) {
+  let storedToken;
+  let kvRetries = 3;
+  while (kvRetries > 0) {
+    try {
+      storedToken = await AuthService.getRefreshToken(
+        c.env.KV,
+        refreshPayload.tokenId,
+      );
+      break;
+    } catch {
+      kvRetries--;
+      if (kvRetries === 0) {
+        throw new HTTPException(HTTP_STATUS.INTERNAL_SERVER_ERROR, {
+          message: "Service temporarily unavailable, please try again",
+        });
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+
+  if (!storedToken) {
+    setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+      ...COOKIE_CONFIG.OPTIONS,
+      maxAge: 0,
+    });
+    throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+      message: "Session expired, please login again",
+      cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+    });
+  }
+
+  if (storedToken.token !== refreshToken) {
+    try {
+      await AuthService.revokeRefreshToken(c.env.KV, refreshPayload.tokenId);
+    } catch {
+      void 0;
+    }
+    setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+      ...COOKIE_CONFIG.OPTIONS,
+      maxAge: 0,
+    });
+    throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+      message: "Session expired, please login again",
+      cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+    });
+  }
+}
+
+async function getUserForRefreshToken(
+  c: any,
+  refreshPayload: { userId: number; tokenId: string },
+) {
+  let user;
+  let dbRetries = 3;
+  while (dbRetries > 0) {
+    try {
+      user = await AuthService.getUserForToken(c.env.DB, refreshPayload.userId);
+      break;
+    } catch {
+      dbRetries--;
+      if (dbRetries === 0) {
+        throw new HTTPException(HTTP_STATUS.INTERNAL_SERVER_ERROR, {
+          message: "Service temporarily unavailable, please try again",
+        });
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+
+  if (!user) {
+    try {
+      await AuthService.revokeRefreshToken(c.env.KV, refreshPayload.tokenId);
+    } catch {
+      void 0;
+    }
+    setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
+      ...COOKIE_CONFIG.OPTIONS,
+      maxAge: 0,
+    });
+    throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+      message: "User account not found, please login again",
+      cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+    });
+  }
+
+  return user;
+}
+
+async function generateAndStoreNewTokens(
+  c: any,
+  user: { id: number; email: string; role: UserRole },
+  oldTokenId: string,
+) {
+  // token generation
+
+  const newTokenId = AuthService.generateTokenId();
+  const newTokenPayload = {
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    tokenId: newTokenId,
+  };
+
+  const newAccessToken = generateAccessToken(newTokenPayload);
+  const newRefreshToken = generateRefreshToken(newTokenPayload);
+  const newCsrfToken = generateCSRFToken();
+
+  let storeRetries = 3;
+  while (storeRetries > 0) {
+    try {
+      await Promise.all([
+        AuthService.storeRefreshToken(
+          c.env.KV,
+          newTokenId,
+          newRefreshToken,
+          user.id,
+        ),
+        AuthService.storeAccessToken(
+          c.env.KV,
+          newTokenId,
+          newAccessToken,
+          user.id,
+        ),
+      ]);
+      break;
+    } catch {
+      storeRetries--;
+      if (storeRetries === 0) {
+        throw new HTTPException(HTTP_STATUS.INTERNAL_SERVER_ERROR, {
+          message: "Service temporarily unavailable, please try again",
+        });
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+
+  // Clean up old refresh token (don't fail if this doesn't work)
+  try {
+    await AuthService.revokeRefreshToken(c.env.KV, oldTokenId);
+  } catch {
+    void 0;
+  }
+
+  // Set new cookies
+  setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, newAccessToken, {
+    ...COOKIE_CONFIG.OPTIONS,
+    maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
+  });
+
+  setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, newRefreshToken, {
+    ...COOKIE_CONFIG.OPTIONS,
+    maxAge: COOKIE_CONFIG.REFRESH_TOKEN_MAX_AGE,
+  });
+
+  setCookie(c, COOKIE_CONFIG.CSRF_TOKEN_NAME, newCsrfToken, {
+    ...COOKIE_CONFIG.OPTIONS,
+    httpOnly: false,
+    maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
+  });
+
+  return newTokenPayload;
+}
+
+async function handleTokenRefresh(c: any) {
+  const refreshToken = getCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME);
+  if (!refreshToken) {
+    throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
+      message: "Authentication required - no valid tokens found",
+      cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
+    });
+  }
+
+  try {
+    const refreshPayload = verifyAndDecodeRefreshToken(c, refreshToken);
+    await validateRefreshTokenInKV(c, refreshPayload, refreshToken);
+    const user = await getUserForRefreshToken(c, refreshPayload);
+    const newPayload = await generateAndStoreNewTokens(
+      c,
+      user,
+      refreshPayload.tokenId,
+    );
+    c.set("user", newPayload);
+  } catch (refreshError) {
+    if (refreshError instanceof HTTPException) {
+      throw refreshError;
+    }
+    throw new HTTPException(HTTP_STATUS.INTERNAL_SERVER_ERROR, {
+      message: "Service temporarily unavailable, please try again",
+    });
   }
 }
 
@@ -37,6 +298,13 @@ declare module "hono" {
  */
 export const smartAuthMiddleware = createMiddleware(async (c, next) => {
   try {
+    // Prevent multiple executions per request when routers are mounted under the same base path
+    const alreadyProcessed = c.get("smartAuthProcessed");
+    if (alreadyProcessed) {
+      return next();
+    }
+    c.set("smartAuthProcessed", true);
+
     // Check if this is a public route - if so, skip authentication
     const normalizedPath = normalizePath(c.req.path);
     const method = c.req.method;
@@ -45,316 +313,24 @@ export const smartAuthMiddleware = createMiddleware(async (c, next) => {
       return next();
     }
 
-    // Get tokens from HTTP-only cookies
-    const accessToken = getCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME);
-    const refreshToken = getCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME);
+    // Try to authenticate with access token first
+    const payload = await handleAccessToken(c);
 
-    // If we have an access token, try to verify it first
-    if (accessToken) {
-      try {
-        // First, try to verify the access token
-        const payload = verifyToken(accessToken);
-
-        // Verify user still exists and is active
-        const user = await AuthService.getUserForToken(
-          c.env.DB,
-          payload.userId,
-        );
-        if (!user) {
-          console.warn(
-            "Access token user not found, clearing token and attempting refresh",
-          );
-          // Clear invalid access token
-          setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, "", {
-            ...COOKIE_CONFIG.OPTIONS,
-            maxAge: 0,
-          });
-          // Don't throw here, continue to refresh logic
-        } else {
-          // Store user information in context and continue
-          c.set("user", payload);
-          return next();
-        }
-      } catch (accessTokenError: any) {
-        console.warn(
-          "Access token verification failed, attempting refresh:",
-          accessTokenError.message,
-        );
-        // Clear invalid access token
-        setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, "", {
-          ...COOKIE_CONFIG.OPTIONS,
-          maxAge: 0,
-        });
-        // Continue to refresh logic below
-      }
-    }
-
-    // No valid access token - try to refresh using refresh token
-    if (!refreshToken) {
-      console.warn("No refresh token found, authentication required");
-      throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-        message: "Authentication required - no valid tokens found",
-        cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
-      });
-    }
-
-    // Attempt token refresh with proper error handling
-    try {
-      console.warn("Attempting to refresh tokens...");
-
-      // Verify refresh token structure and expiration
-      let refreshPayload;
-      try {
-        refreshPayload = verifyToken(refreshToken);
-      } catch (refreshTokenError: any) {
-        console.warn(
-          "Refresh token verification failed:",
-          refreshTokenError.message,
-        );
-        // Clear invalid refresh token
-        setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
-          ...COOKIE_CONFIG.OPTIONS,
-          maxAge: 0,
-        });
-        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-          message: "Session expired, please login again",
-          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
-        });
-      }
-
-      if (!refreshPayload || !refreshPayload.tokenId) {
-        console.warn("Invalid refresh token structure");
-        setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
-          ...COOKIE_CONFIG.OPTIONS,
-          maxAge: 0,
-        });
-        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-          message: "Invalid session, please login again",
-          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
-        });
-      }
-
-      // Check if refresh token exists and is valid in KV with retry logic
-      let storedToken;
-      let kvRetries = 3;
-      while (kvRetries > 0) {
-        try {
-          storedToken = await AuthService.getRefreshToken(
-            c.env.KV,
-            refreshPayload.tokenId,
-          );
-          break;
-        } catch (kvError: any) {
-          kvRetries--;
-          console.warn(
-            `KV getRefreshToken failed, retries left: ${kvRetries}`,
-            kvError.message,
-          );
-          if (kvRetries === 0) {
-            console.error("KV service unavailable after retries");
-            throw new HTTPException(HTTP_STATUS.INTERNAL_SERVER_ERROR, {
-              message: "Service temporarily unavailable, please try again",
-            });
-          }
-          // Wait briefly before retry
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      }
-
-      if (!storedToken) {
-        console.warn("Refresh token not found in storage");
-        setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
-          ...COOKIE_CONFIG.OPTIONS,
-          maxAge: 0,
-        });
-        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-          message: "Session expired, please login again",
-          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
-        });
-      }
-
-      if (storedToken.token !== refreshToken) {
-        console.warn("Refresh token mismatch");
-        // Clean up mismatched token
-        try {
-          await AuthService.revokeRefreshToken(
-            c.env.KV,
-            refreshPayload.tokenId,
-          );
-        } catch (revokeError: any) {
-          console.error(
-            "Failed to revoke mismatched token:",
-            revokeError.message,
-          );
-        }
-        setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
-          ...COOKIE_CONFIG.OPTIONS,
-          maxAge: 0,
-        });
-        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-          message: "Session expired, please login again",
-          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
-        });
-      }
-
-      // Get user to ensure they still exist and are active with retry logic
-      let user;
-      let dbRetries = 3;
-      while (dbRetries > 0) {
-        try {
-          user = await AuthService.getUserForToken(
-            c.env.DB,
-            refreshPayload.userId,
-          );
-          break;
-        } catch (dbError: any) {
-          dbRetries--;
-          console.warn(
-            `DB getUserForToken failed, retries left: ${dbRetries}`,
-            dbError.message,
-          );
-          if (dbRetries === 0) {
-            console.error("Database service unavailable after retries");
-            throw new HTTPException(HTTP_STATUS.INTERNAL_SERVER_ERROR, {
-              message: "Service temporarily unavailable, please try again",
-            });
-          }
-          // Wait briefly before retry
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      }
-
-      if (!user) {
-        console.warn("User not found or inactive, cleaning up tokens");
-        // Clean up tokens for non-existent user
-        try {
-          await AuthService.revokeRefreshToken(
-            c.env.KV,
-            refreshPayload.tokenId,
-          );
-        } catch (revokeError: any) {
-          console.error(
-            "Failed to revoke token for non-existent user:",
-            revokeError.message,
-          );
-        }
-        setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, "", {
-          ...COOKIE_CONFIG.OPTIONS,
-          maxAge: 0,
-        });
-        throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
-          message: "User account not found, please login again",
-          cause: ERROR_CODES.UNAUTHORIZED_ACCESS,
-        });
-      }
-
-      console.warn("Generating new tokens for user:", user.email);
-
-      // Generate new token ID for security
-      const newTokenId = AuthService.generateTokenId();
-
-      // Generate new tokens
-      const newTokenPayload = {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        tokenId: newTokenId,
-      };
-
-      const newAccessToken = generateAccessToken(newTokenPayload);
-      const newRefreshToken = generateRefreshToken(newTokenPayload);
-      const newCsrfToken = generateCSRFToken();
-
-      // Store new tokens in KV with retry logic
-      let storeRetries = 3;
-      while (storeRetries > 0) {
-        try {
-          await Promise.all([
-            AuthService.storeRefreshToken(
-              c.env.KV,
-              newTokenId,
-              newRefreshToken,
-              user.id,
-            ),
-            AuthService.storeAccessToken(
-              c.env.KV,
-              newTokenId,
-              newAccessToken,
-              user.id,
-            ),
-          ]);
-          break;
-        } catch (storeError: any) {
-          storeRetries--;
-          console.warn(
-            `KV storeTokens failed, retries left: ${storeRetries}`,
-            storeError.message,
-          );
-          if (storeRetries === 0) {
-            console.error("Failed to store new tokens after retries");
-            throw new HTTPException(HTTP_STATUS.INTERNAL_SERVER_ERROR, {
-              message: "Service temporarily unavailable, please try again",
-            });
-          }
-          // Wait briefly before retry
-          await new Promise((resolve) => setTimeout(resolve, 100));
-        }
-      }
-
-      // Clean up old refresh token (don't fail if this doesn't work)
-      try {
-        await AuthService.revokeRefreshToken(c.env.KV, refreshPayload.tokenId);
-      } catch (revokeError: any) {
-        console.error(
-          "Failed to revoke old refresh token (non-critical):",
-          revokeError.message,
-        );
-      }
-
-      // Set new cookies
-      setCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, newAccessToken, {
-        ...COOKIE_CONFIG.OPTIONS,
-        maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
-      });
-
-      setCookie(c, COOKIE_CONFIG.REFRESH_TOKEN_NAME, newRefreshToken, {
-        ...COOKIE_CONFIG.OPTIONS,
-        maxAge: COOKIE_CONFIG.REFRESH_TOKEN_MAX_AGE,
-      });
-
-      setCookie(c, COOKIE_CONFIG.CSRF_TOKEN_NAME, newCsrfToken, {
-        ...COOKIE_CONFIG.OPTIONS,
-        httpOnly: false,
-        maxAge: COOKIE_CONFIG.ACCESS_TOKEN_MAX_AGE,
-      });
-
-      // Store user information in context
-      c.set("user", newTokenPayload);
-
-      console.log("Token refresh successful, continuing with request");
-      // Continue with the request
+    if (payload) {
+      c.set("user", payload);
       return next();
-    } catch (refreshError) {
-      // Only clear tokens and return 401 for authentication-related errors
-      if (refreshError instanceof HTTPException) {
-        // This is already a properly handled auth error, re-throw it
-        throw refreshError;
-      }
-
-      // Log unexpected errors but don't expose internal details
-      console.error("Unexpected error during token refresh:", refreshError);
-
-      // For any other unexpected errors, return 500 instead of 401
-      throw new HTTPException(HTTP_STATUS.INTERNAL_SERVER_ERROR, {
-        message: "Service temporarily unavailable, please try again",
-      });
     }
+
+    // Access token invalid/expired, try to refresh
+    await handleTokenRefresh(c);
+
+    // After successful refresh, the user should be set in context
+    // Continue with the request
+    return next();
   } catch (error) {
     if (error instanceof HTTPException) {
       throw error;
     }
-
-    console.error("Authentication middleware error:", error);
 
     // Handle any other unexpected errors as server errors, not auth errors
     throw new HTTPException(HTTP_STATUS.INTERNAL_SERVER_ERROR, {
@@ -389,7 +365,13 @@ export function smartPermissionHandler(
     // Only check permissions for protected routes
     if (!isPublicRoute(normalizedPath, method)) {
       const user = c.get("user");
+      console.warn(
+        `smartPermissionHandler: user context = ${user ? "FOUND" : "NOT FOUND"} for path ${normalizedPath}`,
+      );
       if (!user) {
+        console.error(
+          "smartPermissionHandler: No user context found - this should not happen after smartAuthMiddleware",
+        );
         throw new HTTPException(HTTP_STATUS.UNAUTHORIZED, {
           message: "Authentication required",
           cause: ERROR_CODES.UNAUTHORIZED_ACCESS,

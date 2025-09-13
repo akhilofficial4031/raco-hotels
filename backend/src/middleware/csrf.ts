@@ -27,7 +27,6 @@ export const csrfMiddleware = createMiddleware(async (c, next) => {
     const isDevelopment = process.env.NODE_ENV !== "production";
 
     if (bypassCsrf && isDevelopment) {
-      console.warn("⚠️  CSRF protection bypassed for development testing");
       return next();
     }
 
