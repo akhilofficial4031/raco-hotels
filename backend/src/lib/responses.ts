@@ -467,6 +467,20 @@ export class AddonConfigurationResponse {
   }
 }
 
+export class DashboardResponse {
+  static statsRetrieved(c: Context, stats: any) {
+    return createLocalizedResponse(c, stats, "dashboard.statsRetrieved");
+  }
+
+  static yearlyBookingsRetrieved(c: Context, yearlyBookings: any) {
+    return createLocalizedResponse(
+      c,
+      yearlyBookings,
+      "dashboard.yearlyBookingsRetrieved",
+    );
+  }
+}
+
 // Async route handler wrapper for error handling
 export async function handleAsyncRoute(
   c: Context,

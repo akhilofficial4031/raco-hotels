@@ -18,16 +18,16 @@ async function handleResponse<T>(response: Response): Promise<T> {
     error.status = response.status;
 
     // Handle unauthorized responses
-    if (response.status === 401) {
-      // Clear stored auth data
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
+    // if (response.status === 401) {
+    //   // Clear stored auth data
+    //   localStorage.removeItem("user");
+    //   localStorage.removeItem("token");
 
-      // Only redirect if we're not already on the login page
-      if (window.location.pathname !== "/login") {
-        window.location.href = "/login";
-      }
-    }
+    //   // Only redirect if we're not already on the login page
+    //   if (window.location.pathname !== "/login") {
+    //     window.location.href = "/login";
+    //   }
+    // }
 
     throw error;
   }

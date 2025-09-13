@@ -15,3 +15,4 @@ export * from "./booking.schema";
 export * from "./cancellation_policy.schema";
 export * from "./addon.schema";
 export * from "./addon_configuration.schema";
+export * from "./dashboard.schema";

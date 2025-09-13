@@ -28,6 +28,7 @@ import systemRoutes from "./routes/system.route";
 import taxFeeRoutes from "./routes/tax_fee.route";
 // Import middleware and utilities
 import userRoutes from "./routes/user.route";
+import dashboardRoutes from "./routes/dashboard.route";
 import { i18nMiddleware } from "./utils/i18n";
 import { getLocalizedMessage } from "./utils/i18n";
 
@@ -113,6 +114,7 @@ app.route("/api", authRoutes);
 app.route("/api", systemRoutes);
 app.route("/api", addonRoutes);
 app.route("/api", jobRoutes);
+app.route("/api", dashboardRoutes);
 
 // Legacy hotel routes removed in favor of /api/hotels router
 
