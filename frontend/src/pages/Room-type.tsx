@@ -29,7 +29,11 @@ import {
   type RoomTypeWithRelations,
 } from "../shared/models/room-type";
 import { convertJsonToQueryParams } from "../shared/utils";
-import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import {
+  fetcher,
+  mutationFetcher,
+  multipartMutationFetcher,
+} from "../utils/swrFetcher";
 
 const { confirm } = Modal;
 const { Text } = Typography;
@@ -111,27 +115,53 @@ const RoomType = () => {
     });
   };
 
-  const handleFormSubmit = async (data: CreateRoomTypePayload) => {
+  const handleFormSubmit = async (
+    data: CreateRoomTypePayload,
+    images?: File[],
+    replaceImages?: boolean,
+  ) => {
     setIsSaving(true);
     try {
-      if (currentRoomType) {
-        await mutationFetcher(`/room-types/${currentRoomType.id}`, {
-          arg: { method: "PUT", body: data },
-        });
-        message.success("Room type updated successfully");
-      } else {
-        await mutationFetcher("/room-types", {
-          arg: { method: "POST", body: data },
-        });
-        message.success("Room type added successfully");
+      const roomTypeResponse = await (currentRoomType
+        ? mutationFetcher(`/room-types/${currentRoomType.id}`, {
+            arg: { method: "PUT", body: data },
+          })
+        : mutationFetcher("/room-types", {
+            arg: { method: "POST", body: data },
+          }));
+
+      message.success(
+        `Room type ${currentRoomType ? "updated" : "created"} successfully`,
+      );
+
+      const roomTypeId =
+        currentRoomType?.id || (roomTypeResponse as any)?.data?.roomType?.id;
+      if (images && images.length > 0 && roomTypeId) {
+        try {
+          const formData = new FormData();
+          images.forEach((image) => {
+            formData.append("images", image);
+          });
+          if (replaceImages !== undefined) {
+            formData.append("replaceImages", String(replaceImages));
+          }
+
+          await multipartMutationFetcher(`/room-types/${roomTypeId}/images`, {
+            arg: { method: "POST", formData },
+          });
+          message.success("Images uploaded successfully");
+        } catch (imageError) {
+          console.error("Failed to upload images:", imageError);
+          message.error("Room type saved but failed to upload some images");
+        }
       }
+
       setOpenAddRoomTypePanel(false);
       setCurrentRoomType(null);
       mutate(`/room-types${queryString}`);
     } catch (error) {
-      if (error) {
-        message.error("Failed to save room type");
-      }
+      console.error("Failed to save room type:", error);
+      message.error("Failed to save room type");
     } finally {
       setIsSaving(false);
     }

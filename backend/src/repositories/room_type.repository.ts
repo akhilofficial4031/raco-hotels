@@ -1,11 +1,6 @@
 import { and, count, desc, eq, like } from "drizzle-orm";
 
-import {
-  roomType as roomTypeTable,
-  roomTypeImage as roomTypeImageTable,
-  roomTypeAmenity as roomTypeAmenityTable,
-  roomTypeAddon as roomTypeAddonTable,
-} from "../../drizzle/schema";
+import * as schema from "../../drizzle/schema";
 import { getDb } from "../db";
 
 import type {
@@ -32,29 +27,31 @@ export class RoomTypeRepository {
 
     const conditions: any[] = [];
     if (filters.hotelId)
-      conditions.push(eq(roomTypeTable.hotelId, filters.hotelId));
+      conditions.push(eq(schema.roomType.hotelId, filters.hotelId));
     if (typeof filters.isActive === "number")
-      conditions.push(eq((roomTypeTable as any).isActive, filters.isActive));
+      conditions.push(eq((schema.roomType as any).isActive, filters.isActive));
     if (filters.search) {
       const pattern = `%${filters.search}%`;
-      conditions.push(like(roomTypeTable.name, pattern));
+      conditions.push(like(schema.roomType.name, pattern));
     }
 
     const whereClause = conditions.length ? and(...conditions) : undefined;
 
     const totalResult = await database
       .select({ count: count() })
-      .from(roomTypeTable)
+      .from(schema.roomType)
       .where(whereClause);
     const total = totalResult[0]?.count || 0;
 
-    const rows = await database
-      .select()
-      .from(roomTypeTable)
-      .where(whereClause)
-      .orderBy(desc((roomTypeTable as any).createdAt))
-      .limit(limit)
-      .offset(offset);
+    const rows = await database.query.roomType.findMany({
+      where: whereClause,
+      with: {
+        images: true,
+      },
+      orderBy: desc(schema.roomType.createdAt),
+      limit,
+      offset,
+    });
 
     return { roomTypes: rows as any, total };
   }
@@ -63,12 +60,14 @@ export class RoomTypeRepository {
     id: number,
   ): Promise<DatabaseRoomType | null> {
     const database = getDb(db);
-    const rows = await database
-      .select()
-      .from(roomTypeTable)
-      .where(eq(roomTypeTable.id, id))
-      .limit(1);
-    return (rows[0] as any) || null;
+    const [row] = await database.query.roomType.findMany({
+      where: eq(schema.roomType.id, id),
+      with: {
+        images: true,
+      },
+      limit: 1,
+    });
+    return (row as any) || null;
   }
   static async findBySlug(
     db: D1Database,
@@ -78,11 +77,11 @@ export class RoomTypeRepository {
     const database = getDb(db);
     const rows = await database
       .select()
-      .from(roomTypeTable)
+      .from(schema.roomType)
       .where(
         and(
-          eq(roomTypeTable.hotelId, hotelId),
-          eq((roomTypeTable as any).slug, slug),
+          eq(schema.roomType.hotelId, hotelId),
+          eq((schema.roomType as any).slug, slug),
         ),
       )
       .limit(1);
@@ -95,7 +94,7 @@ export class RoomTypeRepository {
     const database = getDb(db);
     const nowIso = new Date().toISOString();
     const [created] = await database
-      .insert(roomTypeTable)
+      .insert(schema.roomType)
       .values({
         ...data,
         smokingAllowed: data.smokingAllowed ? 1 : 0,
@@ -125,9 +124,9 @@ export class RoomTypeRepository {
       }).filter(([, v]) => v !== undefined),
     );
     const rows = await database
-      .update(roomTypeTable)
+      .update(schema.roomType)
       .set(payload as any)
-      .where(eq(roomTypeTable.id, id))
+      .where(eq(schema.roomType.id, id))
       .returning();
     return (rows[0] as any) || null;
   }
@@ -135,8 +134,8 @@ export class RoomTypeRepository {
   static async delete(db: D1Database, id: number): Promise<boolean> {
     const database = getDb(db);
     const rows = await database
-      .delete(roomTypeTable)
-      .where(eq(roomTypeTable.id, id))
+      .delete(schema.roomType)
+      .where(eq(schema.roomType.id, id))
       .returning();
     return rows.length > 0;
   }
@@ -149,9 +148,9 @@ export class RoomTypeRepository {
     const database = getDb(db);
     const rows = await database
       .select()
-      .from(roomTypeImageTable)
-      .where(eq(roomTypeImageTable.roomTypeId, roomTypeId))
-      .orderBy(roomTypeImageTable.sortOrder, roomTypeImageTable.createdAt);
+      .from(schema.roomTypeImage)
+      .where(eq(schema.roomTypeImage.roomTypeId, roomTypeId))
+      .orderBy(schema.roomTypeImage.sortOrder, schema.roomTypeImage.createdAt);
     return rows as any;
   }
 
@@ -163,7 +162,7 @@ export class RoomTypeRepository {
     const database = getDb(db);
     const nowIso = new Date().toISOString();
     const rows = await database
-      .insert(roomTypeImageTable)
+      .insert(schema.roomTypeImage)
       .values(
         images.map((img) => ({
           ...img,
@@ -182,8 +181,8 @@ export class RoomTypeRepository {
   ): Promise<boolean> {
     const database = getDb(db);
     const rows = await database
-      .delete(roomTypeImageTable)
-      .where(eq(roomTypeImageTable.roomTypeId, roomTypeId))
+      .delete(schema.roomTypeImage)
+      .where(eq(schema.roomTypeImage.roomTypeId, roomTypeId))
       .returning();
     return rows.length > 0;
   }
@@ -195,8 +194,8 @@ export class RoomTypeRepository {
     const database = getDb(db);
     const rows = await database
       .select()
-      .from(roomTypeImageTable)
-      .where(eq(roomTypeImageTable.id, imageId))
+      .from(schema.roomTypeImage)
+      .where(eq(schema.roomTypeImage.id, imageId))
       .limit(1);
     return (rows[0] as any) || null;
   }
@@ -204,8 +203,8 @@ export class RoomTypeRepository {
   static async deleteImage(db: D1Database, imageId: number): Promise<boolean> {
     const database = getDb(db);
     const rows = await database
-      .delete(roomTypeImageTable)
-      .where(eq(roomTypeImageTable.id, imageId))
+      .delete(schema.roomTypeImage)
+      .where(eq(schema.roomTypeImage.id, imageId))
       .returning();
     return rows.length > 0;
   }
@@ -217,9 +216,9 @@ export class RoomTypeRepository {
   ): Promise<DatabaseRoomTypeImage | null> {
     const database = getDb(db);
     const rows = await database
-      .update(roomTypeImageTable)
+      .update(schema.roomTypeImage)
       .set({ sortOrder })
-      .where(eq(roomTypeImageTable.id, imageId))
+      .where(eq(schema.roomTypeImage.id, imageId))
       .returning();
     return (rows[0] as any) || null;
   }
@@ -233,13 +232,13 @@ export class RoomTypeRepository {
     const database = getDb(db);
     // Clear existing
     await database
-      .delete(roomTypeAmenityTable)
-      .where(eq(roomTypeAmenityTable.roomTypeId, roomTypeId));
+      .delete(schema.roomTypeAmenity)
+      .where(eq(schema.roomTypeAmenity.roomTypeId, roomTypeId));
 
     if (amenityIds.length === 0) return;
 
     const nowIso = new Date().toISOString();
-    await database.insert(roomTypeAmenityTable).values(
+    await database.insert(schema.roomTypeAmenity).values(
       amenityIds.map((amenityId) => ({
         roomTypeId,
         amenityId,
@@ -255,8 +254,8 @@ export class RoomTypeRepository {
     const database = getDb(db);
     const rows = await database
       .select()
-      .from(roomTypeAmenityTable)
-      .where(eq(roomTypeAmenityTable.roomTypeId, roomTypeId));
+      .from(schema.roomTypeAmenity)
+      .where(eq(schema.roomTypeAmenity.roomTypeId, roomTypeId));
     return rows as any;
   }
 
@@ -269,13 +268,13 @@ export class RoomTypeRepository {
     const database = getDb(db);
     // Clear existing
     await database
-      .delete(roomTypeAddonTable)
-      .where(eq(roomTypeAddonTable.roomTypeId, roomTypeId));
+      .delete(schema.roomTypeAddon)
+      .where(eq(schema.roomTypeAddon.roomTypeId, roomTypeId));
 
     if (addons.length === 0) return;
 
     const nowIso = new Date().toISOString();
-    await database.insert(roomTypeAddonTable).values(
+    await database.insert(schema.roomTypeAddon).values(
       addons.map((addon) => ({
         roomTypeId,
         addonId: addon.addonId,
@@ -293,8 +292,8 @@ export class RoomTypeRepository {
     const database = getDb(db);
     const rows = await database
       .select()
-      .from(roomTypeAddonTable)
-      .where(eq(roomTypeAddonTable.roomTypeId, roomTypeId));
+      .from(schema.roomTypeAddon)
+      .where(eq(schema.roomTypeAddon.roomTypeId, roomTypeId));
     return rows as any;
   }
 }

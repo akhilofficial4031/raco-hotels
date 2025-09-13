@@ -114,21 +114,17 @@ export class RoomTypeService {
       );
     }
 
-    const images = await RoomTypeRepository.findImagesByRoomTypeId(db, id);
-    const amenities = await RoomTypeRepository.getAmenities(db, id);
-    const rooms = await RoomRepository.findByRoomTypeId(db, id);
-    const addons = await RoomTypeRepository.getAddons(db, id);
-    return { ...updated, images, amenities, rooms, addons } as any;
+    const roomType = await this.getRoomTypeById(db, id);
+    return roomType;
   }
 
   static async getRoomTypeById(db: D1Database, id: number) {
     const rt = await RoomTypeRepository.findById(db, id);
     if (!rt) return null;
-    const images = await RoomTypeRepository.findImagesByRoomTypeId(db, id);
     const amenities = await RoomTypeRepository.getAmenities(db, id);
     const rooms = await RoomRepository.findByRoomTypeId(db, id);
     const addons = await RoomTypeRepository.getAddons(db, id);
-    return { ...rt, images, amenities, rooms, addons } as any;
+    return { ...rt, amenities, rooms, addons } as any;
   }
 
   static async getRoomTypes(
@@ -149,13 +145,12 @@ export class RoomTypeService {
     // Fetch all related data for each room type
     const roomTypesWithRelations = await Promise.all(
       roomTypes.map(async (roomType) => {
-        const [images, amenities, rooms, addons] = await Promise.all([
-          RoomTypeRepository.findImagesByRoomTypeId(db, roomType.id),
+        const [amenities, rooms, addons] = await Promise.all([
           RoomTypeRepository.getAmenities(db, roomType.id),
           RoomRepository.findByRoomTypeId(db, roomType.id),
           RoomTypeRepository.getAddons(db, roomType.id),
         ]);
-        return { ...roomType, images, amenities, rooms, addons };
+        return { ...roomType, amenities, rooms, addons };
       }),
     );
 
@@ -217,7 +212,7 @@ export class RoomTypeService {
     const imageRecords = uploadResults.map((result, index) => ({
       roomTypeId,
       url: result.url,
-      alt: null,
+      alt: imageFiles[index].name, // Use original filename for alt text
       sortOrder: index,
     }));
 

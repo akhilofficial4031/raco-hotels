@@ -1,5 +1,10 @@
 /* eslint-disable no-unused-vars */
-import { DeleteOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  UploadOutlined,
+  EyeOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
@@ -10,6 +15,10 @@ import {
   Space,
   InputNumber,
   Switch,
+  Upload,
+  Image,
+  message,
+  Modal,
 } from "antd";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -24,10 +33,21 @@ import {
   type CreateRoomTypePayload,
   type RoomTypeFormData,
 } from "../../shared/models/room-type";
-import { fetcher } from "../../utils/swrFetcher";
+
+// Simplified interface for image display state
+interface ImageDisplayData {
+  id: number;
+  url: string;
+  alt: string;
+  sortOrder: number;
+}
+import { fetcher, mutationFetcher } from "../../utils/swrFetcher";
+
+import type { UploadFile, UploadProps } from "antd";
 
 const { Option } = Select;
 const { TextArea } = Input;
+const { confirm } = Modal;
 
 const roomTypeSchema = z
   .object({
@@ -73,7 +93,11 @@ const roomTypeSchema = z
 interface AddEditRoomTypeProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateRoomTypePayload) => void;
+  onSubmit: (
+    data: CreateRoomTypePayload,
+    images?: File[],
+    replaceImages?: boolean,
+  ) => void;
   roomType: RoomTypeWithRelations | null;
   isSaving: boolean;
 }
@@ -87,6 +111,16 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
 }) => {
   const isEditMode = !!roomType;
   const [priceInRupees, setPriceInRupees] = useState<number>(0);
+
+  // Image upload state
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<ImageDisplayData[]>([]);
+  const [replaceImages, setReplaceImages] = useState(false);
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
+
+  const imageBaseUrl = import.meta.env.VITE_BUCKET_URL;
 
   const {
     control,
@@ -186,6 +220,17 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         })) || [];
       const priceInRupees = roomType.basePriceCents / 100;
 
+      // Set existing images if room type has images
+      if (roomType.images) {
+        const images = roomType.images.map((img) => ({
+          id: img.id,
+          url: img.url,
+          alt: img.alt || "",
+          sortOrder: img.sortOrder || 0,
+        }));
+        setExistingImages(images);
+      }
+
       reset({
         hotelId: roomType.hotelId,
         name: roomType.name,
@@ -205,6 +250,12 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       });
       setPriceInRupees(priceInRupees);
     } else {
+      // Reset image state for add mode
+      setExistingImages([]);
+      setUploadedImages([]);
+      setFileList([]);
+      setReplaceImages(false);
+
       reset({
         hotelId: 0,
         name: "",
@@ -244,7 +295,71 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       amenityIds: data.amenityIds?.length ? data.amenityIds : undefined,
       addons: data.addons,
     };
-    onSubmit(payload);
+    onSubmit(payload, uploadedImages, isEditMode ? replaceImages : undefined);
+  };
+
+  // Image upload handlers
+  const handleUploadChange: UploadProps["onChange"] = (info) => {
+    const { fileList: newFileList } = info;
+    setFileList(newFileList);
+
+    // Extract actual files for submission
+    const files = newFileList
+      .filter((file) => file.status !== "error" && file.originFileObj)
+      .map((file) => file.originFileObj as File);
+    setUploadedImages(files);
+  };
+
+  const handlePreview = async (file: UploadFile) => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj as File);
+    }
+    setPreviewImage(file.url || (file.preview as string));
+    setPreviewVisible(true);
+  };
+
+  const getBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+
+  const beforeUpload = (file: File) => {
+    const isJpgOrPng =
+      file.type === "image/jpeg" ||
+      file.type === "image/png" ||
+      file.type === "image/webp";
+    if (!isJpgOrPng) {
+      message.error("You can only upload JPG/PNG/WebP files!");
+      return false;
+    }
+    const isLt10M = file.size / 1024 / 1024 < 10;
+    if (!isLt10M) {
+      message.error("Image must be smaller than 10MB!");
+      return false;
+    }
+    return false; // Prevent auto upload
+  };
+
+  const removeExistingImage = (imageId: number) => {
+    confirm({
+      title: "Are you sure you want to delete this image?",
+      icon: <ExclamationCircleOutlined />,
+      content: "This action cannot be undone.",
+      onOk: async () => {
+        try {
+          await mutationFetcher(`/room-types/images/${imageId}`, {
+            arg: { method: "DELETE" },
+          });
+          message.success("Image deleted successfully");
+          setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+        } catch (error) {
+          message.error("Failed to delete image");
+        }
+      },
+    });
   };
 
   return (
@@ -595,6 +710,84 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
               )}
             />
           </Form.Item>
+        </div>
+
+        {/* Room Type Images */}
+        <div className="space-y-4">
+          <h4 className="font-medium">Room Type Images</h4>
+
+          {/* Existing Images (shown in edit mode when not replacing) */}
+          {isEditMode && existingImages.length > 0 && !replaceImages && (
+            <div>
+              <h5 className="font-medium mb-3 text-sm">Current Images</h5>
+              <div className="flex flex-wrap gap-4">
+                {existingImages.map((image) => (
+                  <div key={image.id} className="relative group">
+                    <Image
+                      src={`${imageBaseUrl}/${image.url.replace("r2://", "")}`}
+                      alt={image.alt || "Room type image"}
+                      className="w-full !h-20 object-cover rounded-lg"
+                      preview={{
+                        mask: <EyeOutlined className="text-white" />,
+                      }}
+                    />
+                    <Button
+                      type="text"
+                      danger
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-md"
+                      onClick={() => removeExistingImage(image.id)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Replace Images Toggle (edit mode) */}
+
+          {/* Upload New Images */}
+          <div>
+            <h5 className="font-medium mb-3 text-sm">
+              {isEditMode && !replaceImages
+                ? "Add New Images"
+                : "Upload Images"}
+            </h5>
+            <Upload
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              listType="picture-card"
+              fileList={fileList}
+              onChange={handleUploadChange}
+              onPreview={handlePreview}
+              beforeUpload={beforeUpload}
+              className="upload-list-inline"
+            >
+              {fileList.length >= 8 ? null : (
+                <div>
+                  <UploadOutlined />
+                  <div style={{ marginTop: 8 }}>Upload</div>
+                </div>
+              )}
+            </Upload>
+            <div className="text-sm text-gray-500 mt-2">
+              • Supported formats: JPEG, PNG, WebP
+              <br />
+              • Maximum file size: 10MB per image
+              <br />• Maximum images: 8
+            </div>
+          </div>
+
+          {/* Image Preview Modal */}
+          <Image
+            style={{ display: "none" }}
+            src={previewImage}
+            preview={{
+              visible: previewVisible,
+              onVisibleChange: (visible) => setPreviewVisible(visible),
+            }}
+          />
         </div>
       </Form>
     </Drawer>
