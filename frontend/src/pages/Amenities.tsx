@@ -38,7 +38,7 @@ const Amenities = () => {
   const [isIconModalVisible, setIsIconModalVisible] = useState(false);
   const [editingRowId, setEditingRowId] = useState<number | null>(null);
   const [editedAmenity, setEditedAmenity] = useState<Amenity | null>(null);
-
+  const [searchIcon, setSearchIcon] = useState("");
   const [filterParams, setFilterParams] = useState<AmenityListParamStructure>({
     page: 1,
     limit: 10,
@@ -353,25 +353,34 @@ const Amenities = () => {
         footer={null}
         width={800}
       >
+        <div className="mb-4">
+          <Input
+            placeholder="Search Icon"
+            value={searchIcon}
+            onChange={(e) => setSearchIcon(e.target.value)}
+          />
+        </div>
         <div className="grid grid-cols-8 gap-4 max-h-96 overflow-y-auto">
-          {iconList.map((icon) => (
-            <div
-              key={icon}
-              className="flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-200"
-              onClick={() => {
-                if (editingRowId && editingRowId !== -1) {
-                  // Edit mode for existing amenity
-                  setEditedAmenity((prev) => ({ ...prev, icon }) as Amenity);
-                } else {
-                  // New amenity mode
-                  setSelectedIcon(icon);
-                }
-                setIsIconModalVisible(false);
-              }}
-            >
-              <i className={`fa ${icon} text-2xl`} />
-            </div>
-          ))}
+          {iconList
+            .filter((icon) => icon.includes(searchIcon))
+            .map((icon) => (
+              <div
+                key={icon}
+                className="flex items-center justify-center p-2 border rounded-md cursor-pointer hover:bg-gray-200"
+                onClick={() => {
+                  if (editingRowId && editingRowId !== -1) {
+                    // Edit mode for existing amenity
+                    setEditedAmenity((prev) => ({ ...prev, icon }) as Amenity);
+                  } else {
+                    // New amenity mode
+                    setSelectedIcon(icon);
+                  }
+                  setIsIconModalVisible(false);
+                }}
+              >
+                <i className={`fa ${icon} text-2xl`} />
+              </div>
+            ))}
         </div>
       </Modal>
     </div>
