@@ -2,6 +2,7 @@ import { Pagination, Table } from "antd";
 import { useState } from "react";
 
 import TableHeader from "../shared/components/TableHeader";
+import { APP_LOCALE } from "../shared/constants/app";
 
 // NOTE: This is a temporary type definition.
 // In the future, this should be replaced by a shared model from a centralized types definition file.
@@ -77,7 +78,7 @@ const Payment = () => {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (text: string) => new Date(text).toLocaleDateString(),
+      render: (text: string) => new Date(text).toLocaleDateString(APP_LOCALE),
     },
   ];
 

@@ -16,6 +16,7 @@ import {
   message,
 } from "antd";
 import dayjs from "dayjs";
+import { DATE_FORMAT_API } from "../../shared/constants/app";
 import { useEffect, useState } from "react";
 
 import { type CustomerData } from "./schemas";
@@ -185,10 +186,10 @@ const ReviewAndSubmit = ({
             <Title level={5}>Booking Details</Title>
             <Descriptions bordered column={1} size="middle">
               <Descriptions.Item label="Check-in Date">
-                {dayjs(checkInDate).format("YYYY-MM-DD")}
+                {dayjs(checkInDate).format(DATE_FORMAT_API)}
               </Descriptions.Item>
               <Descriptions.Item label="Check-out Date">
-                {dayjs(checkOutDate).format("YYYY-MM-DD")}
+                {dayjs(checkOutDate).format(DATE_FORMAT_API)}
               </Descriptions.Item>
               <Descriptions.Item label="Adults">
                 {bookingDetails?.numAdults}

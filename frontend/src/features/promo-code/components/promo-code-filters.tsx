@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { type Hotel } from "../../../shared/models/hotels";
 import { type PromoCodeListParamStructure } from "../../../shared/models/promo-code";
 import { fetcher } from "../../../utils/swrFetcher";
+import { DATE_FORMAT_API } from "../../../shared/constants/app";
 
 const { RangePicker } = DatePicker;
 
@@ -81,7 +82,7 @@ const PromoCodeFilters: React.FC<PromoCodeFiltersProps> = ({
           />
         </Form.Item>
         <Form.Item name="dateRange" label="Validity Dates">
-          <RangePicker style={{ width: "100%" }} format="YYYY-MM-DD" />
+          <RangePicker style={{ width: "100%" }} format={DATE_FORMAT_API} />
         </Form.Item>
       </Form>
     </Drawer>

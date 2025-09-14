@@ -3,6 +3,10 @@ import { Card, Descriptions, Tag } from "antd";
 import React from "react";
 
 import { type CustomerDetailsResponse } from "../../../shared/services/customer.service";
+import {
+  APP_LOCALE,
+  LOCALE_DATE_OPTIONS_SHORT,
+} from "../../../shared/constants/app";
 
 interface PersonalInformationProps {
   customer: CustomerDetailsResponse["customer"];
@@ -12,11 +16,10 @@ const PersonalInformation: React.FC<PersonalInformationProps> = ({
   customer,
 }) => {
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return new Date(dateString).toLocaleDateString(
+      APP_LOCALE,
+      LOCALE_DATE_OPTIONS_SHORT,
+    );
   };
 
   return (

@@ -20,6 +20,10 @@ import React from "react";
 import { useNavigate } from "react-router";
 
 import { type CustomerDetailsResponse } from "../../../shared/services/customer.service";
+import {
+  APP_LOCALE,
+  LOCALE_DATE_OPTIONS_SHORT,
+} from "../../../shared/constants/app";
 
 type CustomerBooking = CustomerDetailsResponse["bookingHistory"]["past"][0];
 
@@ -55,11 +59,10 @@ const BookingHistory: React.FC<BookingHistoryProps> = ({ bookingHistory }) => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return new Date(dateString).toLocaleDateString(
+      APP_LOCALE,
+      LOCALE_DATE_OPTIONS_SHORT,
+    );
   };
 
   const renderBookingList = (

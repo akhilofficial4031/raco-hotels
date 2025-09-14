@@ -30,6 +30,7 @@ import {
 } from "../shared/models";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 
@@ -157,7 +158,7 @@ const AddonConfigurationPage = () => {
       title: "Created At",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (text: string) => new Date(text).toLocaleDateString(),
+      render: (text: string) => new Date(text).toLocaleDateString(APP_LOCALE),
     },
     {
       title: "Actions",

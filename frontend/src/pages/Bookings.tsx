@@ -30,6 +30,7 @@ import {
 } from "../shared/models/bookings";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 
@@ -148,13 +149,13 @@ const Bookings = () => {
       title: "Check-in",
       dataIndex: "checkInDate",
       key: "checkInDate",
-      render: (text: string) => new Date(text).toLocaleDateString(),
+      render: (text: string) => new Date(text).toLocaleDateString(APP_LOCALE),
     },
     {
       title: "Check-out",
       dataIndex: "checkOutDate",
       key: "checkOutDate",
-      render: (text: string) => new Date(text).toLocaleDateString(),
+      render: (text: string) => new Date(text).toLocaleDateString(APP_LOCALE),
     },
     {
       title: "Status",

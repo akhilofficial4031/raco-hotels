@@ -33,6 +33,7 @@ import {
 } from "../shared/models/promo-code";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import { APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT } from "../shared/constants/app";
 
 dayjs.extend(isBetween);
 
@@ -224,9 +225,9 @@ const PromoCode = () => {
       render: (_: unknown, record: PromoCodeWithRelations) => (
         <Text>
           {record.startDate
-            ? `${dayjs(record.startDate).format("MMM D, YYYY")} - ${dayjs(
+            ? `${new Date(record.startDate).toLocaleDateString(APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT)} - ${new Date(
                 record.endDate,
-              ).format("MMM D, YYYY")}`
+              ).toLocaleDateString(APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT)}`
             : "No date limit"}
         </Text>
       ),

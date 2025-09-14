@@ -10,6 +10,7 @@ import { getRoomTypes } from "../room-type/services/room-type.service";
 
 import type { Hotel } from "../../shared/models/hotels";
 import type { RoomType } from "../../shared/models/room-type";
+import { DATE_FORMAT_API } from "../../shared/constants/app";
 
 interface BookingDetailsFormValues {
   hotelId: number | null;
@@ -209,7 +210,11 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
               control={control}
               rules={{ required: "Date range is required" }}
               render={({ field }) => (
-                <DatePicker.RangePicker {...field} className="w-full" />
+                <DatePicker.RangePicker
+                  {...field}
+                  className="w-full"
+                  format={DATE_FORMAT_API}
+                />
               )}
             />
           </Form.Item>

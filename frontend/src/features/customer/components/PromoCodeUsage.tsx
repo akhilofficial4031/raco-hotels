@@ -3,6 +3,10 @@ import { Card, List, Typography } from "antd";
 import React from "react";
 
 import { type CustomerDetailsResponse } from "../../../shared/services/customer.service";
+import {
+  APP_LOCALE,
+  LOCALE_DATE_OPTIONS_SHORT,
+} from "../../../shared/constants/app";
 
 const { Text } = Typography;
 
@@ -19,11 +23,10 @@ const PromoCodeUsage: React.FC<PromoCodeUsageProps> = ({ promoUsage }) => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return new Date(dateString).toLocaleDateString(
+      APP_LOCALE,
+      LOCALE_DATE_OPTIONS_SHORT,
+    );
   };
 
   return (

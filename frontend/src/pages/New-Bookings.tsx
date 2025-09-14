@@ -10,6 +10,7 @@ import { type CustomerData } from "../features/bookings/schemas";
 import { type PromoCode } from "../shared/models/promo-code";
 import { type RoomTypeWithRelations } from "../shared/models/room-type";
 import { mutationFetcher } from "../utils/swrFetcher";
+import { DATE_FORMAT_API } from "../shared/constants/app";
 
 import type { Addon } from "../shared/models/addon";
 import type { IRoom } from "../shared/models/rooms";
@@ -72,9 +73,9 @@ const NewBookings = () => {
         hotelId: bookingData.bookingDetails.hotelId,
         bookingDetails: {
           checkInDate:
-            bookingData.bookingDetails.dateRange[0].format("YYYY-MM-DD"),
+            bookingData.bookingDetails.dateRange[0].format(DATE_FORMAT_API),
           checkOutDate:
-            bookingData.bookingDetails.dateRange[1].format("YYYY-MM-DD"),
+            bookingData.bookingDetails.dateRange[1].format(DATE_FORMAT_API),
           numAdults: bookingData.bookingDetails.numAdults,
           numChildren: bookingData.bookingDetails.numChildren,
         },
@@ -155,10 +156,10 @@ const NewBookings = () => {
           hotelId={bookingData.bookingDetails.hotelId}
           roomTypeId={bookingData.bookingDetails.roomTypeId}
           checkInDate={bookingData.bookingDetails.dateRange[0].format(
-            "YYYY-MM-DD",
+            DATE_FORMAT_API,
           )}
           checkOutDate={bookingData.bookingDetails.dateRange[1].format(
-            "YYYY-MM-DD",
+            DATE_FORMAT_API,
           )}
           numRooms={bookingData.bookingDetails.numRooms}
           onNext={handleRoomSelectionFinish}

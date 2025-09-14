@@ -21,6 +21,7 @@ import {
   type PromoCodeWithRelations,
 } from "../../../shared/models/promo-code";
 import { fetcher } from "../../../utils/swrFetcher";
+import { DATE_FORMAT_API } from "../../../shared/constants/app";
 
 const { RangePicker } = DatePicker;
 
@@ -72,8 +73,8 @@ const AddEditPromoCode: React.FC<AddEditPromoCodeProps> = ({
     const payload: CreatePromoCodePayload = {
       ...rest,
       isActive: values.isActive ? 1 : 0,
-      startDate: dateRange ? dateRange[0].format("YYYY-MM-DD") : undefined,
-      endDate: dateRange ? dateRange[1].format("YYYY-MM-DD") : undefined,
+      startDate: dateRange ? dateRange[0].format(DATE_FORMAT_API) : undefined,
+      endDate: dateRange ? dateRange[1].format(DATE_FORMAT_API) : undefined,
     };
     onSubmit(payload);
   };
@@ -167,7 +168,7 @@ const AddEditPromoCode: React.FC<AddEditPromoCodeProps> = ({
         <Row gutter={16}>
           <Col span={24}>
             <Form.Item name="dateRange" label="Validity Dates">
-              <RangePicker style={{ width: "100%" }} format="YYYY-MM-DD" />
+              <RangePicker style={{ width: "100%" }} format={DATE_FORMAT_API} />
             </Form.Item>
           </Col>
         </Row>

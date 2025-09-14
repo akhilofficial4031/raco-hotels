@@ -34,6 +34,7 @@ import {
 } from "../shared/models/users";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 
@@ -197,7 +198,7 @@ const Users = () => {
       title: "Joined At",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (text: string) => new Date(text).toLocaleDateString(),
+      render: (text: string) => new Date(text).toLocaleDateString(APP_LOCALE),
     },
     {
       title: "Actions",

@@ -21,6 +21,7 @@ import {
   type DashboardStatsResponse,
   type YearlyBookingsResponse,
 } from "../shared/services/dashboard.service";
+import { APP_LOCALE, LOCALE_DATE_OPTIONS_LONG } from "../shared/constants/app";
 import { fetcher } from "../utils/swrFetcher";
 
 const StatCard: React.FC<{
@@ -109,12 +110,10 @@ const Dashboard: React.FC = () => {
       <div className=" mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="text-sm text-gray-500">
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
+            {new Date().toLocaleDateString(
+              APP_LOCALE,
+              LOCALE_DATE_OPTIONS_LONG,
+            )}
           </div>
         </div>
 

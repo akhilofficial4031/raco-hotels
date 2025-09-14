@@ -14,6 +14,7 @@ import useSWR from "swr";
 import { type BookingListParamStructure } from "../../shared/models/bookings";
 import { type Hotel } from "../../shared/models/hotels";
 import { fetcher } from "../../utils/swrFetcher";
+import { DATE_FORMAT_API } from "../../shared/constants/app";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -62,10 +63,10 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
       hotelId: data.hotelId || "",
       status: data.status || "",
       checkInDateStart: data.dateRange
-        ? data.dateRange[0].format("YYYY-MM-DD")
+        ? data.dateRange[0].format(DATE_FORMAT_API)
         : undefined,
       checkInDateEnd: data.dateRange
-        ? data.dateRange[1].format("YYYY-MM-DD")
+        ? data.dateRange[1].format(DATE_FORMAT_API)
         : undefined,
       page: 1,
     });
@@ -140,7 +141,11 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
             name="dateRange"
             control={control}
             render={({ field }) => (
-              <RangePicker {...field} className="w-full" />
+              <RangePicker
+                {...field}
+                className="w-full"
+                format={DATE_FORMAT_API}
+              />
             )}
           />
         </Form.Item>

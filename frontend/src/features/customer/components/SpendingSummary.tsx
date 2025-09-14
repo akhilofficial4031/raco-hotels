@@ -3,6 +3,10 @@ import { Card, Col, Row, Statistic, Typography } from "antd";
 import React from "react";
 
 import { type CustomerDetailsResponse } from "../../../shared/services/customer.service";
+import {
+  APP_LOCALE,
+  LOCALE_DATE_OPTIONS_SHORT,
+} from "../../../shared/constants/app";
 
 const { Title, Text } = Typography;
 
@@ -36,11 +40,10 @@ const SpendingSummary: React.FC<SpendingSummaryProps> = ({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return new Date(dateString).toLocaleDateString(
+      APP_LOCALE,
+      LOCALE_DATE_OPTIONS_SHORT,
+    );
   };
 
   return (

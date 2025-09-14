@@ -34,6 +34,7 @@ import {
   mutationFetcher,
   multipartMutationFetcher,
 } from "../utils/swrFetcher";
+import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 const { Text } = Typography;
@@ -294,7 +295,7 @@ const Hotels = () => {
       title: "Created",
       dataIndex: "createdAt",
       key: "createdAt",
-      render: (text: string) => new Date(text).toLocaleDateString(),
+      render: (text: string) => new Date(text).toLocaleDateString(APP_LOCALE),
     },
     {
       title: "Actions",

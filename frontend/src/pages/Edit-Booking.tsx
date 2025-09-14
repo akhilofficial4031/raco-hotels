@@ -121,10 +121,10 @@ function EditBooking() {
     const payload = {
       bookingDetails: {
         checkInDate: dayjs(bookingData.bookingDetails.checkInDate).format(
-          "YYYY-MM-DD",
+          DATE_FORMAT_API,
         ),
         checkOutDate: dayjs(bookingData.bookingDetails.checkOutDate).format(
-          "YYYY-MM-DD",
+          DATE_FORMAT_API,
         ),
         numAdults: bookingData.bookingDetails.numAdults,
         numChildren: bookingData.bookingDetails.numChildren,
@@ -185,10 +185,10 @@ function EditBooking() {
           hotelId={bookingData.bookingDetails.hotelId}
           roomTypeId={bookingData.bookingDetails.roomTypeId}
           checkInDate={bookingData.bookingDetails.checkInDate.format(
-            "YYYY-MM-DD",
+            DATE_FORMAT_API,
           )}
           checkOutDate={bookingData.bookingDetails.checkOutDate.format(
-            "YYYY-MM-DD",
+            DATE_FORMAT_API,
           )}
           numRooms={bookingData.bookingDetails.numRooms}
           onNext={handleRoomSelectionFinish}

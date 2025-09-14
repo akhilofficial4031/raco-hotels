@@ -28,6 +28,7 @@ import {
 } from "../shared/models";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 
@@ -239,7 +240,7 @@ const Amenities = () => {
           // New row case - don't show created date
           return null;
         }
-        return new Date(text).toLocaleDateString();
+        return new Date(text).toLocaleDateString(APP_LOCALE);
       },
     },
     {

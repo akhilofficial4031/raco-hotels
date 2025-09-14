@@ -22,6 +22,7 @@ import Spinner from "../shared/components/Spinner";
 import { type ApiResponse } from "../shared/models";
 import { type Booking } from "../shared/models/bookings";
 import { fetcher } from "../utils/swrFetcher";
+import { APP_LOCALE } from "../shared/constants/app";
 
 const { Title, Text } = Typography;
 
@@ -115,10 +116,12 @@ function ViewBooking() {
                   </Tag>
                 </Descriptions.Item>
                 <Descriptions.Item label="Check-in">
-                  {new Date(booking.checkInDate).toLocaleDateString()}
+                  {new Date(booking.checkInDate).toLocaleDateString(APP_LOCALE)}
                 </Descriptions.Item>
                 <Descriptions.Item label="Check-out">
-                  {new Date(booking.checkOutDate).toLocaleDateString()}
+                  {new Date(booking.checkOutDate).toLocaleDateString(
+                    APP_LOCALE,
+                  )}
                 </Descriptions.Item>
                 <Descriptions.Item label="Guests">
                   {booking.numAdults} Adults, {booking.numChildren} Children

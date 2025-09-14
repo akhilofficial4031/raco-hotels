@@ -25,6 +25,7 @@ import {
 } from "../shared/models";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import { APP_LOCALE } from "../shared/constants/app";
 
 const Reviews = () => {
   const [filterParams, setFilterParams] = useState<ReviewListParamStructure>({
@@ -111,7 +112,7 @@ const Reviews = () => {
       title: "Published At",
       dataIndex: "publishedAt",
       key: "publishedAt",
-      render: (text: string) => new Date(text).toLocaleDateString(),
+      render: (text: string) => new Date(text).toLocaleDateString(APP_LOCALE),
     },
     {
       title: "Actions",
