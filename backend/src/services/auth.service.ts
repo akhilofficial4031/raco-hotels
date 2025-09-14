@@ -193,8 +193,7 @@ export class AuthService {
       }
 
       return tokenData;
-    } catch (error) {
-      console.error("Failed to parse token data:", error);
+    } catch (_error) {
       return null;
     }
   }
@@ -222,8 +221,7 @@ export class AuthService {
       }
 
       return tokenData;
-    } catch (error) {
-      console.error("Failed to parse access token data:", error);
+    } catch (_error) {
       return null;
     }
   }
@@ -246,9 +244,7 @@ export class AuthService {
       try {
         const tokenData = JSON.parse(data) as StoredRefreshToken;
         await this.removeTokenFromUserSessions(kv, tokenData.userId, tokenId);
-      } catch (error) {
-        console.error("Failed to parse token data during revoke:", error);
-      }
+      } catch (_error) {}
     }
   }
 
@@ -290,8 +286,7 @@ export class AuthService {
 
       // Clear user's session list
       await kv.delete(sessionsKey);
-    } catch (error) {
-      console.error("Failed to revoke all user sessions:", error);
+    } catch (_error) {
       // If parsing fails, just clear the sessions list
       await kv.delete(sessionsKey);
     }
@@ -310,8 +305,7 @@ export class AuthService {
     if (existingData) {
       try {
         tokenIds = JSON.parse(existingData) as string[];
-      } catch (error) {
-        console.warn("Failed to parse existing sessions:", error);
+      } catch (_error) {
         tokenIds = [];
       }
     }
@@ -353,9 +347,7 @@ export class AuthService {
           expirationTtl: 8 * 24 * 60 * 60, // 8 days in seconds
         });
       }
-    } catch (error) {
-      console.warn("Failed to update user sessions:", error);
-    }
+    } catch (_error) {}
   }
 
   // Validate password strength

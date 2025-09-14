@@ -230,7 +230,7 @@ export const BookingConfirmationEmail: React.FC<BookingConfirmationProps> = ({
   hotelImage,
   bookingUrl = "#",
 }) => {
-  console.log("Hotel image URL:", hotelImage);
+  // no-op logging removed
 
   return (
     <html>

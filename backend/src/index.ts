@@ -84,15 +84,7 @@ app.use("*", rateLimitMiddleware);
 app.use("*", i18nMiddleware());
 
 // Add request logging middleware
-app.use("*", async (c, next) => {
-  const start = Date.now();
-  console.warn(`[${new Date().toISOString()}] ${c.req.method} ${c.req.url}`);
-  await next();
-  const end = Date.now();
-  console.warn(
-    `[${new Date().toISOString()}] ${c.req.method} ${c.req.url} - ${c.res.status} (${end - start}ms)`,
-  );
-});
+// Optional request logging removed for production cleanliness
 
 // Register API routes - adding back in groups to identify problematic route
 app.route("/api", amenityRoutes);

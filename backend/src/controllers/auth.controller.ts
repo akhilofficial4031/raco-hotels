@@ -139,9 +139,8 @@ export class AuthController {
                 // Remove token from KV storage
                 await AuthService.revokeRefreshToken(c.env.KV, decoded.tokenId);
               }
-            } catch (error) {
+            } catch (_error) {
               // Token might be invalid, but we still want to clear cookies
-              console.warn("Failed to revoke token from KV:", error);
             }
           }
 
@@ -163,8 +162,7 @@ export class AuthController {
             success: true,
             message: getLocalizedMessage(c, "user.logoutSuccessful"),
           });
-        } catch (error) {
-          console.error("Logout error:", error);
+        } catch (_error) {
           // Still clear cookies even if KV operation fails
           deleteCookie(c, COOKIE_CONFIG.ACCESS_TOKEN_NAME, {
             ...COOKIE_CONFIG.OPTIONS,
@@ -404,7 +402,6 @@ export class AuthController {
             message: getLocalizedMessage(c, "auth.allSessionsRevoked"),
           });
         } catch (error) {
-          console.error("Revoke all sessions error:", error);
           throw error;
         }
       },

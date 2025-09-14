@@ -51,10 +51,7 @@ export const rateLimitMiddleware = createMiddleware(async (c, next) => {
     c.req.header("X-Real-IP") ||
     "unknown";
 
-  // For now, just log the request (implement actual rate limiting as needed)
-  console.log(
-    `API Request from IP: ${clientIP}, Path: ${c.req.path}, Method: ${c.req.method}`,
-  );
+  // Implement actual rate limiting as needed
 
   await next();
 });

@@ -728,15 +728,11 @@ export function getMessage(
   for (const key of keys) {
     message = message?.[key];
     if (message === undefined) {
-      console.warn(`Message not found for path: ${path}, locale: ${locale}`);
       return path; // Return the path as fallback
     }
   }
 
   if (typeof message !== "string") {
-    console.warn(
-      `Message at path ${path} is not a string for locale: ${locale}`,
-    );
     return path;
   }
 
