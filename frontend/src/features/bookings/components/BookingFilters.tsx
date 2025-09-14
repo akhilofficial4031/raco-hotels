@@ -11,10 +11,10 @@ import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 
-import { type BookingListParamStructure } from "../../shared/models/bookings";
-import { type Hotel } from "../../shared/models/hotels";
-import { fetcher } from "../../utils/swrFetcher";
-import { DATE_FORMAT_API } from "../../shared/constants/app";
+import { DATE_FORMAT_API } from "../../../shared/constants/app";
+import { type BookingListParamStructure } from "../../../shared/models/bookings";
+import { type Hotel } from "../../../shared/models/hotels";
+import { fetcher } from "../../../utils/swrFetcher";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -23,6 +23,7 @@ const { RangePicker } = DatePicker;
 interface BookingFiltersProps {
   open: boolean;
   onClose: () => void;
+  // eslint-disable-next-line no-unused-vars
   onApplyFilters: (filters: Partial<BookingListParamStructure>) => void;
   currentFilters: BookingListParamStructure;
 }

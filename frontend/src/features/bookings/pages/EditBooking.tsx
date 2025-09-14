@@ -1,23 +1,22 @@
+import Spinner from "@shared/components/Spinner";
+import { DATE_FORMAT_API } from "@shared/constants/app";
+import { type ApiResponse } from "@shared/models";
+import { type Addon } from "@shared/models/addon";
+import { type Booking } from "@shared/models/bookings";
+import { type IRoom } from "@shared/models/rooms";
 import { Steps, Card, Typography, Breadcrumb, message } from "antd";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router";
 import useSWR, { mutate } from "swr";
 
-import BookingDetailsForm from "../features/bookings/BookingDetailsForm";
-import CustomerInformationForm from "../features/bookings/CustomerInformationForm";
-import ReviewAndSubmit from "../features/bookings/ReviewAndSubmit";
-import RoomSelection from "../features/bookings/RoomSelection";
-import { type CustomerData } from "../features/bookings/schemas";
-import { updateBooking } from "../features/bookings/services/booking.service";
-import Spinner from "../shared/components/Spinner";
-import { DATE_FORMAT_API } from "../shared/constants/app";
-import { BOOKING_STATUS } from "../shared/constants/bookings";
-import { type ApiResponse } from "../shared/models";
-import { type Addon } from "../shared/models/addon";
-import { type Booking } from "../shared/models/bookings";
-import { type IRoom } from "../shared/models/rooms";
-import { fetcher } from "../utils/swrFetcher";
+import { fetcher } from "../../../utils/swrFetcher";
+import BookingDetailsForm from "../components/BookingDetailsForm";
+import CustomerInformationForm from "../components/CustomerInformationForm";
+import ReviewAndSubmit from "../components/ReviewAndSubmit";
+import RoomSelection from "../components/RoomSelection";
+import { updateBooking } from "../services/booking.service";
+import { type CustomerData } from "../types/schemas";
 
 const { Title } = Typography;
 
@@ -28,7 +27,7 @@ interface BookingData {
   selectedAddons?: Addon[];
 }
 
-function CheckIn() {
+function EditBooking() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -130,7 +129,7 @@ function CheckIn() {
         ),
         numAdults: bookingData.bookingDetails.numAdults,
         numChildren: bookingData.bookingDetails.numChildren,
-        status: BOOKING_STATUS.CHECKED_IN,
+        status: bookingData.bookingDetails.status,
       },
       customerData: {
         fullName: bookingData.customerData?.fullName,
@@ -155,16 +154,16 @@ function CheckIn() {
     try {
       const apiResponse = await updateBooking(id, payload);
       if (apiResponse.success) {
-        message.success("Customer checked in successfully!");
+        message.success("Booking updated successfully!");
         mutate(`/bookings/${id}`);
         navigate(`/bookings/${id}`);
       } else {
         message.error(
-          (apiResponse as any).error || "Failed to check in customer.",
+          (apiResponse as any).error || "Failed to update booking.",
         );
       }
     } catch {
-      message.error("An error occurred while checking in the customer.");
+      message.error("An error occurred while updating the booking.");
     } finally {
       setIsSubmitting(false);
     }
@@ -198,7 +197,7 @@ function CheckIn() {
           onBack={handleBack}
           initialSelectedRooms={bookingData.selectedRooms}
           initialSelectedAddons={booking?.addons?.map((addon) => addon.addon)}
-          mode="checkin"
+          mode="edit"
         />
       ) : null,
     },
@@ -220,7 +219,7 @@ function CheckIn() {
           onBack={handleBack}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          mode="checkin"
+          mode="edit"
           onPromoCodeChange={() => {}}
         />
       ),
@@ -248,14 +247,14 @@ function CheckIn() {
       <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-2 border border-gray-200">
         <div>
           <Title level={4} className="!m-0">
-            Check In #{booking?.referenceCode}
+            Edit Booking #{booking?.referenceCode}
           </Title>
           <Breadcrumb
             className="mt-2"
             items={[
               { title: <Link to="/dashboard">Dashboard</Link> },
               { title: <Link to="/bookings">Bookings</Link> },
-              { title: "Check In" },
+              { title: "Edit Booking" },
             ]}
           />
         </div>
@@ -271,4 +270,4 @@ function CheckIn() {
   );
 }
 
-export default CheckIn;
+export default EditBooking;

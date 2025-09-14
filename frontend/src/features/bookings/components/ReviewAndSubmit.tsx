@@ -1,4 +1,11 @@
 /* eslint-disable no-unused-vars */
+
+import { DATE_FORMAT_API } from "@shared/constants/app";
+import { type Addon } from "@shared/models/addon";
+import { type PromoCode } from "@shared/models/promo-code";
+import { type RoomTypeWithRelations } from "@shared/models/room-type";
+import { type IRoom } from "@shared/models/rooms";
+import { validatePromoCode } from "@shared/services/promo-code.service";
 import {
   Button,
   Card,
@@ -16,15 +23,9 @@ import {
   message,
 } from "antd";
 import dayjs from "dayjs";
-import { DATE_FORMAT_API } from "../../shared/constants/app";
 import { useEffect, useState } from "react";
 
-import { type CustomerData } from "./schemas";
-import { type Addon } from "../../shared/models/addon";
-import { type PromoCode } from "../../shared/models/promo-code";
-import { type RoomTypeWithRelations } from "../../shared/models/room-type";
-import { type IRoom } from "../../shared/models/rooms";
-import { validatePromoCode } from "../../shared/services/promo-code.service";
+import { type CustomerData } from "../types/schemas";
 
 const { Title, Text } = Typography;
 

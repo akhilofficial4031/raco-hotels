@@ -7,6 +7,14 @@ import {
   CloseCircleOutlined,
   LoginOutlined,
 } from "@ant-design/icons";
+import TableHeader from "@shared/components/TableHeader";
+import { APP_LOCALE } from "@shared/constants/app";
+import {
+  type Booking,
+  type BookingListParamStructure,
+  type BookingListResponse,
+} from "@shared/models/bookings";
+import { convertJsonToQueryParams } from "@shared/utils";
 import {
   Button,
   Dropdown,
@@ -22,16 +30,8 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import useSWR, { mutate } from "swr";
 
-import BookingFilters from "../features/bookings/booking-filters";
-import TableHeader from "../shared/components/TableHeader";
-import { APP_LOCALE } from "../shared/constants/app";
-import {
-  type Booking,
-  type BookingListParamStructure,
-  type BookingListResponse,
-} from "../shared/models/bookings";
-import { convertJsonToQueryParams } from "../shared/utils";
-import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import { fetcher, mutationFetcher } from "../../../utils/swrFetcher";
+import BookingFilters from "../components/BookingFilters";
 
 const { confirm } = Modal;
 

@@ -22,11 +22,11 @@ const Addons = lazy(() => import("./pages/Addons"));
 const AddonConfiguration = lazy(() => import("./pages/AddonConfiguration"));
 const Reviews = lazy(() => import("./pages/Reviews"));
 const PromoCode = lazy(() => import("./pages/PromoCode"));
-const Bookings = lazy(() => import("./pages/Bookings"));
-const NewBookings = lazy(() => import("./pages/New-Bookings"));
-const ViewBooking = lazy(() => import("./pages/View-Booking"));
-const EditBooking = lazy(() => import("./pages/Edit-Booking"));
-const CheckIn = lazy(() => import("./pages/Check-In"));
+const Bookings = lazy(() => import("./features/bookings/pages/Bookings"));
+const NewBookings = lazy(() => import("./features/bookings/pages/NewBookings"));
+const ViewBooking = lazy(() => import("./features/bookings/pages/ViewBooking"));
+const EditBooking = lazy(() => import("./features/bookings/pages/EditBooking"));
+const CheckIn = lazy(() => import("./features/bookings/pages/CheckIn"));
 const EditCustomer = lazy(() => import("./pages/Edit-Customer"));
 const Payment = lazy(() => import("./pages/Payment"));
 

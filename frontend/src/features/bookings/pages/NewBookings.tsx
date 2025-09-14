@@ -3,19 +3,19 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
-import BookingDetailsForm from "../features/bookings/BookingDetailsForm";
-import CustomerInformationForm from "../features/bookings/CustomerInformationForm";
-import ReviewAndSubmit from "../features/bookings/ReviewAndSubmit";
-import RoomSelection from "../features/bookings/RoomSelection";
-import { type CustomerData } from "../features/bookings/schemas";
-import { DATE_FORMAT_API } from "../shared/constants/app";
-import { BOOKING_STATUS } from "../shared/constants/bookings";
-import { type PromoCode } from "../shared/models/promo-code";
-import { type RoomTypeWithRelations } from "../shared/models/room-type";
-import { mutationFetcher } from "../utils/swrFetcher";
+import { DATE_FORMAT_API } from "../../../shared/constants/app";
+import { BOOKING_STATUS } from "../../../shared/constants/bookings";
+import { type PromoCode } from "../../../shared/models/promo-code";
+import { type RoomTypeWithRelations } from "../../../shared/models/room-type";
+import { mutationFetcher } from "../../../utils/swrFetcher";
+import BookingDetailsForm from "../components/BookingDetailsForm";
+import CustomerInformationForm from "../components/CustomerInformationForm";
+import ReviewAndSubmit from "../components/ReviewAndSubmit";
+import RoomSelection from "../components/RoomSelection";
 
-import type { Addon } from "../shared/models/addon";
-import type { IRoom } from "../shared/models/rooms";
+import type { Addon } from "../../../shared/models/addon";
+import type { IRoom } from "../../../shared/models/rooms";
+import type { CustomerData } from "../types/schemas";
 
 const { Title } = Typography;
 
