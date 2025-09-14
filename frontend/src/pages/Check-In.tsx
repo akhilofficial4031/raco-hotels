@@ -12,6 +12,7 @@ import { type CustomerData } from "../features/bookings/schemas";
 import { updateBooking } from "../features/bookings/services/booking.service";
 import Spinner from "../shared/components/Spinner";
 import { DATE_FORMAT_API } from "../shared/constants/app";
+import { BOOKING_STATUS } from "../shared/constants/bookings";
 import { type ApiResponse } from "../shared/models";
 import { type Addon } from "../shared/models/addon";
 import { type Booking } from "../shared/models/bookings";
@@ -27,7 +28,7 @@ interface BookingData {
   selectedAddons?: Addon[];
 }
 
-function EditBooking() {
+function CheckIn() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
@@ -129,7 +130,7 @@ function EditBooking() {
         ),
         numAdults: bookingData.bookingDetails.numAdults,
         numChildren: bookingData.bookingDetails.numChildren,
-        status: bookingData.bookingDetails.status,
+        status: BOOKING_STATUS.CHECKED_IN,
       },
       customerData: {
         fullName: bookingData.customerData?.fullName,
@@ -154,16 +155,16 @@ function EditBooking() {
     try {
       const apiResponse = await updateBooking(id, payload);
       if (apiResponse.success) {
-        message.success("Booking updated successfully!");
+        message.success("Customer checked in successfully!");
         mutate(`/bookings/${id}`);
         navigate(`/bookings/${id}`);
       } else {
         message.error(
-          (apiResponse as any).error || "Failed to update booking.",
+          (apiResponse as any).error || "Failed to check in customer.",
         );
       }
     } catch {
-      message.error("An error occurred while updating the booking.");
+      message.error("An error occurred while checking in the customer.");
     } finally {
       setIsSubmitting(false);
     }
@@ -197,7 +198,7 @@ function EditBooking() {
           onBack={handleBack}
           initialSelectedRooms={bookingData.selectedRooms}
           initialSelectedAddons={booking?.addons?.map((addon) => addon.addon)}
-          mode="edit"
+          mode="checkin"
         />
       ) : null,
     },
@@ -219,7 +220,7 @@ function EditBooking() {
           onBack={handleBack}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          mode="edit"
+          mode="checkin"
           onPromoCodeChange={() => {}}
         />
       ),
@@ -247,14 +248,14 @@ function EditBooking() {
       <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-2 border border-gray-200">
         <div>
           <Title level={4} className="!m-0">
-            Edit Booking #{booking?.referenceCode}
+            Check In #{booking?.referenceCode}
           </Title>
           <Breadcrumb
             className="mt-2"
             items={[
               { title: <Link to="/dashboard">Dashboard</Link> },
               { title: <Link to="/bookings">Bookings</Link> },
-              { title: "Edit Booking" },
+              { title: "Check In" },
             ]}
           />
         </div>
@@ -270,4 +271,4 @@ function EditBooking() {
   );
 }
 
-export default EditBooking;
+export default CheckIn;

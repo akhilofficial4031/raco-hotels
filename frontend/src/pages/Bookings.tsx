@@ -5,6 +5,7 @@ import {
   MoreOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  LoginOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -23,6 +24,7 @@ import useSWR, { mutate } from "swr";
 
 import BookingFilters from "../features/bookings/booking-filters";
 import TableHeader from "../shared/components/TableHeader";
+import { APP_LOCALE } from "../shared/constants/app";
 import {
   type Booking,
   type BookingListParamStructure,
@@ -30,7 +32,6 @@ import {
 } from "../shared/models/bookings";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
-import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 
@@ -124,6 +125,10 @@ const Bookings = () => {
         return "red";
       case "reserved":
         return "blue";
+      case "checkedin":
+        return "blue";
+      case "checkedout":
+        return "purple";
       default:
         return "default";
     }
@@ -191,6 +196,12 @@ const Bookings = () => {
             icon: <EditOutlined />,
             label: "Edit",
             onClick: () => navigate(`/bookings/${record.id}/edit`),
+          },
+          record.status === "confirmed" && {
+            key: "checkin",
+            icon: <LoginOutlined />,
+            label: "Check In",
+            onClick: () => navigate(`/bookings/${record.id}/checkin`),
           },
           record.status === "checkedin" && {
             key: "checkout",

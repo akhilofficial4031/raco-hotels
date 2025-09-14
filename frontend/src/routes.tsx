@@ -26,6 +26,7 @@ const Bookings = lazy(() => import("./pages/Bookings"));
 const NewBookings = lazy(() => import("./pages/New-Bookings"));
 const ViewBooking = lazy(() => import("./pages/View-Booking"));
 const EditBooking = lazy(() => import("./pages/Edit-Booking"));
+const CheckIn = lazy(() => import("./pages/Check-In"));
 const EditCustomer = lazy(() => import("./pages/Edit-Customer"));
 const Payment = lazy(() => import("./pages/Payment"));
 
@@ -374,6 +375,16 @@ const router = createBrowserRouter([
                 handle: {
                   crumb: () => ({
                     label: "Edit Booking",
+                    href: "/bookings", // This will be dynamic
+                  }),
+                },
+              },
+              {
+                path: ":id/checkin",
+                Component: withSuspense(CheckIn),
+                handle: {
+                  crumb: () => ({
+                    label: "Check In",
                     href: "/bookings", // This will be dynamic
                   }),
                 },

@@ -1,4 +1,5 @@
 import { Breadcrumb, Card, Steps, Typography, message } from "antd";
+import dayjs from "dayjs";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
@@ -7,11 +8,11 @@ import CustomerInformationForm from "../features/bookings/CustomerInformationFor
 import ReviewAndSubmit from "../features/bookings/ReviewAndSubmit";
 import RoomSelection from "../features/bookings/RoomSelection";
 import { type CustomerData } from "../features/bookings/schemas";
+import { DATE_FORMAT_API } from "../shared/constants/app";
 import { BOOKING_STATUS } from "../shared/constants/bookings";
 import { type PromoCode } from "../shared/models/promo-code";
 import { type RoomTypeWithRelations } from "../shared/models/room-type";
 import { mutationFetcher } from "../utils/swrFetcher";
-import { DATE_FORMAT_API } from "../shared/constants/app";
 
 import type { Addon } from "../shared/models/addon";
 import type { IRoom } from "../shared/models/rooms";
@@ -70,6 +71,21 @@ const NewBookings = () => {
   const handleSubmit = async (paymentDetails: { amountPaidCents: number }) => {
     setIsSubmitting(true);
     try {
+      // Determine status based on check-in date
+      const checkInDate = bookingData.bookingDetails.dateRange[0];
+      const today = dayjs().startOf("day");
+
+      console.log("Check-in Date from form:", checkInDate);
+      console.log("Today's Date (start of day):", today);
+      console.log(
+        "Is Check-in Today?",
+        dayjs(checkInDate).startOf("day").isSame(today),
+      );
+
+      const isCheckInToday = dayjs(checkInDate).startOf("day").isSame(today);
+      const bookingStatus = isCheckInToday
+        ? BOOKING_STATUS.CHECKED_IN
+        : BOOKING_STATUS.CONFIRMED;
       const payload = {
         hotelId: bookingData.bookingDetails.hotelId,
         bookingDetails: {
@@ -79,6 +95,7 @@ const NewBookings = () => {
             bookingData.bookingDetails.dateRange[1].format(DATE_FORMAT_API),
           numAdults: bookingData.bookingDetails.numAdults,
           numChildren: bookingData.bookingDetails.numChildren,
+          status: bookingStatus,
         },
         customerData: {
           fullName: bookingData.customerData?.fullName,
@@ -111,7 +128,6 @@ const NewBookings = () => {
         },
         amountPaidCents: paymentDetails.amountPaidCents,
         promoCode: bookingData.appliedPromoCode?.code,
-        status: BOOKING_STATUS.CHECKED_IN,
       };
 
       await mutationFetcher("/bookings", {
@@ -121,7 +137,10 @@ const NewBookings = () => {
         },
       });
 
-      message.success("Booking created successfully!");
+      const successMessage = isCheckInToday
+        ? "Booking created and customer checked in successfully!"
+        : "Booking created successfully!";
+      message.success(successMessage);
       navigate("/bookings");
     } catch (error: any) {
       console.error("Failed to create booking:", error);
@@ -168,6 +187,7 @@ const NewBookings = () => {
           onBack={handleBack}
           initialSelectedRooms={bookingData.selectedRooms}
           initialSelectedAddons={bookingData.selectedAddons}
+          mode="create"
         />
       ) : null,
     },

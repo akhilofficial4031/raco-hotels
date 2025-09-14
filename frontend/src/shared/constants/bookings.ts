@@ -2,7 +2,7 @@ export const BOOKING_STATUS = {
   PENDING: "pending",
   CONFIRMED: "confirmed",
   CANCELLED: "cancelled",
-  CHECKED_IN: "checked_in",
-  CHECKED_OUT: "checked_out",
+  CHECKED_IN: "checkedin",
+  CHECKED_OUT: "checkedout",
   NO_SHOW: "no_show",
 };

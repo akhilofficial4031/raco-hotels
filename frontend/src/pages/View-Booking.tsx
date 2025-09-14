@@ -2,6 +2,9 @@ import {
   MoreOutlined,
   EditOutlined,
   CloseCircleOutlined,
+  LoginOutlined,
+  ExclamationCircleOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import {
   Card,
@@ -14,17 +17,20 @@ import {
   Col,
   List,
   type MenuProps,
+  Modal,
+  message,
 } from "antd";
 import { useNavigate, useParams } from "react-router";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 
 import Spinner from "../shared/components/Spinner";
 import { type ApiResponse } from "../shared/models";
 import { type Booking } from "../shared/models/bookings";
-import { fetcher } from "../utils/swrFetcher";
+import { fetcher, mutationFetcher } from "../utils/swrFetcher";
 import { APP_LOCALE } from "../shared/constants/app";
 
 const { Title, Text } = Typography;
+const { confirm } = Modal;
 
 function ViewBooking() {
   const navigate = useNavigate();
@@ -40,6 +46,27 @@ function ViewBooking() {
   );
 
   const booking = response?.data?.booking;
+
+  const handleCheckoutBooking = () => {
+    confirm({
+      title: "Are you sure you want to check out this booking?",
+      icon: <ExclamationCircleOutlined />,
+      content: `This action will check out booking ${booking?.referenceCode}.`,
+      onOk: async () => {
+        try {
+          await mutationFetcher(`/bookings/${booking?.id}/checkout`, {
+            arg: { method: "PATCH" },
+          });
+          message.success("Booking checked out successfully");
+          mutate(`/bookings/${id}`);
+        } catch (err) {
+          if (err) {
+            message.error("Failed to check out booking");
+          }
+        }
+      },
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -62,6 +89,18 @@ function ViewBooking() {
       icon: <EditOutlined />,
       label: "Edit",
       onClick: () => navigate(`/bookings/${id}/edit`),
+    },
+    booking?.status?.toLowerCase() === "confirmed" && {
+      key: "checkin",
+      icon: <LoginOutlined />,
+      label: "Check In",
+      onClick: () => navigate(`/bookings/${id}/checkin`),
+    },
+    booking?.status?.toLowerCase() === "checkedin" && {
+      key: "checkout",
+      icon: <CheckCircleOutlined />,
+      label: "Check out",
+      onClick: handleCheckoutBooking,
     },
     {
       key: "cancel",

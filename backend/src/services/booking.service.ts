@@ -250,7 +250,7 @@ export class BookingService {
           checkOutDate: bookingDetails.checkOutDate,
           numAdults: bookingDetails.numAdults,
           numChildren: bookingDetails.numChildren,
-          status: "confirmed",
+          status: bookingDetails.status || "confirmed",
           source: "web",
           totalAmountCents,
           currencyCode: "INR",

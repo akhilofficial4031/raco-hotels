@@ -224,7 +224,7 @@ const PromoCode = () => {
       key: "validity",
       render: (_: unknown, record: PromoCodeWithRelations) => (
         <Text>
-          {record.startDate
+          {record.startDate && record.endDate
             ? `${new Date(record.startDate).toLocaleDateString(APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT)} - ${new Date(
                 record.endDate,
               ).toLocaleDateString(APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT)}`

@@ -51,7 +51,7 @@ interface ReviewAndSubmitProps {
   onBack: () => void;
   onSubmit: (details: { amountPaidCents: number }) => void;
   isSubmitting: boolean;
-  mode?: "create" | "edit";
+  mode?: "create" | "edit" | "checkin";
   appliedPromoCode?: PromoCode | null;
   onPromoCodeChange: (promoCode: PromoCode | null) => void;
 }
@@ -87,6 +87,16 @@ const ReviewAndSubmit = ({
     checkInDate && checkOutDate
       ? dayjs(checkOutDate).diff(dayjs(checkInDate), "day")
       : 0;
+
+  // Calculate booking status for create mode
+  const calculateBookingStatus = () => {
+    if (mode !== "create" || !checkInDate) return null;
+    const today = dayjs().startOf("day");
+    const isCheckInToday = dayjs(checkInDate).startOf("day").isSame(today);
+    return isCheckInToday ? "CHECKED IN" : "CONFIRMED";
+  };
+
+  const bookingStatus = calculateBookingStatus();
 
   // Calculate pricing for create mode
   const roomTotal =
@@ -176,11 +186,15 @@ const ReviewAndSubmit = ({
     onPromoCodeChange(null);
   };
 
-  if (mode === "edit") {
-    // Simplified view for edit mode
+  if (mode === "edit" || mode === "checkin") {
+    // Simplified view for edit and checkin mode
     return (
       <Card>
-        <Title level={4}>Review and Confirm Changes</Title>
+        <Title level={4}>
+          {mode === "checkin"
+            ? "Review and Confirm Check-In"
+            : "Review and Confirm Changes"}
+        </Title>
         <Row gutter={32}>
           <Col span={24}>
             <Title level={5}>Booking Details</Title>
@@ -203,6 +217,24 @@ const ReviewAndSubmit = ({
                 </Descriptions.Item>
               )}
             </Descriptions>
+
+            {selectedRooms && selectedRooms.length > 0 && (
+              <>
+                <Divider />
+                <Title level={5}>Selected Rooms</Title>
+                <List
+                  dataSource={selectedRooms}
+                  renderItem={(room) => (
+                    <List.Item>
+                      <List.Item.Meta
+                        title={`Room ${room.roomNumber}`}
+                        description={`Floor: ${room.floor || "N/A"} | Status: ${room.status}`}
+                      />
+                    </List.Item>
+                  )}
+                />
+              </>
+            )}
 
             <Divider />
 
@@ -238,7 +270,7 @@ const ReviewAndSubmit = ({
             loading={isSubmitting}
             disabled={isSubmitting}
           >
-            Save Changes
+            {mode === "checkin" ? "Check In" : "Save Changes"}
           </Button>
         </div>
       </Card>
@@ -272,6 +304,13 @@ const ReviewAndSubmit = ({
             <Descriptions.Item label="Children">
               {bookingDetails?.numChildren}
             </Descriptions.Item>
+            {bookingStatus && (
+              <Descriptions.Item label="Booking Status">
+                <Tag color={bookingStatus === "CHECKED IN" ? "blue" : "green"}>
+                  {bookingStatus}
+                </Tag>
+              </Descriptions.Item>
+            )}
           </Descriptions>
 
           <Divider />

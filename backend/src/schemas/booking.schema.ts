@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export const BookingStatusEnum = z.enum([
+  "confirmed",
+  "checkedin",
+  "checkedout",
+  "cancelled",
+]);
+
 import {
   BOOKING_SOURCES,
   PAYMENT_METHODS,
@@ -41,6 +48,7 @@ export const CreateBookingRequestSchema = z.object({
     checkOutDate: z.string(),
     numAdults: z.number().int().min(1),
     numChildren: z.number().int().min(0),
+    status: BookingStatusEnum.optional(),
   }),
   customerData: CustomerDataSchema,
   selectedRooms: z.array(z.object({ id: z.number().int() })),

@@ -35,6 +35,7 @@ interface RoomSelectionProps {
   onBack: () => void;
   initialSelectedRooms?: IRoom[];
   initialSelectedAddons?: Addon[];
+  mode?: "create" | "edit" | "checkin";
 }
 
 const RoomSelection: React.FC<RoomSelectionProps> = ({
@@ -47,6 +48,7 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
   onBack,
   initialSelectedRooms = [],
   initialSelectedAddons = [],
+  mode = "create",
 }) => {
   const [selectedRooms, setSelectedRooms] =
     useState<IRoom[]>(initialSelectedRooms);
@@ -69,16 +71,17 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
     },
   );
 
+  const availabilityQuery =
+    mode === "create" || mode === "checkin"
+      ? `/availability?hotelId=${hotelId}&roomTypeId=${roomTypeId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`
+      : `/availability?hotelId=${hotelId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`;
+
   const { data: availabilityData, isLoading: isLoadingAvailability } = useSWR<{
     data: { results: IRoom[] };
-  }>(
-    `/availability?hotelId=${hotelId}&roomTypeId=${roomTypeId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    },
-  );
+  }>(availabilityQuery, fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+  });
 
   const { data: addonsData, isLoading: isLoadingAddons } = useSWR<{
     data: { addons: Addon[] };
