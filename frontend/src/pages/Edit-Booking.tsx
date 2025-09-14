@@ -11,8 +11,12 @@ import RoomSelection from "../features/bookings/RoomSelection";
 import { type CustomerData } from "../features/bookings/schemas";
 import { updateBooking } from "../features/bookings/services/booking.service";
 import Spinner from "../shared/components/Spinner";
+import { BOOKING_STATUS } from "../shared/constants/bookings";
 import { type ApiResponse } from "../shared/models";
-import { type Addon } from "../shared/models/addon";
+import {
+  type AddonResponseInBooking,
+  type Addon,
+} from "../shared/models/addon";
 import { type Booking } from "../shared/models/bookings";
 import { type IRoom } from "../shared/models/rooms";
 import { fetcher } from "../utils/swrFetcher";
@@ -148,6 +152,7 @@ function EditBooking() {
       selectedAddons: bookingData.selectedAddons?.map((addon) => ({
         id: addon.id,
       })),
+      status: BOOKING_STATUS.CHECKED_IN,
     };
 
     try {
@@ -194,7 +199,7 @@ function EditBooking() {
           onNext={handleRoomSelectionFinish}
           onBack={handleBack}
           initialSelectedRooms={bookingData.selectedRooms}
-          initialSelectedAddons={bookingData.selectedAddons}
+          initialSelectedAddons={booking?.addons?.map((addon) => addon.addon)}
         />
       ) : null,
     },

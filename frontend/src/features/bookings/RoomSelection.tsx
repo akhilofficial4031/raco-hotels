@@ -10,7 +10,7 @@ import {
   Spin,
   Typography,
 } from "antd";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 import { type Addon } from "../../shared/models/addon";
@@ -53,6 +53,12 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
   const [selectedAddons, setSelectedAddons] = useState<Set<number>>(
     new Set(initialSelectedAddons.map((a) => a.id)),
   );
+
+  useEffect(() => {
+    if (initialSelectedAddons.length > 0) {
+      setSelectedAddons(new Set(initialSelectedAddons.map((a) => a.id)));
+    }
+  }, [initialSelectedAddons]);
 
   const { data: roomTypesData } = useSWR(
     `/room-types?hotelId=${hotelId}`,

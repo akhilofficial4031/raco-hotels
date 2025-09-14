@@ -9,6 +9,23 @@ export interface Addon {
   isActive: number;
 }
 
+export interface AddonResponseInBooking {
+  addon: Addon;
+  bookingAddon: BookingAddon;
+}
+
+export interface BookingAddon {
+  addonId: number;
+  bookingId: number;
+  createdAt: string;
+  id: number;
+  notes: string | null;
+  priceCents: number;
+  quantity: number;
+  roomTypeId: number;
+  updatedAt: string;
+}
+
 export interface AddonListParamStructure {
   page: number;
   limit: number;
