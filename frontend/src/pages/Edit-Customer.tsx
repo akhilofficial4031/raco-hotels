@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {
   Button,
   Card,
@@ -18,11 +19,8 @@ import useSWR from "swr";
 
 import Spinner from "../shared/components/Spinner";
 import { type ApiResponse } from "../shared/models";
-import {
-  getCustomerById,
-  updateCustomerById,
-} from "../shared/services/customer.service";
-import { type Customer } from "../shared/services/customer.service";
+import { type Customer } from "../shared/models/customer";
+import { updateCustomerById } from "../shared/services/customer.service";
 import { fetcher } from "../utils/swrFetcher";
 
 const { Title } = Typography;

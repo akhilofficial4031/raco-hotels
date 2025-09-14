@@ -7,6 +7,7 @@ import CustomerInformationForm from "../features/bookings/CustomerInformationFor
 import ReviewAndSubmit from "../features/bookings/ReviewAndSubmit";
 import RoomSelection from "../features/bookings/RoomSelection";
 import { type CustomerData } from "../features/bookings/schemas";
+import { BOOKING_STATUS } from "../shared/constants/bookings";
 import { type PromoCode } from "../shared/models/promo-code";
 import { type RoomTypeWithRelations } from "../shared/models/room-type";
 import { mutationFetcher } from "../utils/swrFetcher";
@@ -110,6 +111,7 @@ const NewBookings = () => {
         },
         amountPaidCents: paymentDetails.amountPaidCents,
         promoCode: bookingData.appliedPromoCode?.code,
+        status: BOOKING_STATUS.CHECKED_IN,
       };
 
       await mutationFetcher("/bookings", {
