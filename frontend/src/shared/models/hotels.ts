@@ -88,6 +88,7 @@ export interface CreateHotelPayload {
   state?: string;
   postalCode?: string;
   countryCode?: string;
+  googleMapsUrl?: string;
   latitude?: number;
   longitude?: number;
   timezone?: string;

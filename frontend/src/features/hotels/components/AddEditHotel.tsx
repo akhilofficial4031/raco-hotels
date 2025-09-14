@@ -7,7 +7,6 @@ import {
   Col,
   Form,
   Input,
-  InputNumber,
   Row,
   Select,
   Upload,
@@ -27,6 +26,13 @@ import {
   type HotelImage,
   type CreateHotelPayload,
 } from "../../../shared/models/hotels";
+import {
+  extractCoordinatesFromMapsUrl,
+  generateGoogleMapsUrl,
+  isValidGoogleMapsUrl,
+  isShortenedGoogleMapsUrl,
+  getMapsUrlErrorMessage,
+} from "../../../utils/maps";
 import { fetcher } from "../../../utils/swrFetcher";
 
 import type { UploadFile, UploadProps } from "antd";
@@ -63,6 +69,7 @@ const hotelSchema = z.object({
   state: z.string().optional(),
   postalCode: z.string().optional(),
   countryCode: z.string().optional(),
+  googleMapsUrl: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
   timezone: z.string().optional(),
@@ -130,7 +137,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
     reset,
     setValue,
     formState: { errors },
-  } = useForm<CreateHotelPayload>({
+  } = useForm({
     resolver: zodResolver(hotelSchema),
     mode: "onBlur",
     defaultValues: {
@@ -145,6 +152,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
       state: "",
       postalCode: "",
       countryCode: "",
+      googleMapsUrl: "",
       latitude: undefined,
       longitude: undefined,
       timezone: "",
@@ -185,6 +193,22 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
         setExistingImages(images);
       }
 
+      // Generate Google Maps URL from existing coordinates
+      let googleMapsUrl = "";
+      if (hotel.latitude && hotel.longitude) {
+        try {
+          googleMapsUrl = generateGoogleMapsUrl(
+            hotel.latitude,
+            hotel.longitude,
+          );
+        } catch (error) {
+          console.warn(
+            "Could not generate Google Maps URL from coordinates:",
+            error,
+          );
+        }
+      }
+
       const resetData = {
         name: hotel.name || "",
         slug: hotel.slug || "",
@@ -197,6 +221,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
         state: hotel.state || "",
         postalCode: hotel.postalCode || "",
         countryCode: hotel.countryCode || "",
+        googleMapsUrl,
         latitude: hotel.latitude ?? undefined,
         longitude: hotel.longitude ?? undefined,
         timezone: hotel.timezone || "",
@@ -229,6 +254,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
         state: "",
         postalCode: "",
         countryCode: "",
+        googleMapsUrl: "",
         latitude: undefined,
         longitude: undefined,
         timezone: "",
@@ -253,6 +279,35 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
     if (!formData.slug || formData.slug.trim() === "") {
       message.error("Hotel slug is required");
       return;
+    }
+
+    // Extract coordinates from Google Maps URL if provided
+    let extractedCoordinates = null;
+    if (formData.googleMapsUrl && formData.googleMapsUrl.trim()) {
+      const trimmedUrl = formData.googleMapsUrl.trim();
+
+      // Check for shortened URLs first
+      if (isShortenedGoogleMapsUrl(trimmedUrl)) {
+        message.error({
+          content: getMapsUrlErrorMessage(trimmedUrl),
+          duration: 8, // Show longer for instructional messages
+        });
+        return;
+      }
+
+      if (!isValidGoogleMapsUrl(trimmedUrl)) {
+        message.error("Please enter a valid Google Maps URL");
+        return;
+      }
+
+      extractedCoordinates = extractCoordinatesFromMapsUrl(trimmedUrl);
+      if (!extractedCoordinates) {
+        message.error({
+          content: getMapsUrlErrorMessage(trimmedUrl),
+          duration: 6,
+        });
+        return;
+      }
     }
 
     const cleanedData: CreateHotelPayload = {
@@ -308,9 +363,11 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
         formData.description && formData.description.trim()
           ? formData.description.trim()
           : undefined,
-      // Handle numeric and array fields
-      latitude: formData.latitude || undefined,
-      longitude: formData.longitude || undefined,
+      // Use extracted coordinates from Google Maps URL or existing coordinates
+      latitude:
+        extractedCoordinates?.latitude || formData.latitude || undefined,
+      longitude:
+        extractedCoordinates?.longitude || formData.longitude || undefined,
       starRating: formData.starRating || undefined,
       locationInfo: formData.locationInfo?.length
         ? formData.locationInfo
@@ -397,7 +454,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
 
   return (
     <div className="w-full">
-      <Form layout="vertical" onFinish={handleSubmit(handleFormSubmit)}>
+      <Form layout="vertical" onFinish={handleSubmit(handleFormSubmit as any)}>
         <div className="grid grid-cols-1 gap-4">
           {/* Basic Information */}
           <Card
@@ -748,51 +805,102 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   />
                 </Form.Item>
               </Col>
-              <Col span={4}>
+              <Col span={8}>
                 <Form.Item
-                  label="Latitude"
-                  validateStatus={errors.latitude ? "error" : ""}
-                  help={errors.latitude?.message}
+                  label="Google Maps URL"
+                  validateStatus={errors.googleMapsUrl ? "error" : ""}
+                  help={errors.googleMapsUrl?.message}
+                  extra={
+                    <div className="text-xs text-gray-600">
+                      <div className="text-blue-600 mt-1">
+                        💡 Tip: Shortened links (goo.gl, maps.app.goo.gl) won't
+                        work. Open the link first, then copy the full URL from
+                        the address bar.
+                      </div>
+                    </div>
+                  }
                 >
                   <Controller
-                    name="latitude"
+                    name="googleMapsUrl"
                     control={control}
                     render={({ field }) => (
-                      <InputNumber
+                      <Input
                         {...field}
-                        value={field.value ?? undefined}
-                        className="!w-full"
-                        placeholder="37.789"
-                        step={0.000001}
+                        value={field.value || ""}
                         size="large"
-                      />
-                    )}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={4}>
-                <Form.Item
-                  label="Longitude"
-                  validateStatus={errors.longitude ? "error" : ""}
-                  help={errors.longitude?.message}
-                >
-                  <Controller
-                    name="longitude"
-                    control={control}
-                    render={({ field }) => (
-                      <InputNumber
-                        {...field}
-                        value={field.value ?? undefined}
-                        className="!w-full"
-                        placeholder="-122.401"
-                        step={0.000001}
-                        size="large"
+                        placeholder="https://www.google.com/maps/@37.7749,-122.4194,15z"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value);
+
+                          // Clear coordinates first
+                          setValue("latitude", undefined, {
+                            shouldValidate: false,
+                          });
+                          setValue("longitude", undefined, {
+                            shouldValidate: false,
+                          });
+
+                          // Real-time validation and coordinate extraction
+                          if (value && value.trim()) {
+                            const trimmedValue = value.trim();
+
+                            // Check for shortened URLs and show immediate feedback
+                            if (isShortenedGoogleMapsUrl(trimmedValue)) {
+                              // Don't extract coordinates from shortened URLs
+                              return;
+                            }
+
+                            // Try to extract coordinates from valid URLs
+                            if (isValidGoogleMapsUrl(trimmedValue)) {
+                              const coords =
+                                extractCoordinatesFromMapsUrl(trimmedValue);
+                              if (coords) {
+                                // Update hidden latitude/longitude fields
+                                setValue("latitude", coords.latitude, {
+                                  shouldValidate: false,
+                                });
+                                setValue("longitude", coords.longitude, {
+                                  shouldValidate: false,
+                                });
+                              }
+                            }
+                          }
+                        }}
                       />
                     )}
                   />
                 </Form.Item>
               </Col>
             </Row>
+
+            {/* Display extracted coordinates for user feedback */}
+            <Controller
+              name="latitude"
+              control={control}
+              render={({ field: latField }) => (
+                <Controller
+                  name="longitude"
+                  control={control}
+                  render={({ field: lngField }) => {
+                    if (latField.value && lngField.value) {
+                      return (
+                        <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div className="text-sm text-green-700">
+                            <strong>📍 Location detected:</strong>
+                            <span className="ml-2">
+                              Latitude: {latField.value.toFixed(6)}, Longitude:{" "}
+                              {lngField.value.toFixed(6)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return <></>;
+                  }}
+                />
+              )}
+            />
           </Card>
 
           {/* Location Information */}
@@ -802,7 +910,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
             }
             className="shadow-sm border-gray-200"
           >
-            <LocationInfoForm control={control} errors={errors} />
+            <LocationInfoForm control={control as any} errors={errors as any} />
           </Card>
 
           {/* Amenities & Features */}
