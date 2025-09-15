@@ -1,14 +1,15 @@
+import { Steps, Card, Typography, message } from "antd";
+import dayjs from "dayjs";
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
+import useSWR, { mutate } from "swr";
+
 import Spinner from "@shared/components/Spinner";
 import { DATE_FORMAT_API } from "@shared/constants/app";
 import { type ApiResponse } from "@shared/models";
 import { type Addon } from "@shared/models/addon";
 import { type Booking } from "@shared/models/bookings";
 import { type IRoom } from "@shared/models/rooms";
-import { Steps, Card, Typography, Breadcrumb, message } from "antd";
-import dayjs from "dayjs";
-import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router";
-import useSWR, { mutate } from "swr";
 
 import { fetcher } from "../../../utils/swrFetcher";
 import BookingDetailsForm from "../components/BookingDetailsForm";
@@ -62,6 +63,7 @@ function EditBooking() {
           hotelId: booking.hotelId,
           roomTypeId: booking.items?.[0]?.room.roomTypeId,
           numRooms: booking.items?.length,
+          amountPaidCents: booking.amountPaidCents,
         },
         customerData: {
           fullName: booking.customer?.fullName ?? "",
@@ -76,7 +78,7 @@ function EditBooking() {
           notes: booking.customer?.notes ?? "",
         },
         selectedRooms: booking.items?.map((item: any) => item.room),
-        selectedAddons: booking.addons,
+        selectedAddons: booking.addons?.map((a: any) => a.addon) || [],
       });
     }
   }, [booking]);
@@ -115,7 +117,11 @@ function EditBooking() {
     setCurrentStep((prev) => prev - 1);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (paymentDetails: {
+    amountPaidCents: number;
+    taxAmountCents?: number;
+    totalAmountCents?: number;
+  }) => {
     if (!id) return;
     setIsSubmitting(true);
 
@@ -130,6 +136,7 @@ function EditBooking() {
         numAdults: bookingData.bookingDetails.numAdults,
         numChildren: bookingData.bookingDetails.numChildren,
         status: bookingData.bookingDetails.status,
+        roomTypeId: bookingData.bookingDetails.roomTypeId,
       },
       customerData: {
         fullName: bookingData.customerData?.fullName,
@@ -149,6 +156,7 @@ function EditBooking() {
       selectedAddons: bookingData.selectedAddons?.map((addon) => ({
         id: addon.id,
       })),
+      amountPaidCents: paymentDetails.amountPaidCents,
     };
 
     try {
@@ -196,7 +204,7 @@ function EditBooking() {
           onNext={handleRoomSelectionFinish}
           onBack={handleBack}
           initialSelectedRooms={bookingData.selectedRooms}
-          initialSelectedAddons={booking?.addons?.map((addon) => addon.addon)}
+          initialSelectedAddons={bookingData.selectedAddons || []}
           mode="edit"
         />
       ) : null,
@@ -249,14 +257,6 @@ function EditBooking() {
           <Title level={4} className="!m-0">
             Edit Booking #{booking?.referenceCode}
           </Title>
-          <Breadcrumb
-            className="mt-2"
-            items={[
-              { title: <Link to="/dashboard">Dashboard</Link> },
-              { title: <Link to="/bookings">Bookings</Link> },
-              { title: "Edit Booking" },
-            ]}
-          />
         </div>
       </div>
       <Card>

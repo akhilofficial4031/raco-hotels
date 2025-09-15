@@ -56,12 +56,6 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
     new Set(initialSelectedAddons.map((a) => a.id)),
   );
 
-  useEffect(() => {
-    if (initialSelectedAddons.length > 0) {
-      setSelectedAddons(new Set(initialSelectedAddons.map((a) => a.id)));
-    }
-  }, [initialSelectedAddons]);
-
   const { data: roomTypesData } = useSWR(
     `/room-types?hotelId=${hotelId}`,
     () => getRoomTypesByHotel(hotelId),
@@ -241,7 +235,10 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
             className="cursor-pointer hover:bg-gray-50"
           >
             <div className="flex items-center w-full">
-              <Checkbox checked={selectedAddons.has(addon.id)} />
+              <Checkbox
+                checked={selectedAddons.has(addon.id)}
+                onChange={() => handleAddonToggle(addon.id)}
+              />
               <div className="ml-4">
                 <Text strong>{addon.name}</Text>
                 <br />

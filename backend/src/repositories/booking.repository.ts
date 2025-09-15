@@ -1,4 +1,4 @@
-import { and, eq, gte, lte, ilike, or, asc, desc, sql } from "drizzle-orm";
+import { and, eq, gte, lte, like, or, asc, desc, sql } from "drizzle-orm";
 
 import {
   booking as bookingTable,
@@ -18,7 +18,11 @@ export class BookingRepository {
   static async findById(db: D1Database, id: number) {
     const database = getDb(db);
     const rows = await database
-      .select()
+      .select({
+        booking: bookingTable,
+        hotel: hotelTable,
+        customer: customerTable,
+      })
       .from(bookingTable)
       .where(eq(bookingTable.id, id))
       .leftJoin(hotelTable, eq(bookingTable.hotelId, hotelTable.id))
@@ -97,6 +101,18 @@ export class BookingRepository {
     return rows as any[];
   }
 
+  static async findBookingsByRoomId(db: D1Database, roomId: number) {
+    const database = getDb(db);
+    const result = await database
+      .select({
+        count: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(bookingItemsTable)
+      .where(eq(bookingItemsTable.roomId, roomId));
+
+    return result[0].count;
+  }
+
   static async findBookings(
     db: D1Database,
     filters: {
@@ -137,8 +153,14 @@ export class BookingRepository {
     if (filters.query) {
       conditions.push(
         or(
-          ilike(bookingTable.referenceCode, `%${filters.query}%`),
-          ilike(customerTable.fullName, `%${filters.query}%`),
+          like(
+            sql`lower(${bookingTable.referenceCode})`,
+            `%${filters.query.toLowerCase()}%`,
+          ),
+          like(
+            sql`lower(${customerTable.fullName})`,
+            `%${filters.query.toLowerCase()}%`,
+          ),
         ),
       );
     }
@@ -154,6 +176,8 @@ export class BookingRepository {
         checkOutDate: bookingTable.checkOutDate,
         status: bookingTable.status,
         totalAmountCents: bookingTable.totalAmountCents,
+        amountPaidCents: bookingTable.amountPaidCents,
+        taxAmountCents: bookingTable.taxAmountCents,
         currencyCode: bookingTable.currencyCode,
         createdAt: bookingTable.createdAt,
       })
@@ -165,6 +189,7 @@ export class BookingRepository {
     const totalQuery = database
       .select({ count: sql<number>`count(*)` })
       .from(bookingTable)
+      .leftJoin(hotelTable, eq(bookingTable.hotelId, hotelTable.id))
       .leftJoin(customerTable, eq(bookingTable.customerId, customerTable.id))
       .where(and(...conditions));
 

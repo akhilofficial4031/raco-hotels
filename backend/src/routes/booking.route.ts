@@ -26,6 +26,13 @@ bookingRoutes.openapi(
 );
 
 bookingRoutes.openapi(
+  BookingRouteDefinitions.checkinBooking,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
+    BookingController.checkinBooking(c as AppContext),
+  ),
+);
+
+bookingRoutes.openapi(
   BookingRouteDefinitions.cancelBooking,
   smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
     BookingController.cancelBooking(c as AppContext),

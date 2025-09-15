@@ -10,6 +10,11 @@ export interface Booking {
   checkOutDate: string;
   status: string;
   totalAmountCents: number;
+  amountPaidCents?: number;
+  taxAmountCents?: number;
+  feeAmountCents?: number;
+  discountAmountCents?: number;
+  balanceDueCents?: number;
   currencyCode: string;
   createdAt: string;
   numAdults?: number;

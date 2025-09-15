@@ -478,6 +478,18 @@ export const BookingRouteDefinitions = {
     includeBadRequest: true,
   }),
 
+  checkinBooking: createRoute({
+    method: "patch",
+    path: "/bookings/{id}/checkin",
+    summary: "Check in a booking",
+    description: "Check in a specific booking by its ID.",
+    tags: [ApiTags.BOOKINGS],
+    successSchema: BookingResponseSchema,
+    successDescription: "Booking checked in successfully.",
+    pathParamsSchema: BookingPathParamsSchema,
+    includeBadRequest: true,
+  }),
+
   checkoutBooking: createRoute({
     method: "patch",
     path: "/bookings/{id}/checkout",

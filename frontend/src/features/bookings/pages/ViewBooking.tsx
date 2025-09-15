@@ -48,10 +48,31 @@ function ViewBooking() {
   const booking = response?.data?.booking;
 
   const handleCheckoutBooking = () => {
+    if (!booking) return;
+
+    const remainingAmount =
+      booking.balanceDueCents ??
+      (booking.totalAmountCents ?? 0) - (booking.amountPaidCents ?? 0);
+
+    const content = (
+      <div>
+        <p>This action will check out booking {booking?.referenceCode}.</p>
+        {remainingAmount > 0 && (
+          <p style={{ color: "red" }}>
+            Pending amount to be paid:{" "}
+            {new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: booking.currencyCode,
+            }).format(remainingAmount / 100)}
+          </p>
+        )}
+      </div>
+    );
+
     confirm({
       title: "Are you sure you want to check out this booking?",
       icon: <ExclamationCircleOutlined />,
-      content: `This action will check out booking ${booking?.referenceCode}.`,
+      content,
       onOk: async () => {
         try {
           await mutationFetcher(`/bookings/${booking?.id}/checkout`, {
@@ -129,6 +150,20 @@ function ViewBooking() {
     return <div className="text-center p-4">Booking not found.</div>;
   }
 
+  const paidAmount = booking.amountPaidCents ?? 0;
+  const totalAmount = booking.totalAmountCents ?? 0;
+  const remainingAmount = booking.balanceDueCents ?? totalAmount - paidAmount;
+  const discountAmount = booking.discountAmountCents ?? 0;
+  const taxAmount = booking.taxAmountCents ?? 0;
+  const feeAmount = booking.feeAmountCents ?? 0;
+  const addonsTotal =
+    booking.addons?.reduce(
+      (acc, item) => acc + (item.booking_addon.priceCents || 0),
+      0,
+    ) ?? 0;
+  const roomPrice =
+    totalAmount - addonsTotal - taxAmount - feeAmount + discountAmount;
+
   return (
     <div>
       <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-2 border border-gray-200">
@@ -137,14 +172,16 @@ function ViewBooking() {
             Booking #{booking.referenceCode}
           </Title>
         </div>
-        <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
-          <Button icon={<MoreOutlined />} />
-        </Dropdown>
+        <div className="flex items-center gap-2">
+          <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
+            <Button icon={<MoreOutlined />} />
+          </Dropdown>
+        </div>
       </div>
       <Card>
         <Row gutter={[16, 16]}>
           <Col xs={24} md={16}>
-            <Card title="Booking Details">
+            <Card title="Booking Details" className="!mb-4">
               <Descriptions bordered column={1}>
                 <Descriptions.Item label="Hotel">
                   {booking.hotel?.name}
@@ -165,15 +202,9 @@ function ViewBooking() {
                 <Descriptions.Item label="Guests">
                   {booking.numAdults} Adults, {booking.numChildren} Children
                 </Descriptions.Item>
-                <Descriptions.Item label="Total Amount">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: booking.currencyCode,
-                  }).format(booking.totalAmountCents / 100)}
-                </Descriptions.Item>
               </Descriptions>
             </Card>
-            <Card title="Rooms" className="mt-4">
+            <Card title="Rooms" className="!mb-4">
               <List
                 dataSource={booking.items}
                 renderItem={(item: any) => (
@@ -209,7 +240,7 @@ function ViewBooking() {
             </Card>
           </Col>
           <Col xs={24} md={8}>
-            <Card title="Customer Details">
+            <Card title="Customer Details" className="!mb-4">
               <Descriptions column={1}>
                 <Descriptions.Item label="Name">
                   {booking.customer?.fullName}
@@ -219,6 +250,57 @@ function ViewBooking() {
                 </Descriptions.Item>
                 <Descriptions.Item label="Phone">
                   {booking.customer?.phone}
+                </Descriptions.Item>
+              </Descriptions>
+            </Card>
+            <Card title="Payment Details" className="mt-4">
+              <Descriptions bordered column={1}>
+                <Descriptions.Item label="Room Price">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: booking.currencyCode,
+                  }).format(roomPrice / 100)}
+                </Descriptions.Item>
+                <Descriptions.Item label="Add-ons">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: booking.currencyCode,
+                  }).format(addonsTotal / 100)}
+                </Descriptions.Item>
+                <Descriptions.Item label="Taxes">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: booking.currencyCode,
+                  }).format(taxAmount / 100)}
+                </Descriptions.Item>
+
+                <Descriptions.Item label="Discount">
+                  -
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: booking.currencyCode,
+                  }).format(discountAmount / 100)}
+                </Descriptions.Item>
+                <Descriptions.Item label="Total Amount">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: booking.currencyCode,
+                  }).format(totalAmount / 100)}
+                </Descriptions.Item>
+                <Descriptions.Item label="Paid Amount">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: booking.currencyCode,
+                  }).format(paidAmount / 100)}
+                </Descriptions.Item>
+                <Descriptions.Item
+                  label="Remaining Amount"
+                  style={{ color: remainingAmount > 0 ? "red" : "green" }}
+                >
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: booking.currencyCode,
+                  }).format(remainingAmount / 100)}
                 </Descriptions.Item>
               </Descriptions>
             </Card>

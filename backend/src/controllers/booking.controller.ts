@@ -94,6 +94,21 @@ export class BookingController {
     );
   }
 
+  static async checkinBooking(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const { id } = c.req.param();
+        const bookingId = parseInt(id, 10);
+        await BookingService.checkinBooking(c.env.DB, bookingId);
+        return ApiResponse.success(c, {
+          booking: { id: bookingId, status: "checkedin" },
+        });
+      },
+      "operation.checkinBookingFailed",
+    );
+  }
+
   static async cancelBooking(c: AppContext) {
     return handleAsyncRoute(
       c,

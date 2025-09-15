@@ -1,12 +1,13 @@
 import dayjs from "dayjs";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import {
-  booking as bookingTable,
-  bookingItems,
   bookingAddon,
-  customer,
+  bookingItems,
   bookingPromotion,
+  customer,
+  roomTypeAddon,
+  booking as bookingTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { BookingRepository } from "../repositories/booking.repository";
@@ -72,6 +73,23 @@ export class BookingService {
       updatedAt: new Date().toISOString(),
     };
 
+    // Include amountPaidCents if provided
+    if (data.amountPaidCents !== undefined) {
+      bookingData.amountPaidCents = data.amountPaidCents;
+      // Recalculate balance due
+      bookingData.balanceDueCents =
+        booking.totalAmountCents - data.amountPaidCents;
+
+      // Update payment status
+      if (data.amountPaidCents <= 0) {
+        bookingData.paymentStatus = "pending";
+      } else if (bookingData.balanceDueCents <= 0) {
+        bookingData.paymentStatus = "paid";
+      } else {
+        bookingData.paymentStatus = "partial";
+      }
+    }
+
     // Update customer data if provided
     if (data.customerData && booking.customerId) {
       const customerData: any = {
@@ -95,7 +113,69 @@ export class BookingService {
     }
 
     await BookingRepository.update(db, id, bookingData);
+
+    const roomTypeId =
+      data.bookingDetails?.roomTypeId ??
+      booking.items?.[0]?.booking_item?.roomTypeId;
+    if (roomTypeId) {
+      // Update rooms
+      if (data.selectedRooms) {
+        await database
+          .delete(bookingItems)
+          .where(eq(bookingItems.bookingId, id));
+
+        if (data.selectedRooms.length > 0) {
+          const newItems = data.selectedRooms.map((r: { id: number }) => ({
+            bookingId: id,
+            roomId: r.id,
+            roomTypeId,
+          }));
+          await database.insert(bookingItems).values(newItems);
+        }
+      }
+
+      // Update addons
+      if (data.selectedAddons) {
+        await database
+          .delete(bookingAddon)
+          .where(eq(bookingAddon.bookingId, id));
+
+        const addonIds = data.selectedAddons.map((a: { id: number }) => a.id);
+
+        if (addonIds.length > 0) {
+          const addonPrices = await database
+            .select()
+            .from(roomTypeAddon)
+            .where(
+              and(
+                eq(roomTypeAddon.roomTypeId, roomTypeId),
+                inArray(roomTypeAddon.addonId, addonIds),
+              ),
+            );
+
+          const priceMap = new Map(
+            addonPrices.map((p) => [p.addonId, p.priceCents]),
+          );
+
+          const newAddons = addonIds.map((addonId: number) => ({
+            bookingId: id,
+            addonId,
+            roomTypeId,
+            priceCents: priceMap.get(addonId) ?? 0,
+            quantity: 1,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }));
+
+          await database.insert(bookingAddon).values(newAddons);
+        }
+      }
+    }
     return await BookingRepository.findById(db, id);
+  }
+
+  static async checkinBooking(db: D1Database, bookingId: number) {
+    await BookingRepository.updateStatus(db, bookingId, "checkedin");
   }
 
   static async cancelBooking(db: D1Database, bookingId: number) {
@@ -174,7 +254,12 @@ export class BookingService {
       }
     }
 
-    const totalAmountCents = subtotal - discountAmountCents;
+    // Use provided tax and total amounts from frontend, or calculate as fallback
+    const taxAmountCents =
+      bookingRequest.taxAmountCents ?? Math.round(subtotal * 0.18);
+    const totalAmountCents =
+      bookingRequest.totalAmountCents ??
+      subtotal + taxAmountCents - discountAmountCents;
     const amountPaidCents = bookingRequest.amountPaidCents || 0;
     const balanceDueCents = totalAmountCents - amountPaidCents;
 
@@ -254,7 +339,7 @@ export class BookingService {
           source: "web",
           totalAmountCents,
           currencyCode: "INR",
-          taxAmountCents: 0,
+          taxAmountCents,
           feeAmountCents: 0,
           discountAmountCents,
           amountPaidCents,

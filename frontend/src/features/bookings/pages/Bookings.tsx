@@ -7,14 +7,6 @@ import {
   CloseCircleOutlined,
   LoginOutlined,
 } from "@ant-design/icons";
-import TableHeader from "@shared/components/TableHeader";
-import { APP_LOCALE } from "@shared/constants/app";
-import {
-  type Booking,
-  type BookingListParamStructure,
-  type BookingListResponse,
-} from "@shared/models/bookings";
-import { convertJsonToQueryParams } from "@shared/utils";
 import {
   Button,
   Dropdown,
@@ -29,6 +21,15 @@ import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import useSWR, { mutate } from "swr";
+
+import TableHeader from "@shared/components/TableHeader";
+import { APP_LOCALE } from "@shared/constants/app";
+import {
+  type Booking,
+  type BookingListParamStructure,
+  type BookingListResponse,
+} from "@shared/models/bookings";
+import { convertJsonToQueryParams } from "@shared/utils";
 
 import { fetcher, mutationFetcher } from "../../../utils/swrFetcher";
 import BookingFilters from "../components/BookingFilters";
@@ -54,6 +55,7 @@ const Bookings = () => {
   const {
     data: response,
     isLoading,
+    mutate: mutateBookings,
     error,
   } = useSWR(`/bookings${queryString}`, fetcher<BookingListResponse>, {
     revalidateOnFocus: false,
@@ -97,7 +99,6 @@ const Bookings = () => {
             arg: { method: "PATCH" },
           });
           message.success("Booking checked out successfully");
-          mutate(`/bookings${queryString}`);
         } catch (err) {
           if (err) {
             message.error("Failed to check out booking");
@@ -113,6 +114,27 @@ const Bookings = () => {
 
   const handleApplyFilters = (filters: Partial<BookingListParamStructure>) => {
     setFilterParams((prev) => ({ ...prev, ...filters }));
+  };
+
+  const handleCheckIn = (record: Booking) => {
+    confirm({
+      title: "Are you sure you want to check in this booking?",
+      icon: <ExclamationCircleOutlined />,
+      content: `This action will check in booking #${record.referenceCode}.`,
+      async onOk() {
+        try {
+          await mutationFetcher(`/bookings/${record.id}/checkin`, {
+            arg: { method: "PATCH" },
+          });
+          message.success("Booking checked in successfully!");
+          mutateBookings();
+        } catch (error) {
+          if (error) {
+            message.error("Failed to check in booking.");
+          }
+        }
+      },
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -201,7 +223,7 @@ const Bookings = () => {
             key: "checkin",
             icon: <LoginOutlined />,
             label: "Check In",
-            onClick: () => navigate(`/bookings/${record.id}/checkin`),
+            onClick: () => handleCheckIn(record),
           },
           record.status === "checkedin" && {
             key: "checkout",

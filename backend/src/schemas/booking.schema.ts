@@ -63,6 +63,9 @@ export const CreateBookingRequestSchema = z.object({
     basePriceCents: z.number().int(),
   }),
   promoCode: z.string().optional(),
+  amountPaidCents: z.number().int().min(0).optional(),
+  taxAmountCents: z.number().int().min(0).optional(),
+  totalAmountCents: z.number().int().min(0).optional(),
 });
 
 export type CreateBookingRequest = z.infer<typeof CreateBookingRequestSchema>;

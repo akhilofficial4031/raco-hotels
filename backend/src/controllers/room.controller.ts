@@ -107,8 +107,16 @@ export class RoomController {
           if (!deleted) return ApiResponse.notFound(c, "Room not found");
           return ApiResponse.success(c, {});
         } catch (e) {
-          if (e instanceof Error && e.message === "Room not found") {
-            return ApiResponse.notFound(c, "Room not found");
+          if (e instanceof Error) {
+            if (e.message === "Room not found") {
+              return ApiResponse.notFound(c, "Room not found");
+            }
+            if (
+              e.message ===
+              "This room cannot be deleted because it is associated with a booking."
+            ) {
+              return ApiResponse.badRequest(c, e.message);
+            }
           }
           throw e;
         }

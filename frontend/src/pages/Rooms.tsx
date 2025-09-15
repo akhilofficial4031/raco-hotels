@@ -1,4 +1,4 @@
-import { PlusOutlined } from "@ant-design/icons";
+import { ExclamationCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Button,
@@ -7,6 +7,7 @@ import {
   Empty,
   Form,
   message,
+  Modal,
   Popover,
   Select,
   Space,
@@ -24,6 +25,7 @@ import { updateRoom, getRooms } from "../features/rooms/services/room.service";
 import { useQueryParams } from "../shared/hooks";
 import { type Hotel } from "../shared/models/hotels";
 import { type IRoom, RoomStatus } from "../shared/models/rooms";
+import { mutationFetcher } from "../utils/swrFetcher";
 
 const { Title } = Typography;
 
@@ -132,6 +134,28 @@ function Rooms() {
     );
   };
 
+  const handleDelete = () => {
+    Modal.confirm({
+      title: "Are you sure you want to delete this room?",
+      icon: <ExclamationCircleOutlined />,
+      content: `This action will permanently delete ${editingRoom?.roomNumber}.`,
+      onOk: async () => {
+        try {
+          await mutationFetcher(`/rooms/${editingRoom?.id}`, {
+            arg: { method: "DELETE" },
+          });
+          message.success("Room deleted successfully");
+          mutate(`/rooms?hotelId=${selectedHotelId}`);
+          setIsDrawerOpen(false);
+          setEditingRoom(null);
+          reset({});
+        } catch (error: any) {
+          message.error(error.message || "An unexpected error occurred.");
+        }
+      },
+    });
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-2 border border-gray-200">
@@ -205,6 +229,9 @@ function Rooms() {
         footer={
           <Space style={{ display: "flex", justifyContent: "flex-end" }}>
             <Button onClick={handleDrawerClose}>Cancel</Button>
+            <Button onClick={handleDelete} type="primary" danger>
+              Delete Room
+            </Button>
             <Button
               onClick={handleSubmit(handleSave)}
               type="primary"

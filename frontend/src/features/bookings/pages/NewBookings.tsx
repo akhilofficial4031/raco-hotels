@@ -68,7 +68,11 @@ const NewBookings = () => {
     setBookingData((prev) => ({ ...prev, appliedPromoCode: promoCode }));
   };
 
-  const handleSubmit = async (paymentDetails: { amountPaidCents: number }) => {
+  const handleSubmit = async (paymentDetails: {
+    amountPaidCents: number;
+    taxAmountCents: number;
+    totalAmountCents: number;
+  }) => {
     setIsSubmitting(true);
     try {
       // Determine status based on check-in date
@@ -127,6 +131,8 @@ const NewBookings = () => {
           basePriceCents: bookingData.roomTypeDetails?.basePriceCents,
         },
         amountPaidCents: paymentDetails.amountPaidCents,
+        taxAmountCents: paymentDetails.taxAmountCents,
+        totalAmountCents: paymentDetails.totalAmountCents,
         promoCode: bookingData.appliedPromoCode?.code,
       };
 

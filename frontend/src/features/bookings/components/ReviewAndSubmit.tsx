@@ -40,6 +40,7 @@ interface BookingData {
     checkInDate?: any;
     checkOutDate?: any;
     status?: string;
+    amountPaidCents?: number;
   };
   selectedRooms?: IRoom[];
   selectedAddons?: Addon[];
@@ -50,7 +51,11 @@ interface BookingData {
 interface ReviewAndSubmitProps {
   bookingData: BookingData;
   onBack: () => void;
-  onSubmit: (details: { amountPaidCents: number }) => void;
+  onSubmit: (details: {
+    amountPaidCents: number;
+    taxAmountCents: number;
+    totalAmountCents: number;
+  }) => void;
   isSubmitting: boolean;
   mode?: "create" | "edit" | "checkin";
   appliedPromoCode?: PromoCode | null;
@@ -149,8 +154,11 @@ const ReviewAndSubmit = ({
   useEffect(() => {
     if (mode === "create") {
       setAmountPaid(total / 100);
+    } else if (mode === "edit" && bookingDetails?.amountPaidCents) {
+      setAmountPaid(bookingDetails.amountPaidCents / 100);
     }
-  }, [total, mode]);
+  }, [total, mode, bookingDetails]);
+
   const handleAmountPaidChange = (value: number | null) => {
     setAmountPaid(value || 0);
   };
@@ -158,11 +166,11 @@ const ReviewAndSubmit = ({
   const remainingAmount = total / 100 - amountPaid;
 
   const handleFinalSubmit = () => {
-    if (mode === "create") {
-      onSubmit({ amountPaidCents: Math.round(amountPaid * 100) });
-    } else {
-      onSubmit({ amountPaidCents: 0 });
-    }
+    onSubmit({
+      amountPaidCents: Math.round(amountPaid * 100),
+      taxAmountCents: Math.round(taxes),
+      totalAmountCents: Math.round(total),
+    });
   };
 
   const handleApplyPromoCode = async () => {

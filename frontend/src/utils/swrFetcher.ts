@@ -9,12 +9,21 @@ export const BASE_URL = import.meta.env.VITE_API_URL;
 // 🔹 Shared error handler
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    const error: APIError = new Error("API request failed");
+    let errorMessage = "API request failed";
+    let errorInfo: any = null;
     try {
-      error.info = await response.json();
+      const body = await response.json();
+      errorInfo = body;
+      if (body && body.error && typeof body.error.message === "string") {
+        errorMessage = body.error.message;
+      } else if (body && typeof body.message === "string") {
+        errorMessage = body.message;
+      }
     } catch {
-      error.info = null;
+      // JSON parsing failed or no body
     }
+    const error: APIError = new Error(errorMessage);
+    error.info = errorInfo;
     error.status = response.status;
 
     // Handle unauthorized responses
@@ -22,7 +31,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
     //   // Clear stored auth data
     //   localStorage.removeItem("user");
     //   localStorage.removeItem("token");
-
+    //
     //   // Only redirect if we're not already on the login page
     //   if (window.location.pathname !== "/login") {
     //     window.location.href = "/login";

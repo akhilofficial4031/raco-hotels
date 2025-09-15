@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 
 import { roomType as roomTypeTable } from "../../drizzle/schema";
 import { getDb } from "../db";
+import { BookingRepository } from "../repositories/booking.repository";
 import { RoomRepository } from "../repositories/room.repository";
 
 import type {
@@ -119,6 +120,15 @@ export class RoomService {
   static async deleteRoom(db: D1Database, id: number) {
     const existing = await RoomRepository.findById(db, id);
     if (!existing) throw new Error("Room not found");
+
+    const bookingCount = await BookingRepository.findBookingsByRoomId(db, id);
+
+    if (bookingCount > 0) {
+      throw new Error(
+        "This room cannot be deleted because it is associated with a booking.",
+      );
+    }
+
     return await RoomRepository.delete(db, id);
   }
 }
