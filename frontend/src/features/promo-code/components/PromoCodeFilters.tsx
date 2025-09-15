@@ -26,12 +26,13 @@ const PromoCodeFilters: React.FC<PromoCodeFiltersProps> = ({
   const [form] = Form.useForm();
 
   const { data: hotelsResponse } = useSWR(
-    "/hotels?limit=100",
+    open ? "/hotels?limit=100" : null,
     fetcher<{ data: { hotels: Hotel[] } }>,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      dedupingInterval: 300000, // 5 minutes - prevents duplicate requests
     },
   );
 
