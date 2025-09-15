@@ -99,6 +99,7 @@ const Bookings = () => {
             arg: { method: "PATCH" },
           });
           message.success("Booking checked out successfully");
+          mutateBookings();
         } catch (err) {
           if (err) {
             message.error("Failed to check out booking");

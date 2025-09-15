@@ -12,6 +12,7 @@ import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 
 import { DATE_FORMAT_API } from "../../../shared/constants/app";
+import { BOOKING_STATUS } from "../../../shared/constants/bookings";
 import { type BookingListParamStructure } from "../../../shared/models/bookings";
 import { type Hotel } from "../../../shared/models/hotels";
 import { fetcher } from "../../../utils/swrFetcher";
@@ -19,6 +20,17 @@ import { fetcher } from "../../../utils/swrFetcher";
 const { Option } = Select;
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
+
+// Convert BOOKING_STATUS object to array of options
+const bookingStatusOptions = Object.entries(BOOKING_STATUS).map(
+  ([key, value]) => ({
+    value,
+    label: key
+      .split("_")
+      .map((word) => word.charAt(0) + word.slice(1).toLowerCase())
+      .join(" "),
+  }),
+);
 
 interface BookingFiltersProps {
   open: boolean;
@@ -128,10 +140,11 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
             control={control}
             render={({ field }) => (
               <Select {...field} placeholder="Select status" allowClear>
-                <Option value="confirmed">Confirmed</Option>
-                <Option value="pending">Pending</Option>
-                <Option value="cancelled">Cancelled</Option>
-                <Option value="reserved">Reserved</Option>
+                {bookingStatusOptions.map((option) => (
+                  <Option key={option.value} value={option.value}>
+                    {option.label}
+                  </Option>
+                ))}
               </Select>
             )}
           />
