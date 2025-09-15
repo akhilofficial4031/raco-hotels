@@ -35,14 +35,15 @@ const RoomTypeFilters: React.FC<RoomTypeFiltersProps> = ({
     },
   });
 
-  // Fetch hotels for filter dropdown
+  // Fetch hotels for filter dropdown - SWR will cache this data automatically
   const { data: hotelsResponse } = useSWR(
-    "/hotels?limit=100",
+    open ? "/hotels?limit=100" : null,
     fetcher<{ data: { hotels: Hotel[] } }>,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      dedupingInterval: 300000, // 5 minutes - prevents duplicate requests
     },
   );
 

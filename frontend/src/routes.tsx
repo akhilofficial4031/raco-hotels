@@ -15,7 +15,7 @@ const NotFound = lazy(() => import("./pages/Not-found"));
 const Users = lazy(() => import("./pages/Users"));
 const Features = lazy(() => import("./pages/Features"));
 const Amenities = lazy(() => import("./pages/Amenities"));
-const RoomType = lazy(() => import("./pages/Room-type"));
+const RoomType = lazy(() => import("./pages/RoomType"));
 const Rooms = lazy(() => import("./pages/Rooms"));
 const AddRoomPage = lazy(() => import("./pages/rooms/AddRoomPage"));
 const Addons = lazy(() => import("./pages/Addons"));

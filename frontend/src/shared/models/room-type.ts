@@ -115,7 +115,7 @@ export interface RoomTypeAddonInput {
 export interface UpdateRoomTypePayload extends Partial<CreateRoomTypePayload> {}
 
 export interface RoomTypeFormData {
-  hotelId: number;
+  hotelId?: number;
   name: string;
   slug: string;
   description?: string;

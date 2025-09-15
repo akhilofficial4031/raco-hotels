@@ -18,8 +18,8 @@ import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
 
-import AddEditRoomType from "../features/room-type/add-edit-room-type";
-import RoomTypeFilters from "../features/room-type/room-type-filters";
+import AddEditRoomType from "../features/room-type/AddEditRoomType";
+import RoomTypeFilters from "../features/room-type/RoomTypeFilters";
 import TableHeader from "../shared/components/TableHeader";
 import { type Hotel } from "../shared/models/hotels";
 import {
@@ -69,14 +69,15 @@ const RoomType = () => {
     shouldRetryOnError: false,
   });
 
-  // Fetch hotels for filter dropdown
+  // Fetch hotels for filter dropdown - SWR will cache this data automatically
   const { data: hotelsResponse } = useSWR(
-    "/hotels?limit=100",
+    openFiltersPanel || openAddRoomTypePanel ? "/hotels?limit=100" : null,
     fetcher<{ data: { hotels: Hotel[] } }>,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      dedupingInterval: 300000, // 5 minutes - prevents duplicate requests
     },
   );
 

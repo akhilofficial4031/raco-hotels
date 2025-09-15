@@ -25,14 +25,14 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import useSWR from "swr";
 import { z } from "zod";
 
-import { type Addon } from "../../shared/models/addon";
-import { type Amenity } from "../../shared/models/amenity";
-import { type Hotel } from "../../shared/models/hotels";
+import { type Addon } from "@shared/models/addon";
+import { type Amenity } from "@shared/models/amenity";
+import { type Hotel } from "@shared/models/hotels";
 import {
   type RoomTypeWithRelations,
   type CreateRoomTypePayload,
   type RoomTypeFormData,
-} from "../../shared/models/room-type";
+} from "@shared/models/room-type";
 
 // Simplified interface for image display state
 interface ImageDisplayData {
@@ -51,7 +51,7 @@ const { confirm } = Modal;
 
 const roomTypeSchema = z
   .object({
-    hotelId: z.number().min(1, { message: "Hotel is required" }),
+    hotelId: z.number().min(1, { message: "Hotel is required" }).optional(),
     name: z.string().min(1, { message: "Name is required" }),
     slug: z.string().min(1, { message: "Slug is required" }),
     description: z.string().optional(),
@@ -88,6 +88,10 @@ const roomTypeSchema = z
   .refine((data) => data.maxOccupancy >= data.baseOccupancy, {
     message: "Max occupancy must be greater than or equal to base occupancy",
     path: ["maxOccupancy"],
+  })
+  .refine((data) => data.hotelId !== undefined, {
+    message: "Hotel is required",
+    path: ["hotelId"],
   });
 
 interface AddEditRoomTypeProps {
@@ -132,7 +136,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
   } = useForm<RoomTypeFormData>({
     resolver: zodResolver(roomTypeSchema),
     defaultValues: {
-      hotelId: 0,
+      hotelId: undefined,
       name: "",
       slug: "",
       description: undefined,
@@ -155,36 +159,39 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     name: "addons",
   });
 
-  // Fetch hotels
+  // Fetch hotels - SWR will cache this data automatically
   const { data: hotelsResponse } = useSWR(
-    "/hotels?limit=100",
+    open ? "/hotels?limit=100" : null,
     fetcher<{ data: { hotels: Hotel[] } }>,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      dedupingInterval: 300000, // 5 minutes - prevents duplicate requests
     },
   );
 
-  // Fetch amenities
+  // Fetch amenities - SWR will cache this data automatically
   const { data: amenitiesResponse } = useSWR(
-    "/amenities?limit=100",
+    open ? "/amenities?limit=100" : null,
     fetcher<{ data: { amenities: Amenity[] } }>,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      dedupingInterval: 300000, // 5 minutes - prevents duplicate requests
     },
   );
 
-  // Fetch addons
+  // Fetch addons - SWR will cache this data automatically
   const { data: addonsResponse } = useSWR(
-    "/addons?limit=100",
+    open ? "/addons?limit=100" : null,
     fetcher<{ data: { addons: Addon[] } }>,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      dedupingInterval: 300000, // 5 minutes - prevents duplicate requests
     },
   );
 
@@ -257,7 +264,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       setReplaceImages(false);
 
       reset({
-        hotelId: 0,
+        hotelId: undefined,
         name: "",
         slug: "",
         description: undefined,
@@ -275,11 +282,11 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       });
       setPriceInRupees(0);
     }
-  }, [roomType, reset, open]);
+  }, [roomType, reset]);
 
   const handleFormSubmit = (data: RoomTypeFormData) => {
     const payload: CreateRoomTypePayload = {
-      hotelId: data.hotelId,
+      hotelId: data.hotelId!, // We know it's defined due to validation
       name: data.name,
       slug: data.slug,
       description: data.description || undefined,
@@ -355,7 +362,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
           });
           message.success("Image deleted successfully");
           setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
-        } catch (error) {
+        } catch (_error) {
           message.error("Failed to delete image");
         }
       },
