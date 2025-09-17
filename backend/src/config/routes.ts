@@ -49,6 +49,10 @@ export const PUBLIC_ROUTES = [
 export const PUBLIC_ROUTE_PATTERNS: RegExp[] = [
   // Public room routes with dynamic IDs
   /^\/public\/rooms\/[^/]+$/,
+
+  // Public hotel routes by slug
+  // Matches /hotels/slug/{slug} for public hotel access by slug
+  /^\/hotels\/slug\/[a-zA-Z0-9_-]+$/,
 ];
 
 /**
@@ -95,10 +99,15 @@ export function isPublicRoute(path: string, method?: string): boolean {
     return true;
   }
 
-  // Check pattern matches
-  const patternMatch = PUBLIC_ROUTE_PATTERNS.some((pattern) =>
-    pattern.test(path),
-  );
+  // Check pattern matches - only for GET method for hotel slug routes
+  const patternMatch = PUBLIC_ROUTE_PATTERNS.some((pattern) => {
+    const isMatch = pattern.test(path);
+    // For hotel slug routes, only allow GET method
+    if (isMatch && path.match(/^\/hotels\/slug\/[a-zA-Z0-9_-]+$/)) {
+      return upperMethod === "GET";
+    }
+    return isMatch;
+  });
   return patternMatch;
 }
 

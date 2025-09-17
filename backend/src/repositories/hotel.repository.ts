@@ -310,6 +310,27 @@ export class HotelRepository {
     };
   }
 
+  static async findBySlugWithAllRelations(
+    db: D1Database,
+    slug: string,
+  ): Promise<DatabaseHotelWithRelations | null> {
+    const hotel = await this.findBySlug(db, slug);
+    if (!hotel) return null;
+
+    const [images, features, amenities] = await Promise.all([
+      this.findImagesByHotelId(db, hotel.id),
+      this.findFeaturesByHotelId(db, hotel.id),
+      this.findAmenitiesByHotelId(db, hotel.id),
+    ]);
+
+    return {
+      ...hotel,
+      images,
+      features,
+      amenities,
+    };
+  }
+
   static async findAllWithBasicRelations(
     db: D1Database,
     filters: HotelFilters = {},

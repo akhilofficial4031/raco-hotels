@@ -90,6 +90,10 @@ export class HotelService {
     return await HotelRepository.findById(db, id);
   }
 
+  static async getHotelBySlug(db: D1Database, slug: string) {
+    return await HotelRepository.findBySlug(db, slug);
+  }
+
   static async getHotels(
     db: D1Database,
     query: z.infer<typeof HotelQueryParamsSchema>,
@@ -128,6 +132,13 @@ export class HotelService {
     id: number,
   ): Promise<DatabaseHotelWithRelations | null> {
     return await HotelRepository.findHotelWithAllRelations(db, id);
+  }
+
+  static async getHotelWithAllRelationsBySlug(
+    db: D1Database,
+    slug: string,
+  ): Promise<DatabaseHotelWithRelations | null> {
+    return await HotelRepository.findBySlugWithAllRelations(db, slug);
   }
 
   static async createHotelWithImages(

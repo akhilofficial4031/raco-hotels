@@ -217,6 +217,15 @@ export const HotelPathParamsSchema = z
   })
   .openapi("HotelPathParams");
 
+export const HotelSlugPathParamsSchema = z
+  .object({
+    slug: z
+      .string()
+      .min(1)
+      .openapi({ example: "raco-grand", description: "Hotel slug" }),
+  })
+  .openapi("HotelSlugPathParams");
+
 export const HotelQueryParamsSchema = z
   .object({
     page: z

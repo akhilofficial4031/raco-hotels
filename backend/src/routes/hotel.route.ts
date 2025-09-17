@@ -34,6 +34,13 @@ hotelRoutes.openapi(
 );
 
 hotelRoutes.openapi(
+  HotelRouteDefinitions.getHotelBySlug,
+  smartPermissionHandler(PERMISSIONS.HOTELS_READ, (c) =>
+    HotelController.getHotelBySlug(c as AppContext),
+  ),
+);
+
+hotelRoutes.openapi(
   HotelRouteDefinitions.createHotel,
   smartPermissionHandler(PERMISSIONS.HOTELS_CREATE, (c) =>
     HotelController.createHotel(c as AppContext),

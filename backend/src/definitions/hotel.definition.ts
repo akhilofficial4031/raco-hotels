@@ -6,6 +6,7 @@ import {
   CreateHotelRequestSchema,
   UpdateHotelRequestSchema,
   HotelPathParamsSchema,
+  HotelSlugPathParamsSchema,
   HotelQueryParamsSchema,
   HotelWithImagesResponseSchema,
   HotelWithAllRelationsResponseSchema,
@@ -37,6 +38,19 @@ export const HotelRouteDefinitions = {
     successSchema: HotelWithAllRelationsResponseSchema,
     successDescription: "Hotel with all relations retrieved successfully",
     paramsSchema: HotelPathParamsSchema,
+    includeNotFound: true,
+  }),
+
+  getHotelBySlug: createRoute({
+    method: "get",
+    path: "/hotels/slug/{slug}",
+    summary: "Get hotel by slug with all relations",
+    description:
+      "Retrieve detailed information about a specific hotel using its slug identifier. This public endpoint includes all associated images, features, amenities, location data, and metadata. Returns comprehensive hotel data suitable for public-facing websites, booking interfaces, and mobile applications. Response includes complete property details, location information, all hotel images with metadata (URLs, alt text, sort order), all associated features, all amenities, and location-specific information about nearby attractions. Perfect for public hotel detail pages, SEO-friendly URLs, and guest-facing applications.",
+    tags: [ApiTags.HOTELS],
+    successSchema: HotelWithAllRelationsResponseSchema,
+    successDescription: "Hotel with all relations retrieved successfully",
+    paramsSchema: HotelSlugPathParamsSchema,
     includeNotFound: true,
   }),
 
