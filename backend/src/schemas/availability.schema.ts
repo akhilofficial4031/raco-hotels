@@ -26,7 +26,7 @@ export const RoomsAvailabilityQueryParamsSchema = z
   })
   .openapi("RoomsAvailabilityQueryParams");
 
-export const RoomSchema = z.object({
+export const AvailableRoomSchema = z.object({
   id: z.number().int(),
   hotelId: z.number().int(),
   roomTypeId: z.number().int(),
@@ -43,7 +43,7 @@ export const RoomsAvailabilityResponseSchema = z
   .object({
     success: z.boolean(),
     data: z.object({
-      results: z.array(RoomSchema),
+      results: z.array(AvailableRoomSchema),
       message: z.string().optional(),
     }),
   })

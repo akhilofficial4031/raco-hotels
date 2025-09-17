@@ -5,11 +5,7 @@ import { getMessage, DEFAULT_LOCALE } from "../config/messages";
 import { USER_ROLES } from "../constants";
 
 // User role and status enums
-const UserRoleSchema = z.enum([
-  USER_ROLES.GUEST,
-  USER_ROLES.STAFF,
-  USER_ROLES.ADMIN,
-]);
+const UserRoleSchema = z.enum([USER_ROLES.STAFF, USER_ROLES.ADMIN]);
 const UserStatusSchema = z.enum([
   UserStatus.ACTIVE,
   UserStatus.DISABLED,
@@ -37,7 +33,7 @@ export const UserSchema = z
       description: "User phone number",
     }),
     role: UserRoleSchema.openapi({
-      example: USER_ROLES.GUEST,
+      example: USER_ROLES.STAFF,
       description: "User role",
     }),
     status: UserStatusSchema.openapi({
@@ -76,8 +72,8 @@ export const CreateUserRequestSchema = z
       example: "+1234567890",
       description: "User phone number",
     }),
-    role: UserRoleSchema.optional().default(USER_ROLES.GUEST).openapi({
-      example: USER_ROLES.GUEST,
+    role: UserRoleSchema.optional().default(USER_ROLES.STAFF).openapi({
+      example: USER_ROLES.STAFF,
       description: "User role",
     }),
   })
@@ -169,7 +165,7 @@ export const UserQueryParamsSchema = z
         description: "Number of items per page",
       }),
     role: UserRoleSchema.optional().openapi({
-      example: USER_ROLES.GUEST,
+      example: USER_ROLES.STAFF,
       description: "Filter by user role",
     }),
     status: UserStatusSchema.optional().openapi({

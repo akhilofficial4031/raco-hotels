@@ -7,7 +7,7 @@ const RoomStatusEnum = z.enum([
   "out_of_order",
 ]);
 
-export const RoomSchema = z
+export const RoomUnitSchema = z
   .object({
     id: z.number().int().positive().openapi({ example: 1 }),
     hotelId: z.number().int().positive().openapi({ example: 1 }),
@@ -92,7 +92,7 @@ export const RoomResponseSchema = z
   .object({
     success: z.boolean(),
     data: z.object({
-      room: RoomSchema,
+      room: RoomUnitSchema,
       message: z.string().optional(),
     }),
   })
@@ -102,7 +102,7 @@ export const RoomsResponseSchema = z
   .object({
     success: z.boolean(),
     data: z.object({
-      rooms: z.array(RoomSchema),
+      rooms: z.array(RoomUnitSchema),
       message: z.string().optional(),
     }),
   })
@@ -112,7 +112,7 @@ export const RoomsListResponseSchema = z
   .object({
     success: z.boolean(),
     data: z.object({
-      rooms: z.array(RoomSchema),
+      rooms: z.array(RoomUnitSchema),
       pagination: z
         .object({
           page: z.number(),

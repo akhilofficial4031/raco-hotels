@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { RoomSchema } from "./room_unit.schema";
+import { RoomUnitSchema } from "./room_unit.schema";
 
 // Room Type Image Schema
 export const RoomTypeImageSchema = z
@@ -65,7 +65,7 @@ export const RoomTypeWithRelationsSchema = RoomTypeSchema.extend({
     )
     .openapi({ description: "Room type amenities" }),
   rooms: z
-    .array(RoomSchema)
+    .array(RoomUnitSchema)
     .openapi({ description: "Individual room units of this room type" }),
 }).openapi("RoomTypeWithRelations");
 

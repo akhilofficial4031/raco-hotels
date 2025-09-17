@@ -37,7 +37,7 @@ export class UserService {
       email: userData.email,
       fullName: userData.fullName,
       phone: userData.phone,
-      role: userData.role || USER_ROLES.GUEST,
+      role: userData.role || USER_ROLES.STAFF,
       status: userData.status || UserStatus.PENDING_ACTIVATION,
     };
 

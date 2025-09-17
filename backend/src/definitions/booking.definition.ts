@@ -474,7 +474,7 @@ export const BookingRouteDefinitions = {
     tags: [ApiTags.BOOKINGS],
     successSchema: BookingResponseSchema,
     successDescription: "Booking cancelled successfully.",
-    pathParamsSchema: BookingPathParamsSchema,
+    paramsSchema: BookingPathParamsSchema,
     includeBadRequest: true,
   }),
 
@@ -486,7 +486,7 @@ export const BookingRouteDefinitions = {
     tags: [ApiTags.BOOKINGS],
     successSchema: BookingResponseSchema,
     successDescription: "Booking checked in successfully.",
-    pathParamsSchema: BookingPathParamsSchema,
+    paramsSchema: BookingPathParamsSchema,
     includeBadRequest: true,
   }),
 
@@ -498,7 +498,7 @@ export const BookingRouteDefinitions = {
     tags: [ApiTags.BOOKINGS],
     successSchema: BookingResponseSchema,
     successDescription: "Booking checked out successfully.",
-    pathParamsSchema: BookingPathParamsSchema,
+    paramsSchema: BookingPathParamsSchema,
     includeBadRequest: true,
   }),
 
@@ -510,7 +510,7 @@ export const BookingRouteDefinitions = {
     tags: [ApiTags.BOOKINGS],
     successSchema: BookingDetailsResponseSchema,
     successDescription: "Booking details retrieved successfully.",
-    pathParamsSchema: BookingPathParamsSchema,
+    paramsSchema: BookingPathParamsSchema,
     includeNotFound: true,
   }),
 
@@ -523,7 +523,7 @@ export const BookingRouteDefinitions = {
     requestSchema: UpdateBookingRequestSchema,
     successSchema: BookingDetailsResponseSchema,
     successDescription: "Booking details updated successfully.",
-    pathParamsSchema: BookingPathParamsSchema,
+    paramsSchema: BookingPathParamsSchema,
     includeNotFound: true,
     includeBadRequest: true,
   }),
