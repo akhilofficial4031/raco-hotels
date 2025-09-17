@@ -87,6 +87,26 @@ export class RoomTypeRepository {
       .limit(1);
     return (rows[0] as any) || null;
   }
+
+  static async findSlugsByPattern(
+    db: D1Database,
+    hotelId: number,
+    slugPattern: string,
+  ): Promise<string[]> {
+    const database = getDb(db);
+    const rows = await database
+      .select({ slug: (schema.roomType as any).slug })
+      .from(schema.roomType)
+      .where(
+        and(
+          eq(schema.roomType.hotelId, hotelId),
+          like((schema.roomType as any).slug, slugPattern),
+        ),
+      );
+    return rows
+      .map((row) => row.slug)
+      .filter((slug): slug is string => slug !== null);
+  }
   static async create(
     db: D1Database,
     data: CreateRoomTypeData,

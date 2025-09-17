@@ -59,9 +59,9 @@ export const HotelRouteDefinitions = {
     path: "/hotels",
     summary: "Create hotel",
     description:
-      "Create a new hotel with hotel information. Supports both JSON and multipart/form-data (with images).",
+      "Create a new hotel with hotel information. Slug is auto-generated from the hotel name. Supports both JSON and multipart/form-data (with images).",
     tags: [ApiTags.HOTELS],
-    // Note: No requestSchema due to multipart/form-data support - validation handled in controller
+    requestSchema: CreateHotelRequestSchema,
     successSchema: HotelWithImagesResponseSchema,
     successDescription: "Hotel created successfully",
     includeBadRequest: true,
@@ -73,10 +73,10 @@ export const HotelRouteDefinitions = {
     path: "/hotels/{id}",
     summary: "Update hotel",
     description:
-      "Update an existing hotel information. Supports both JSON and multipart/form-data (with images).",
+      "Update an existing hotel information. Slug is auto-generated when name changes. Supports both JSON and multipart/form-data (with images).",
     tags: [ApiTags.HOTELS],
     paramsSchema: HotelPathParamsSchema,
-    // Note: No requestSchema due to multipart/form-data support - validation handled in controller
+    requestSchema: UpdateHotelRequestSchema,
     successSchema: HotelWithImagesResponseSchema,
     successDescription: "Hotel updated successfully",
     includeBadRequest: true,

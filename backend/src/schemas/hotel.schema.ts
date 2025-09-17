@@ -159,7 +159,6 @@ export const HotelWithAllRelationsSchema = z
 export const CreateHotelRequestSchema = z
   .object({
     name: z.string().min(1).openapi({ example: "Raco Grand" }),
-    slug: z.string().optional().openapi({ example: "raco-grand" }),
     description: z
       .string()
       .optional()

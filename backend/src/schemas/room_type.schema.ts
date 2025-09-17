@@ -73,7 +73,6 @@ export const CreateRoomTypeRequestSchema = z
   .object({
     hotelId: z.number().int().positive().openapi({ example: 1 }),
     name: z.string().min(1).openapi({ example: "Deluxe King" }),
-    slug: z.string().min(1).openapi({ example: "deluxe-king" }),
     description: z
       .string()
       .optional()
@@ -104,6 +103,18 @@ export const CreateRoomTypeRequestSchema = z
       )
       .optional()
       .openapi({ description: "Initial images to create" }),
+    addons: z
+      .array(
+        z.object({
+          addonId: z.number().int().positive(),
+          priceCents: z.number().int(),
+        }),
+      )
+      .optional()
+      .openapi({
+        example: [{ addonId: 1, priceCents: 2000 }],
+        description: "Addon configurations for this room type",
+      }),
   })
   .openapi("CreateRoomTypeRequest");
 

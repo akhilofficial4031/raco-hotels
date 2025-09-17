@@ -94,6 +94,20 @@ export class HotelRepository {
     return (rows[0] as DatabaseHotel) || null;
   }
 
+  static async findSlugsByPattern(
+    db: D1Database,
+    slugPattern: string,
+  ): Promise<string[]> {
+    const database = getDb(db);
+    const rows = await database
+      .select({ slug: hotelTable.slug })
+      .from(hotelTable)
+      .where(like(hotelTable.slug, slugPattern));
+    return rows
+      .map((row) => row.slug)
+      .filter((slug): slug is string => slug !== null);
+  }
+
   static async create(
     db: D1Database,
     data: CreateHotelData,

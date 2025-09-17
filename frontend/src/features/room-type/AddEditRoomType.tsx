@@ -53,7 +53,6 @@ const roomTypeSchema = z
   .object({
     hotelId: z.number().min(1, { message: "Hotel is required" }).optional(),
     name: z.string().min(1, { message: "Name is required" }),
-    slug: z.string().min(1, { message: "Slug is required" }),
     description: z.string().optional(),
     baseOccupancy: z
       .number()
@@ -130,7 +129,6 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     control,
     handleSubmit,
     reset,
-    watch,
     setValue,
     formState: { errors },
   } = useForm<RoomTypeFormData>({
@@ -138,7 +136,6 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     defaultValues: {
       hotelId: undefined,
       name: "",
-      slug: "",
       description: undefined,
       baseOccupancy: 1,
       maxOccupancy: 2,
@@ -195,21 +192,6 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     },
   );
 
-  // Watch for name changes to auto-generate slug
-  const nameValue = watch("name");
-
-  useEffect(() => {
-    if (nameValue && !isEditMode) {
-      const slug = nameValue
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-")
-        .trim();
-      setValue("slug", slug);
-    }
-  }, [nameValue, setValue, isEditMode]);
-
   // Handle price conversion
   const handlePriceChange = (value: number | null) => {
     const priceInCents = value ? Math.round(value * 100) : 0;
@@ -241,7 +223,6 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       reset({
         hotelId: roomType.hotelId,
         name: roomType.name,
-        slug: roomType.slug,
         description: roomType.description || undefined,
         baseOccupancy: roomType.baseOccupancy,
         maxOccupancy: roomType.maxOccupancy,
@@ -266,7 +247,6 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       reset({
         hotelId: undefined,
         name: "",
-        slug: "",
         description: undefined,
         baseOccupancy: 1,
         maxOccupancy: 2,
@@ -288,7 +268,6 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     const payload: CreateRoomTypePayload = {
       hotelId: data.hotelId!, // We know it's defined due to validation
       name: data.name,
-      slug: data.slug,
       description: data.description || undefined,
       baseOccupancy: data.baseOccupancy,
       maxOccupancy: data.maxOccupancy,
@@ -431,21 +410,6 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
             control={control}
             render={({ field }) => (
               <Input {...field} placeholder="e.g., Deluxe King Room" />
-            )}
-          />
-        </Form.Item>
-
-        <Form.Item
-          label="Slug"
-          required
-          validateStatus={errors.slug ? "error" : ""}
-          help={errors.slug?.message}
-        >
-          <Controller
-            name="slug"
-            control={control}
-            render={({ field }) => (
-              <Input {...field} placeholder="e.g., deluxe-king-room" />
             )}
           />
         </Form.Item>
