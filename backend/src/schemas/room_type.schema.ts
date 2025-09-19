@@ -102,7 +102,10 @@ export const CreateRoomTypeRequestSchema = z
         }),
       )
       .optional()
-      .openapi({ description: "Initial images to create" }),
+      .openapi({
+        description:
+          "Initial images to create (images are typically uploaded via separate endpoint)",
+      }),
     addons: z
       .array(
         z.object({

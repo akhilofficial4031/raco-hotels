@@ -122,6 +122,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
+  const [imageValidationError, setImageValidationError] = useState<string>("");
 
   const imageBaseUrl = import.meta.env.VITE_BUCKET_URL;
 
@@ -199,6 +200,39 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     setPriceInRupees(value || 0);
   };
 
+  // Validate images function
+  const validateImages = (): boolean => {
+    const hasUploadedImages = uploadedImages.length > 0;
+    const hasExistingImages = existingImages.length > 0;
+
+    // For create mode: must have uploaded images
+    if (!isEditMode && !hasUploadedImages) {
+      setImageValidationError("At least one image is required");
+      return false;
+    }
+
+    // For edit mode: check based on replace mode
+    if (isEditMode) {
+      if (replaceImages) {
+        // If replacing images, must have uploaded images
+        if (!hasUploadedImages) {
+          setImageValidationError("At least one image is required");
+          return false;
+        }
+      } else {
+        // If not replacing, must have either existing or uploaded images
+        if (!hasExistingImages && !hasUploadedImages) {
+          setImageValidationError("At least one image is required");
+          return false;
+        }
+      }
+    }
+
+    // Clear any previous error
+    setImageValidationError("");
+    return true;
+  };
+
   useEffect(() => {
     if (roomType) {
       const amenityIds = roomType.amenities?.map((a) => a.amenityId) || [];
@@ -237,12 +271,15 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         addons,
       });
       setPriceInRupees(priceInRupees);
+      // Clear validation error when room type data is loaded
+      setImageValidationError("");
     } else {
       // Reset image state for add mode
       setExistingImages([]);
       setUploadedImages([]);
       setFileList([]);
       setReplaceImages(false);
+      setImageValidationError("");
 
       reset({
         hotelId: undefined,
@@ -264,7 +301,44 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     }
   }, [roomType, reset]);
 
+  // Additional effect to clear validation error when the form is opened
+  useEffect(() => {
+    if (open && !isEditMode) {
+      // Clear any previous validation errors when opening form for new room type
+      setImageValidationError("");
+    }
+  }, [open, isEditMode]);
+
+  // Effect to validate images whenever uploadedImages or existingImages change
+  useEffect(() => {
+    if (!open) return; // Only validate when form is open
+
+    const hasUploadedImages = uploadedImages.length > 0;
+    const hasExistingImages = existingImages.length > 0;
+
+    // Clear validation error when requirements are met
+    if (
+      hasUploadedImages ||
+      (isEditMode && !replaceImages && hasExistingImages)
+    ) {
+      setImageValidationError("");
+    }
+  }, [
+    uploadedImages,
+    existingImages,
+    replaceImages,
+    isEditMode,
+    open,
+    imageValidationError,
+  ]);
+
   const handleFormSubmit = (data: RoomTypeFormData) => {
+    // Validate images before proceeding
+    if (!validateImages()) {
+      message.error("At least one image is required");
+      return;
+    }
+
     const payload: CreateRoomTypePayload = {
       hotelId: data.hotelId!, // We know it's defined due to validation
       name: data.name,
@@ -294,6 +368,38 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       .filter((file) => file.status !== "error" && file.originFileObj)
       .map((file) => file.originFileObj as File);
     setUploadedImages(files);
+
+    // Always trigger validation after upload change
+    setTimeout(() => {
+      const hasUploadedImages = files.length > 0;
+      const hasExistingImages = existingImages.length > 0;
+
+      // For create mode: must have uploaded images
+      if (!isEditMode && !hasUploadedImages) {
+        setImageValidationError("At least one image is required");
+        return;
+      }
+
+      // For edit mode: check based on replace mode
+      if (isEditMode) {
+        if (replaceImages) {
+          // If replacing images, must have uploaded images
+          if (!hasUploadedImages) {
+            setImageValidationError("At least one image is required");
+            return;
+          }
+        } else {
+          // If not replacing, must have either existing or uploaded images
+          if (!hasExistingImages && !hasUploadedImages) {
+            setImageValidationError("At least one image is required");
+            return;
+          }
+        }
+      }
+
+      // Clear any previous error
+      setImageValidationError("");
+    }, 0);
   };
 
   const handlePreview = async (file: UploadFile) => {
@@ -340,7 +446,13 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
             arg: { method: "DELETE" },
           });
           message.success("Image deleted successfully");
-          setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+          const newImages = existingImages.filter((img) => img.id !== imageId);
+          setExistingImages(newImages);
+
+          // Trigger validation if no images left
+          if (newImages.length === 0 && uploadedImages.length === 0) {
+            setImageValidationError("At least one image is required");
+          }
         } catch (_error) {
           message.error("Failed to delete image");
         }
@@ -685,7 +797,18 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
 
         {/* Room Type Images */}
         <div className="space-y-4">
-          <h4 className="font-medium">Room Type Images</h4>
+          <h4 className="font-medium">
+            <span className="text-red-500">*</span> Room Type Images
+          </h4>
+
+          {/* Validation Error Message */}
+          {imageValidationError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="text-sm text-red-600">
+                <strong>⚠️ {imageValidationError}</strong>
+              </div>
+            </div>
+          )}
 
           {/* Existing Images (shown in edit mode when not replacing) */}
           {isEditMode && existingImages.length > 0 && !replaceImages && (
@@ -716,7 +839,33 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
             </div>
           )}
 
-          {/* Replace Images Toggle (edit mode) */}
+          {/* Replace Images Toggle (only in edit mode) */}
+          {isEditMode && existingImages.length > 0 && (
+            <div className="mb-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={replaceImages}
+                  onChange={(e) => {
+                    setReplaceImages(e.target.checked);
+                    // Validate images when toggle changes
+                    if (e.target.checked && uploadedImages.length === 0) {
+                      setImageValidationError("At least one image is required");
+                    } else {
+                      setImageValidationError("");
+                    }
+                  }}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm font-medium text-gray-700">
+                  Replace all existing images
+                </span>
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                Check this to replace all current images with new uploads
+              </p>
+            </div>
+          )}
 
           {/* Upload New Images */}
           <div>

@@ -84,6 +84,11 @@ export class RoomTypeService {
     db: D1Database,
     data: z.infer<typeof CreateRoomTypeRequestSchema>,
   ) {
+    // Note: Images will be uploaded separately via the upload endpoint
+    // No need to validate images here as the frontend handles this in two steps:
+    // 1. Create room type
+    // 2. Upload images via separate endpoint
+
     // Auto-generate slug from room type name
     const baseSlug = this.nameToSlug(data.name);
     const uniqueSlug = await this.generateUniqueSlug(
@@ -144,6 +149,12 @@ export class RoomTypeService {
   ) {
     const existing = await RoomTypeRepository.findById(db, id);
     if (!existing) throw new Error("Room type not found");
+
+    // Note: Image validation is handled by the separate upload endpoint
+    // The frontend manages images through a two-step process:
+    // 1. Update room type data
+    // 2. Upload/update images via separate endpoint
+    // This allows for more flexible image management
 
     // Auto-generate slug from name if name is being updated
     let uniqueSlug: string | undefined;
@@ -262,6 +273,24 @@ export class RoomTypeService {
       throw new Error("Room type not found");
     }
 
+    // Validate image files
+    if (imageFiles.length === 0) {
+      throw new Error("At least one image file is required");
+    }
+
+    // If replacing images, check that we'll have at least one image after replacement
+    if (replaceImages) {
+      const existingImages = await RoomTypeRepository.findImagesByRoomTypeId(
+        db,
+        roomTypeId,
+      );
+      if (existingImages.length > 0 && imageFiles.length === 0) {
+        throw new Error(
+          "Cannot replace all images without providing new ones. Room type must have at least one image.",
+        );
+      }
+    }
+
     // Delete existing images if replacing
     if (replaceImages) {
       await this.deleteAllRoomTypeImages(db, r2Bucket, roomTypeId);
@@ -312,6 +341,17 @@ export class RoomTypeService {
     const image = await RoomTypeRepository.findImageById(db, imageId);
     if (!image) {
       throw new Error("Image not found");
+    }
+
+    // Check if this is the last image for the room type
+    const allImages = await RoomTypeRepository.findImagesByRoomTypeId(
+      db,
+      image.roomTypeId,
+    );
+    if (allImages.length <= 1) {
+      throw new Error(
+        "Cannot delete the last image. Room type must have at least one image.",
+      );
     }
 
     // Extract R2 key from URL

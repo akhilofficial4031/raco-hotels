@@ -168,6 +168,12 @@ export class RoomTypeController {
             if (e.message.includes("Invalid image type")) {
               return ApiResponse.badRequest(c, e.message);
             }
+            if (
+              e.message.includes("At least one image") ||
+              e.message.includes("Cannot replace all images")
+            ) {
+              return ApiResponse.badRequest(c, e.message);
+            }
           }
           throw e;
         }
@@ -190,8 +196,13 @@ export class RoomTypeController {
           if (!deleted) return ApiResponse.notFound(c, "Image not found");
           return ApiResponse.success(c, {});
         } catch (e) {
-          if (e instanceof Error && e.message === "Image not found") {
-            return ApiResponse.notFound(c, "Image not found");
+          if (e instanceof Error) {
+            if (e.message === "Image not found") {
+              return ApiResponse.notFound(c, "Image not found");
+            }
+            if (e.message.includes("Cannot delete the last image")) {
+              return ApiResponse.badRequest(c, e.message);
+            }
           }
           throw e;
         }
