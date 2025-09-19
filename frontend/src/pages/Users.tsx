@@ -24,7 +24,7 @@ import {
   USER_STATUS_LABELS,
   UserStatus,
 } from "../../../shared/types/user";
-import AddEditUser from "../features/users/add-edit-user";
+import AddEditUser from "../features/users/AddEditUser";
 import TableHeader from "../shared/components/TableHeader";
 import {
   type User,

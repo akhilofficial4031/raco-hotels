@@ -9,7 +9,7 @@ import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
 
-import AddEditFeature from "../features/feature/add-edit-feature";
+import AddEditFeature from "../features/feature/AddEditFeature";
 import TableHeader from "../shared/components/TableHeader";
 import {
   type Feature,

@@ -79,7 +79,7 @@ export interface RoomTypeResponse {
 export interface CreateRoomTypePayload {
   hotelId: number;
   name: string;
-  slug: string;
+  slug?: string;
   description?: string;
   baseOccupancy?: number;
   maxOccupancy?: number;
@@ -115,9 +115,8 @@ export interface RoomTypeAddonInput {
 export interface UpdateRoomTypePayload extends Partial<CreateRoomTypePayload> {}
 
 export interface RoomTypeFormData {
-  hotelId: number;
+  hotelId?: number;
   name: string;
-  slug: string;
   description?: string;
   baseOccupancy: number;
   maxOccupancy: number;

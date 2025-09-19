@@ -38,7 +38,7 @@ export const RoomTypeRouteDefinitions = {
     method: "post",
     path: "/room-types",
     summary: "Create room type",
-    description: "Create a new room type, with optional amenities and images",
+    description: "Create a new room type with optional amenities and images. Slug is auto-generated from the room type name within the hotel scope.",
     tags: [ApiTags.ROOMS],
     successSchema: RoomTypeResponseSchema,
     successDescription: "Room type created successfully",
@@ -51,7 +51,7 @@ export const RoomTypeRouteDefinitions = {
     path: "/room-types/{id}",
     summary: "Update room type",
     description:
-      "Update a room type; if amenityIds/images arrays are provided they replace existing",
+      "Update a room type. Slug is auto-generated when name changes. If amenityIds/images arrays are provided they replace existing ones.",
     tags: [ApiTags.ROOMS],
     successSchema: RoomTypeResponseSchema,
     successDescription: "Room type updated successfully",

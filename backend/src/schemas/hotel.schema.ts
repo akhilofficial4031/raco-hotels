@@ -159,7 +159,6 @@ export const HotelWithAllRelationsSchema = z
 export const CreateHotelRequestSchema = z
   .object({
     name: z.string().min(1).openapi({ example: "Raco Grand" }),
-    slug: z.string().optional().openapi({ example: "raco-grand" }),
     description: z
       .string()
       .optional()
@@ -216,6 +215,15 @@ export const HotelPathParamsSchema = z
       .openapi({ example: "1", description: "Hotel ID" }),
   })
   .openapi("HotelPathParams");
+
+export const HotelSlugPathParamsSchema = z
+  .object({
+    slug: z
+      .string()
+      .min(1)
+      .openapi({ example: "raco-grand", description: "Hotel slug" }),
+  })
+  .openapi("HotelSlugPathParams");
 
 export const HotelQueryParamsSchema = z
   .object({

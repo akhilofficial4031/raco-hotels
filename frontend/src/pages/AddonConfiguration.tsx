@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import {
   DeleteOutlined,
   EditOutlined,
@@ -20,17 +19,18 @@ import { useMemo, useState } from "react";
 import { useParams } from "react-router";
 import useSWR, { mutate } from "swr";
 
-import TableHeader from "../shared/components/TableHeader";
+import TableHeader from "@shared/components/TableHeader";
+import { APP_LOCALE, CURRENCY_SYMBOL } from "@shared/constants/app";
 import {
   type AddonConfiguration,
   type AddonConfigurationListParamStructure,
   type AddonConfigurationListResponse,
   type UpdateAddonConfigurationPayload,
   type AddonResponse,
-} from "../shared/models";
-import { convertJsonToQueryParams } from "../shared/utils";
+} from "@shared/models";
+import { convertJsonToQueryParams } from "@shared/utils";
+
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
-import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 
@@ -67,10 +67,7 @@ const AddonConfigurationPage = () => {
     },
   );
 
-  const { data: addonResponse } = useSWR(
-    addonId ? `/addons/${addonId}` : null,
-    fetcher<AddonResponse>,
-  );
+  useSWR(addonId ? `/addons/${addonId}` : null, fetcher<AddonResponse>);
 
   const handlePageChange = (page: number, pageSize: number) => {
     setFilterParams((prev) => ({ ...prev, page, limit: pageSize }));
@@ -152,7 +149,8 @@ const AddonConfigurationPage = () => {
       title: "Price",
       dataIndex: "priceCents",
       key: "priceCents",
-      render: (price: number) => `$${(price / 100).toFixed(2)}`,
+      render: (price: number) =>
+        `${CURRENCY_SYMBOL}${(price / 100).toFixed(2)}`,
     },
     {
       title: "Created At",
@@ -239,7 +237,14 @@ const AddonConfigurationPage = () => {
               min={0}
               style={{ width: "100%" }}
               formatter={(value) =>
-                `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                `${CURRENCY_SYMBOL} ${value}`.replace(
+                  /\B(?=(\d{3})+(?!\d))/g,
+                  ",",
+                )
+              }
+              // @ts-expect-error antd's InputNumber parser type seems to be inferred incorrectly here.
+              parser={(value) =>
+                parseFloat(value?.replace(/[^\d.]/g, "") || "0")
               }
             />
           </Form.Item>

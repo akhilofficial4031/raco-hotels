@@ -11,19 +11,91 @@ import type { ImageUploadResult } from "./r2.service";
 import type { z } from "zod";
 
 export class RoomTypeService {
+  /**
+   * Convert a room type name to a URL-friendly slug format
+   */
+  private static nameToSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "") // Remove special characters except hyphens and spaces
+      .replace(/[\s_]+/g, "-") // Replace spaces and underscores with hyphens
+      .replace(/-+/g, "-") // Replace multiple consecutive hyphens with single hyphen
+      .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+  }
+
+  /**
+   * Generate a unique slug by appending a counter if the slug already exists within a hotel
+   * Uses a single database query for efficiency
+   */
+  private static async generateUniqueSlug(
+    db: D1Database,
+    hotelId: number,
+    baseSlug: string,
+    excludeId?: number,
+  ): Promise<string> {
+    // Get all existing slugs that start with the base slug within this hotel
+    const existingSlugs = await RoomTypeRepository.findSlugsByPattern(
+      db,
+      hotelId,
+      `${baseSlug}%`,
+    );
+
+    // For updates, check if the base slug is currently used by the room type being updated
+    let baseSlugAvailable = !existingSlugs.includes(baseSlug);
+    if (!baseSlugAvailable && excludeId) {
+      // Check if the base slug belongs to the room type being updated
+      const currentRoomTypeWithSlug = await RoomTypeRepository.findBySlug(
+        db,
+        hotelId,
+        baseSlug,
+      );
+      baseSlugAvailable = currentRoomTypeWithSlug?.id === excludeId;
+    }
+
+    // If base slug is available, use it
+    if (baseSlugAvailable) {
+      return baseSlug;
+    }
+
+    // Extract counters from existing numbered slugs
+    const counters: number[] = [];
+    const baseSlugWithDash = `${baseSlug}-`;
+
+    for (const slug of existingSlugs) {
+      if (slug === baseSlug) {
+        // Base slug exists, so we need at least counter 1
+        counters.push(0);
+      } else if (slug.startsWith(baseSlugWithDash)) {
+        const suffix = slug.substring(baseSlugWithDash.length);
+        const counter = parseInt(suffix, 10);
+        if (!isNaN(counter) && counter > 0) {
+          counters.push(counter);
+        }
+      }
+    }
+
+    // Find the next available counter
+    const maxCounter = counters.length > 0 ? Math.max(...counters) : 0;
+    return `${baseSlug}-${maxCounter + 1}`;
+  }
+
   static async createRoomType(
     db: D1Database,
     data: z.infer<typeof CreateRoomTypeRequestSchema>,
   ) {
-    // Enforce slug uniqueness per hotel
-    const existing = await RoomTypeRepository.findBySlug(
+    // Auto-generate slug from room type name
+    const baseSlug = this.nameToSlug(data.name);
+    const uniqueSlug = await this.generateUniqueSlug(
       db,
       data.hotelId,
-      data.slug,
+      baseSlug,
     );
-    if (existing) throw new Error("Room type slug already in use");
 
-    const created = await RoomTypeRepository.create(db, data);
+    const created = await RoomTypeRepository.create(db, {
+      ...data,
+      slug: uniqueSlug,
+    });
 
     // Images
     if (data.images && data.images.length) {
@@ -48,7 +120,10 @@ export class RoomTypeService {
       await RoomTypeRepository.setAddons(
         db,
         created.id,
-        data.addons.map((a) => ({ ...a, roomTypeId: created.id })),
+        data.addons.map((a: { addonId: number; priceCents: number }) => ({
+          ...a,
+          roomTypeId: created.id,
+        })),
       );
     }
 
@@ -70,16 +145,16 @@ export class RoomTypeService {
     const existing = await RoomTypeRepository.findById(db, id);
     if (!existing) throw new Error("Room type not found");
 
-    if (data.slug && data.slug !== existing.slug) {
-      const slugTaken = await RoomTypeRepository.findBySlug(
-        db,
-        data.hotelId || existing.hotelId,
-        data.slug,
-      );
-      if (slugTaken) throw new Error("Room type slug already in use");
+    // Auto-generate slug from name if name is being updated
+    let uniqueSlug: string | undefined;
+    if (data.name && data.name !== existing.name) {
+      const hotelId = data.hotelId || existing.hotelId;
+      const baseSlug = this.nameToSlug(data.name);
+      uniqueSlug = await this.generateUniqueSlug(db, hotelId, baseSlug, id);
     }
 
-    const updated = await RoomTypeRepository.update(db, id, data);
+    const updateData = uniqueSlug ? { ...data, slug: uniqueSlug } : data;
+    const updated = await RoomTypeRepository.update(db, id, updateData);
     if (!updated) throw new Error("Room type not found");
 
     // Replace amenities if provided
@@ -96,7 +171,10 @@ export class RoomTypeService {
       await RoomTypeRepository.setAddons(
         db,
         id,
-        data.addons.map((a) => ({ ...a, roomTypeId: id })),
+        data.addons.map((a: { addonId: number; priceCents: number }) => ({
+          ...a,
+          roomTypeId: id,
+        })),
       );
     }
 

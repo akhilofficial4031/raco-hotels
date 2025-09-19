@@ -43,7 +43,7 @@ export class RoomRepository {
       .where(whereClause);
     const total = totalResult[0]?.count || 0;
 
-    let query = database
+    const query = database
       .select({
         id: roomTable.id,
         hotelId: roomTable.hotelId,
@@ -65,11 +65,9 @@ export class RoomRepository {
       .where(whereClause)
       .orderBy(desc(roomTable.createdAt));
 
-    if (limit !== -1) {
-      query = query.limit(limit).offset(offset);
-    }
-
-    const rows = await query;
+    const rows = await (limit !== -1
+      ? query.limit(limit).offset(offset)
+      : query);
 
     return { rooms: rows as any, total };
   }

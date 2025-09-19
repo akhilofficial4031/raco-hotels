@@ -48,6 +48,22 @@ export class HotelController {
     );
   }
 
+  static async getHotelBySlug(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const slug = c.req.param("slug");
+        const result = await HotelService.getHotelWithAllRelationsBySlug(
+          c.env.DB,
+          slug,
+        );
+        if (!result) return HotelResponse.hotelNotFound(c);
+        return HotelResponse.hotelWithAllRelationsRetrieved(c, result);
+      },
+      "operation.fetchHotelFailed",
+    );
+  }
+
   static async createHotel(c: AppContext) {
     return handleAsyncRoute(
       c,

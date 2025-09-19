@@ -1,14 +1,59 @@
-import { z } from "zod";
+import { type z } from "zod";
 
 import {
-  CreateCustomerRequestSchema,
-  UpdateCustomerRequestSchema,
-  CustomerSearchQuerySchema,
+  type CreateCustomerRequestSchema,
+  type UpdateCustomerRequestSchema,
+  type CustomerSearchQuerySchema,
 } from "../schemas";
+
+import type { BaseEntity } from "./common.interface";
 
 export type CreateCustomerData = z.infer<typeof CreateCustomerRequestSchema>;
 export type UpdateCustomerData = z.infer<typeof UpdateCustomerRequestSchema>;
 export type CustomerSearchFilters = z.infer<typeof CustomerSearchQuerySchema>;
+
+/**
+ * Database representation of a customer
+ */
+export interface DatabaseCustomer extends BaseEntity {
+  email: string;
+  fullName: string;
+  phone: string | null;
+  alternatePhone: string | null;
+  dateOfBirth: string | null;
+  gender: "male" | "female" | "other" | null;
+  nationality: string | null;
+  idType: string | null;
+  idNumber: string | null;
+  addressLine1: string | null;
+  addressLine2: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  postalCode: string | null;
+  dietaryPreferences: string[] | null;
+  specialRequests: string[] | null;
+  emergencyContactName: string | null;
+  emergencyContactPhone: string | null;
+  loyaltyNumber: string | null;
+  marketingOptIn: boolean;
+  firstBookingSource:
+    | "web"
+    | "front_office"
+    | "phone"
+    | "email"
+    | "mobile_app"
+    | "walk_in";
+  status: "active" | "inactive" | "blocked";
+  notes: string | null;
+  preferredPaymentMethod: string | null;
+  vipStatus: "regular" | "silver" | "gold" | "platinum" | null;
+  preferredContactMethod: "email" | "phone" | "sms" | null;
+  languagePreference: string | null;
+  timeZone: string | null;
+  lastBookingAt: string | null;
+  lastContactAt: string | null;
+}
 
 export interface CustomerWithBookingStats extends DatabaseCustomer {
   totalBookings: number;

@@ -19,3 +19,5 @@ export const LOCALE_DATE_OPTIONS_LONG: Intl.DateTimeFormatOptions = {
 };
 
 export const DEFAULT_CURRENCY = "INR";
+
+export const CURRENCY_SYMBOL = "₹";

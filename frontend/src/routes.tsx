@@ -15,7 +15,7 @@ const NotFound = lazy(() => import("./pages/Not-found"));
 const Users = lazy(() => import("./pages/Users"));
 const Features = lazy(() => import("./pages/Features"));
 const Amenities = lazy(() => import("./pages/Amenities"));
-const RoomType = lazy(() => import("./pages/Room-type"));
+const RoomType = lazy(() => import("./pages/RoomType"));
 const Rooms = lazy(() => import("./pages/Rooms"));
 const AddRoomPage = lazy(() => import("./pages/rooms/AddRoomPage"));
 const Addons = lazy(() => import("./pages/Addons"));
@@ -26,7 +26,7 @@ const Bookings = lazy(() => import("./features/bookings/pages/Bookings"));
 const NewBookings = lazy(() => import("./features/bookings/pages/NewBookings"));
 const ViewBooking = lazy(() => import("./features/bookings/pages/ViewBooking"));
 const EditBooking = lazy(() => import("./features/bookings/pages/EditBooking"));
-const EditCustomer = lazy(() => import("./pages/Edit-Customer"));
+const EditCustomer = lazy(() => import("./pages/EditCustomer"));
 const Payment = lazy(() => import("./pages/Payment"));
 
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));

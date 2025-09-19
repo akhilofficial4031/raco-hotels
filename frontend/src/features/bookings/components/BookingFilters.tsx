@@ -67,8 +67,13 @@ const BookingFilters: React.FC<BookingFiltersProps> = ({
   });
 
   const { data: hotelsResponse } = useSWR(
-    "/hotels?limit=100",
+    open ? "/hotels?limit=100" : null,
     fetcher<{ data: { hotels: Hotel[] } }>,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+    },
   );
 
   const handleApplyFilters = (data: FilterFormData) => {

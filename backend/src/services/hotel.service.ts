@@ -15,17 +15,78 @@ import type {
 import type { z } from "zod";
 
 export class HotelService {
+  /**
+   * Convert a hotel name to a URL-friendly slug format
+   */
+  private static nameToSlug(name: string): string {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "") // Remove special characters except hyphens and spaces
+      .replace(/[\s_]+/g, "-") // Replace spaces and underscores with hyphens
+      .replace(/-+/g, "-") // Replace multiple consecutive hyphens with single hyphen
+      .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+  }
+
+  /**
+   * Generate a unique slug by appending a counter if the slug already exists
+   * Uses a single database query for efficiency
+   */
+  private static async generateUniqueSlug(
+    db: D1Database,
+    baseSlug: string,
+    excludeId?: number,
+  ): Promise<string> {
+    // Get all existing slugs that start with the base slug
+    const existingSlugs = await HotelRepository.findSlugsByPattern(
+      db,
+      `${baseSlug}%`,
+    );
+
+    // For updates, check if the base slug is currently used by the hotel being updated
+    let baseSlugAvailable = !existingSlugs.includes(baseSlug);
+    if (!baseSlugAvailable && excludeId) {
+      // Check if the base slug belongs to the hotel being updated
+      const currentHotelWithSlug = await HotelRepository.findBySlug(
+        db,
+        baseSlug,
+      );
+      baseSlugAvailable = currentHotelWithSlug?.id === excludeId;
+    }
+
+    // If base slug is available, use it
+    if (baseSlugAvailable) {
+      return baseSlug;
+    }
+
+    // Extract counters from existing numbered slugs
+    const counters: number[] = [];
+    const baseSlugWithDash = `${baseSlug}-`;
+    for (const slug of existingSlugs) {
+      if (slug === baseSlug) {
+        // Base slug exists, so we need at least counter 1
+        counters.push(0);
+      } else if (slug.startsWith(baseSlugWithDash)) {
+        const suffix = slug.substring(baseSlugWithDash.length);
+        const counter = parseInt(suffix, 10);
+        if (!isNaN(counter) && counter > 0) {
+          counters.push(counter);
+        }
+      }
+    }
+
+    // Find the next available counter
+    const maxCounter = counters.length > 0 ? Math.max(...counters) : 0;
+    return `${baseSlug}-${maxCounter + 1}`;
+  }
+
   static async createHotel(
     db: D1Database,
     data: z.infer<typeof CreateHotelRequestSchema>,
   ) {
-    // If slug provided, ensure uniqueness
-    if (data.slug) {
-      const existing = await HotelRepository.findBySlug(db, data.slug);
-      if (existing) {
-        throw new Error("Hotel slug already in use");
-      }
-    }
+    // Auto-generate slug from hotel name
+    const baseSlug = this.nameToSlug(data.name);
+    const uniqueSlug = await this.generateUniqueSlug(db, baseSlug);
 
     // Extract amenities and features for separate handling
     const { amenities, features, ...hotelData } = data;
@@ -33,6 +94,7 @@ export class HotelService {
     // Create the hotel first
     const hotel = await HotelRepository.create(db, {
       ...hotelData,
+      slug: uniqueSlug,
       isActive: hotelData.isActive ?? 1,
     });
 
@@ -57,18 +119,22 @@ export class HotelService {
     if (!existing) {
       throw new Error("Hotel not found");
     }
-    if (data.slug && data.slug !== existing.slug) {
-      const slugTaken = await HotelRepository.findBySlug(db, data.slug);
-      if (slugTaken) {
-        throw new Error("Hotel slug already in use");
-      }
+
+    // Auto-generate slug from name if name is being updated
+    let uniqueSlug: string | undefined;
+    if (data.name && data.name !== existing.name) {
+      const baseSlug = this.nameToSlug(data.name);
+      uniqueSlug = await this.generateUniqueSlug(db, baseSlug, id);
     }
 
     // Extract amenities and features for separate handling
     const { amenities, features, ...hotelData } = data;
 
     // Update the hotel main data
-    const updated = await HotelRepository.update(db, id, hotelData);
+    const updateData = uniqueSlug
+      ? { ...hotelData, slug: uniqueSlug }
+      : hotelData;
+    const updated = await HotelRepository.update(db, id, updateData);
     if (!updated) {
       throw new Error("Hotel not found");
     }
@@ -88,6 +154,10 @@ export class HotelService {
 
   static async getHotelById(db: D1Database, id: number) {
     return await HotelRepository.findById(db, id);
+  }
+
+  static async getHotelBySlug(db: D1Database, slug: string) {
+    return await HotelRepository.findBySlug(db, slug);
   }
 
   static async getHotels(
@@ -128,6 +198,13 @@ export class HotelService {
     id: number,
   ): Promise<DatabaseHotelWithRelations | null> {
     return await HotelRepository.findHotelWithAllRelations(db, id);
+  }
+
+  static async getHotelWithAllRelationsBySlug(
+    db: D1Database,
+    slug: string,
+  ): Promise<DatabaseHotelWithRelations | null> {
+    return await HotelRepository.findBySlugWithAllRelations(db, slug);
   }
 
   static async createHotelWithImages(

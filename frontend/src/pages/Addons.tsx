@@ -11,8 +11,9 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import useSWR, { mutate } from "swr";
 
-import AddEditAddon from "../features/addon/add-edit-addon";
+import AddEditAddon from "../features/addon/AddEditAddon";
 import TableHeader from "../shared/components/TableHeader";
+import { APP_LOCALE } from "../shared/constants/app";
 import {
   type Addon,
   type AddonListParamStructure,
@@ -22,7 +23,6 @@ import {
 } from "../shared/models";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
-import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 

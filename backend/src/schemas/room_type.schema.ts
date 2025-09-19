@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { RoomSchema } from "./room_unit.schema";
+import { RoomUnitSchema } from "./room_unit.schema";
 
 // Room Type Image Schema
 export const RoomTypeImageSchema = z
@@ -65,7 +65,7 @@ export const RoomTypeWithRelationsSchema = RoomTypeSchema.extend({
     )
     .openapi({ description: "Room type amenities" }),
   rooms: z
-    .array(RoomSchema)
+    .array(RoomUnitSchema)
     .openapi({ description: "Individual room units of this room type" }),
 }).openapi("RoomTypeWithRelations");
 
@@ -73,7 +73,6 @@ export const CreateRoomTypeRequestSchema = z
   .object({
     hotelId: z.number().int().positive().openapi({ example: 1 }),
     name: z.string().min(1).openapi({ example: "Deluxe King" }),
-    slug: z.string().min(1).openapi({ example: "deluxe-king" }),
     description: z
       .string()
       .optional()
@@ -104,6 +103,18 @@ export const CreateRoomTypeRequestSchema = z
       )
       .optional()
       .openapi({ description: "Initial images to create" }),
+    addons: z
+      .array(
+        z.object({
+          addonId: z.number().int().positive(),
+          priceCents: z.number().int(),
+        }),
+      )
+      .optional()
+      .openapi({
+        example: [{ addonId: 1, priceCents: 2000 }],
+        description: "Addon configurations for this room type",
+      }),
   })
   .openapi("CreateRoomTypeRequest");
 

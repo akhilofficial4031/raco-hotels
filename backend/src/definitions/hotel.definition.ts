@@ -6,6 +6,7 @@ import {
   CreateHotelRequestSchema,
   UpdateHotelRequestSchema,
   HotelPathParamsSchema,
+  HotelSlugPathParamsSchema,
   HotelQueryParamsSchema,
   HotelWithImagesResponseSchema,
   HotelWithAllRelationsResponseSchema,
@@ -40,14 +41,27 @@ export const HotelRouteDefinitions = {
     includeNotFound: true,
   }),
 
+  getHotelBySlug: createRoute({
+    method: "get",
+    path: "/hotels/slug/{slug}",
+    summary: "Get hotel by slug with all relations",
+    description:
+      "Retrieve detailed information about a specific hotel using its slug identifier. This public endpoint includes all associated images, features, amenities, location data, and metadata. Returns comprehensive hotel data suitable for public-facing websites, booking interfaces, and mobile applications. Response includes complete property details, location information, all hotel images with metadata (URLs, alt text, sort order), all associated features, all amenities, and location-specific information about nearby attractions. Perfect for public hotel detail pages, SEO-friendly URLs, and guest-facing applications.",
+    tags: [ApiTags.HOTELS],
+    successSchema: HotelWithAllRelationsResponseSchema,
+    successDescription: "Hotel with all relations retrieved successfully",
+    paramsSchema: HotelSlugPathParamsSchema,
+    includeNotFound: true,
+  }),
+
   createHotel: createRoute({
     method: "post",
     path: "/hotels",
     summary: "Create hotel",
     description:
-      "Create a new hotel with hotel information. Supports both JSON and multipart/form-data (with images).",
+      "Create a new hotel with hotel information. Slug is auto-generated from the hotel name. Supports both JSON and multipart/form-data (with images).",
     tags: [ApiTags.HOTELS],
-    // Note: No requestSchema due to multipart/form-data support - validation handled in controller
+    requestSchema: CreateHotelRequestSchema,
     successSchema: HotelWithImagesResponseSchema,
     successDescription: "Hotel created successfully",
     includeBadRequest: true,
@@ -59,10 +73,10 @@ export const HotelRouteDefinitions = {
     path: "/hotels/{id}",
     summary: "Update hotel",
     description:
-      "Update an existing hotel information. Supports both JSON and multipart/form-data (with images).",
+      "Update an existing hotel information. Slug is auto-generated when name changes. Supports both JSON and multipart/form-data (with images).",
     tags: [ApiTags.HOTELS],
     paramsSchema: HotelPathParamsSchema,
-    // Note: No requestSchema due to multipart/form-data support - validation handled in controller
+    requestSchema: UpdateHotelRequestSchema,
     successSchema: HotelWithImagesResponseSchema,
     successDescription: "Hotel updated successfully",
     includeBadRequest: true,

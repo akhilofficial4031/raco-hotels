@@ -21,9 +21,10 @@ import isBetween from "dayjs/plugin/isBetween";
 import { useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
 
-import AddEditPromoCode from "../features/promo-code/components/add-edit-promo-code";
-import PromoCodeFilters from "../features/promo-code/components/promo-code-filters";
+import AddEditPromoCode from "../features/promo-code/components/AddEditPromoCode";
+import PromoCodeFilters from "../features/promo-code/components/PromoCodeFilters";
 import TableHeader from "../shared/components/TableHeader";
+import { APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT } from "../shared/constants/app";
 import { type Hotel } from "../shared/models/hotels";
 import {
   type CreatePromoCodePayload,
@@ -33,7 +34,6 @@ import {
 } from "../shared/models/promo-code";
 import { convertJsonToQueryParams } from "../shared/utils";
 import { fetcher, mutationFetcher } from "../utils/swrFetcher";
-import { APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT } from "../shared/constants/app";
 
 dayjs.extend(isBetween);
 
@@ -75,14 +75,15 @@ const PromoCode = () => {
     shouldRetryOnError: false,
   });
 
-  // Fetch hotels for filter dropdown and hotel name mapping
+  // Fetch hotels for filter dropdown and hotel name mapping - SWR will cache this data automatically
   const { data: hotelsResponse } = useSWR(
-    "/hotels?limit=100",
+    openFiltersPanel || openAddPromoCodePanel ? "/hotels?limit=100" : null,
     fetcher<{ data: { hotels: Hotel[] } }>,
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       shouldRetryOnError: false,
+      dedupingInterval: 300000, // 5 minutes - prevents duplicate requests
     },
   );
 

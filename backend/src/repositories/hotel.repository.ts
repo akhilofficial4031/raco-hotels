@@ -94,6 +94,20 @@ export class HotelRepository {
     return (rows[0] as DatabaseHotel) || null;
   }
 
+  static async findSlugsByPattern(
+    db: D1Database,
+    slugPattern: string,
+  ): Promise<string[]> {
+    const database = getDb(db);
+    const rows = await database
+      .select({ slug: hotelTable.slug })
+      .from(hotelTable)
+      .where(like(hotelTable.slug, slugPattern));
+    return rows
+      .map((row) => row.slug)
+      .filter((slug): slug is string => slug !== null);
+  }
+
   static async create(
     db: D1Database,
     data: CreateHotelData,
@@ -300,6 +314,27 @@ export class HotelRepository {
       this.findImagesByHotelId(db, id),
       this.findFeaturesByHotelId(db, id),
       this.findAmenitiesByHotelId(db, id),
+    ]);
+
+    return {
+      ...hotel,
+      images,
+      features,
+      amenities,
+    };
+  }
+
+  static async findBySlugWithAllRelations(
+    db: D1Database,
+    slug: string,
+  ): Promise<DatabaseHotelWithRelations | null> {
+    const hotel = await this.findBySlug(db, slug);
+    if (!hotel) return null;
+
+    const [images, features, amenities] = await Promise.all([
+      this.findImagesByHotelId(db, hotel.id),
+      this.findFeaturesByHotelId(db, hotel.id),
+      this.findAmenitiesByHotelId(db, hotel.id),
     ]);
 
     return {
