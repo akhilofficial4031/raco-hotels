@@ -6,7 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 
 import { DATE_FORMAT_API } from "../../../shared/constants/app";
-import { getHotels } from "../../hotels/services/hotel.service";
+import { getHotels } from "../../hotels/services/hotelService";
 import { getRoomTypes } from "../../room-type/services/room-type.service";
 
 import type { Hotel } from "../../../shared/models/hotels";

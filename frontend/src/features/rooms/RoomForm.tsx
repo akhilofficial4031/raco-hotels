@@ -4,7 +4,7 @@ import { Controller } from "react-hook-form";
 import useSWR from "swr";
 
 import { IRoom, RoomStatus } from "../../shared/models/rooms";
-import { getHotels } from "../hotels/services/hotel.service";
+import { getHotels } from "../hotels/services/hotelService";
 import { getRoomTypesByHotel } from "../room-type/services/room-type.service";
 
 const { TextArea } = Input;

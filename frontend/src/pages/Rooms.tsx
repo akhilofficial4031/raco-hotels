@@ -19,7 +19,7 @@ import { useNavigate } from "react-router";
 import useSWR, { mutate } from "swr";
 import { z } from "zod";
 
-import { getHotels } from "../features/hotels/services/hotel.service";
+import { getHotels } from "../features/hotels/services/hotelService";
 import RoomForm from "../features/rooms/RoomForm";
 import { updateRoom, getRooms } from "../features/rooms/services/room.service";
 import { useQueryParams } from "../shared/hooks";

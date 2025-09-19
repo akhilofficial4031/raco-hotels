@@ -214,6 +214,11 @@ export class HotelService {
     imageFiles: File[],
     publicBaseUrl: string,
   ): Promise<{ hotel: DatabaseHotel; images: DatabaseHotelImage[] }> {
+    // Validate that at least one image is provided
+    if (!imageFiles || imageFiles.length === 0) {
+      throw new Error("At least one image is required when creating a hotel");
+    }
+
     // First create the hotel (this now handles amenities and features)
     const hotel = await this.createHotel(db, hotelData);
 
@@ -261,6 +266,29 @@ export class HotelService {
     replaceImages: boolean = false,
     publicBaseUrl?: string,
   ): Promise<{ hotel: DatabaseHotel; images: DatabaseHotelImage[] }> {
+    // Get current images for validation
+    const currentImages = await HotelRepository.findImagesByHotelId(db, id);
+
+    // Validate image requirements
+    if (replaceImages) {
+      // If replacing all images, must provide new images
+      if (!imageFiles || imageFiles.length === 0) {
+        throw new Error(
+          "At least one image is required when replacing all images",
+        );
+      }
+    } else {
+      // If not replacing, must have either existing images or new images
+      const hasExistingImages = currentImages.length > 0;
+      const hasNewImages = imageFiles && imageFiles.length > 0;
+
+      if (!hasExistingImages && !hasNewImages) {
+        throw new Error(
+          "At least one image is required. Either keep existing images or upload new ones",
+        );
+      }
+    }
+
     // Update hotel data (this now handles amenities and features)
     const hotel = await this.updateHotel(db, id, hotelData);
 
@@ -357,6 +385,17 @@ export class HotelService {
     const image = await HotelRepository.findImageById(db, imageId);
     if (!image) {
       throw new Error("Image not found");
+    }
+
+    // Check if this is the last image for the hotel
+    const hotelImages = await HotelRepository.findImagesByHotelId(
+      db,
+      image.hotelId,
+    );
+    if (hotelImages.length <= 1) {
+      throw new Error(
+        "Cannot delete the last image. Hotels must have at least one image",
+      );
     }
 
     // Extract R2 key from URL (this depends on your URL structure)

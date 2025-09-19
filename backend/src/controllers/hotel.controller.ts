@@ -122,23 +122,11 @@ export class HotelController {
             throw e;
           }
         } else {
-          // Handle JSON payload (hotel only)
-          const payload = await c.req.json();
-          try {
-            // Validate the JSON payload
-            const validatedData = CreateHotelRequestSchema.parse(payload);
-            const created = await HotelService.createHotel(
-              c.env.DB,
-              validatedData,
-            );
-            // Return as hotel with images format but with empty images array
-            return HotelResponse.hotelWithImagesCreated(c, created, []);
-          } catch (e) {
-            if (e instanceof Error && e.message.includes("slug")) {
-              return ApiResponse.conflict(c, e.message);
-            }
-            throw e;
-          }
+          // Handle JSON payload (hotel only) - DEPRECATED: Hotels must have images
+          return ApiResponse.badRequest(
+            c,
+            "Hotel creation requires images. Please use multipart/form-data with hotelData and images fields",
+          );
         }
       },
       "operation.createHotelFailed",

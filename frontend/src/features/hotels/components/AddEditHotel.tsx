@@ -18,14 +18,15 @@ import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 import { z } from "zod";
 
-import LocationInfoForm from "./LocationInfoForm";
-import { type FeatureListResponse } from "../../../shared/models";
-import { type AmenityListResponse } from "../../../shared/models/amenity";
+import { type FeatureListResponse } from "@shared/models";
+import { type AmenityListResponse } from "@shared/models/amenity";
 import {
   type Hotel,
   type HotelImage,
   type CreateHotelPayload,
-} from "../../../shared/models/hotels";
+} from "@shared/models/hotels";
+
+import LocationInfoForm from "./LocationInfoForm";
 import {
   extractCoordinatesFromMapsUrl,
   generateGoogleMapsUrl,
@@ -108,6 +109,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
+  const [imageValidationError, setImageValidationError] = useState<string>("");
 
   const imageBaseUrl = import.meta.env.VITE_BUCKET_URL;
 
@@ -235,12 +237,15 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
       };
 
       reset(resetData, { keepDefaultValues: false });
+      // Clear validation error when hotel data is loaded
+      setImageValidationError("");
     } else if (!isEditMode) {
       // Reset image state for add mode
       setExistingImages([]);
       setUploadedImages([]);
       setFileList([]);
       setReplaceImages(false);
+      setImageValidationError("");
 
       reset({
         name: "",
@@ -269,6 +274,39 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
     }
   }, [hotel, reset, isEditMode]);
 
+  // Validate images function
+  const validateImages = (): boolean => {
+    const hasUploadedImages = uploadedImages.length > 0;
+    const hasExistingImages = existingImages.length > 0;
+
+    // For create mode: must have uploaded images
+    if (!isEditMode && !hasUploadedImages) {
+      setImageValidationError("At least one image is required");
+      return false;
+    }
+
+    // For edit mode: check based on replace mode
+    if (isEditMode) {
+      if (replaceImages) {
+        // If replacing images, must have uploaded images
+        if (!hasUploadedImages) {
+          setImageValidationError("At least one image is required");
+          return false;
+        }
+      } else {
+        // If not replacing, must have either existing or uploaded images
+        if (!hasExistingImages && !hasUploadedImages) {
+          setImageValidationError("At least one image is required");
+          return false;
+        }
+      }
+    }
+
+    // Clear any previous error
+    setImageValidationError("");
+    return true;
+  };
+
   const handleFormSubmit = (formData: CreateHotelPayload) => {
     // Validate required fields before proceeding
     if (!formData.name || formData.name.trim() === "") {
@@ -278,6 +316,12 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
 
     if (!formData.slug || formData.slug.trim() === "") {
       message.error("Hotel slug is required");
+      return;
+    }
+
+    // Validate images
+    if (!validateImages()) {
+      message.error("At least one image is required");
       return;
     }
 
@@ -408,6 +452,11 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
       .filter((file) => file.status !== "error" && file.originFileObj)
       .map((file) => file.originFileObj as File);
     setUploadedImages(files);
+
+    // Clear image validation error when images are added
+    if (files.length > 0) {
+      setImageValidationError("");
+    }
   };
 
   const handlePreview = async (file: UploadFile) => {
@@ -444,7 +493,13 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
   };
 
   const removeExistingImage = (imageId: number) => {
-    setExistingImages((prev) => prev.filter((img) => img.id !== imageId));
+    const newImages = existingImages.filter((img) => img.id !== imageId);
+    setExistingImages(newImages);
+
+    // Trigger validation if no images left
+    if (newImages.length === 0 && uploadedImages.length === 0) {
+      setImageValidationError("At least one image is required");
+    }
   };
 
   // Don't render form in edit mode until we have hotel data
@@ -988,10 +1043,27 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
 
           {/* Hotel Images */}
           <Card
-            title={<span className="text-lg font-semibold">Hotel Images</span>}
-            className="shadow-sm border-gray-200"
+            title={
+              <div className="flex items-center justify-between">
+                <span className="text-lg font-semibold">Hotel Images</span>
+                <span className="text-red-500 text-sm font-normal">
+                  *Required
+                </span>
+              </div>
+            }
+            className={`shadow-sm border-gray-200 ${
+              imageValidationError ? "border-red-300" : ""
+            }`}
           >
             <div className="space-y-4">
+              {/* Validation Error Message */}
+              {imageValidationError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="text-sm text-red-600">
+                    <strong>⚠️ {imageValidationError}</strong>
+                  </div>
+                </div>
+              )}
               {/* Existing Images (shown in edit mode when not replacing) */}
               {isEditMode && existingImages.length > 0 && !replaceImages && (
                 <div>
@@ -1018,6 +1090,36 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Replace Images Toggle (only in edit mode) */}
+              {isEditMode && existingImages.length > 0 && (
+                <div className="mb-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={replaceImages}
+                      onChange={(e) => {
+                        setReplaceImages(e.target.checked);
+                        // Validate images when toggle changes
+                        if (e.target.checked && uploadedImages.length === 0) {
+                          setImageValidationError(
+                            "At least one image is required",
+                          );
+                        } else {
+                          setImageValidationError("");
+                        }
+                      }}
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      Replace all existing images
+                    </span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Check this to replace all current images with new uploads
+                  </p>
                 </div>
               )}
 
