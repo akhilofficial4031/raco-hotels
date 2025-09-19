@@ -16,8 +16,8 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
-import { fetcher } from "../../../utils/swrFetcher";
-import { getRoomTypesByHotel } from "../../room-type/services/room-type.service";
+import { fetcher } from "@utils/swrFetcher";
+import { getRoomTypesByHotel } from "../../room-type/services/roomTypeService";
 
 const { Title, Text } = Typography;
 

@@ -4,23 +4,24 @@ import {
   ExclamationCircleOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 import { Button, Dropdown, Modal, Pagination, Table, message } from "antd";
 import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
 
-import AddEditFeature from "../features/feature/AddEditFeature";
-import TableHeader from "../shared/components/TableHeader";
+import TableHeader from "@shared/components/TableHeader";
+import { APP_LOCALE } from "@shared/constants/app";
 import {
   type Feature,
   type FeatureListParamStructure,
   type FeatureListResponse,
   type CreateFeaturePayload,
   type UpdateFeaturePayload,
-} from "../shared/models/featuers";
-import { convertJsonToQueryParams } from "../shared/utils";
-import { fetcher, mutationFetcher } from "../utils/swrFetcher";
-import { APP_LOCALE } from "../shared/constants/app";
+} from "@shared/models/featuers";
+
+import AddEditFeature from "../features/feature/AddEditFeature";
 
 const { confirm } = Modal;
 

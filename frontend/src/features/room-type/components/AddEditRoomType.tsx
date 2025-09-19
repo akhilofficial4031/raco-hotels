@@ -41,7 +41,7 @@ interface ImageDisplayData {
   alt: string;
   sortOrder: number;
 }
-import { fetcher, mutationFetcher } from "../../utils/swrFetcher";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 
 import type { UploadFile, UploadProps } from "antd";
 

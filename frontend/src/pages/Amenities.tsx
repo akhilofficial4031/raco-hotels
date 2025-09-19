@@ -26,8 +26,8 @@ import {
   type AmenityListParamStructure,
   type AmenityListResponse,
 } from "../shared/models";
-import { convertJsonToQueryParams } from "../shared/utils";
-import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;

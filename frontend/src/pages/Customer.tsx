@@ -10,8 +10,8 @@ import {
   type CustomerListParam,
   type CustomersListResponseSchema,
 } from "../shared/models";
-import { convertJsonToQueryParams } from "../shared/utils";
-import { fetcher } from "../utils/swrFetcher";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import { fetcher } from "@utils/swrFetcher";
 
 const CustomerPage = () => {
   const navigate = useNavigate();

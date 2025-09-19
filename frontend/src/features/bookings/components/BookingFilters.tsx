@@ -11,11 +11,11 @@ import dayjs from "dayjs";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 
-import { DATE_FORMAT_API } from "../../../shared/constants/app";
-import { BOOKING_STATUS } from "../../../shared/constants/bookings";
-import { type BookingListParamStructure } from "../../../shared/models/bookings";
-import { type Hotel } from "../../../shared/models/hotels";
-import { fetcher } from "../../../utils/swrFetcher";
+import { DATE_FORMAT_API } from "@shared/constants/app";
+import { BOOKING_STATUS } from "@shared/constants/bookings";
+import { type BookingListParamStructure } from "@shared/models/bookings";
+import { type Hotel } from "@shared/models/hotels";
+import { fetcher } from "@utils/swrFetcher";
 
 const { Option } = Select;
 const { Title } = Typography;

@@ -15,13 +15,13 @@ import dayjs from "dayjs";
 import { useEffect } from "react";
 import useSWR from "swr";
 
-import { type Hotel } from "../../../shared/models/hotels";
+import { type Hotel } from "@shared/models/hotels";
 import {
   type CreatePromoCodePayload,
   type PromoCodeWithRelations,
-} from "../../../shared/models/promo-code";
-import { fetcher } from "../../../utils/swrFetcher";
-import { DATE_FORMAT_API } from "../../../shared/constants/app";
+} from "@shared/models/promo-code";
+import { fetcher } from "@utils/swrFetcher";
+import { DATE_FORMAT_API } from "@shared/constants/app";
 
 const { RangePicker } = DatePicker;
 

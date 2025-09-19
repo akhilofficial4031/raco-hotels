@@ -22,10 +22,10 @@ import { z } from "zod";
 import { getHotels } from "../features/hotels/services/hotelService";
 import RoomForm from "../features/rooms/RoomForm";
 import { updateRoom, getRooms } from "../features/rooms/services/room.service";
-import { useQueryParams } from "../shared/hooks";
-import { type Hotel } from "../shared/models/hotels";
-import { type IRoom, RoomStatus } from "../shared/models/rooms";
-import { mutationFetcher } from "../utils/swrFetcher";
+import { useQueryParams } from "@shared/hooks";
+import { type Hotel } from "@shared/models/hotels";
+import { type IRoom, RoomStatus } from "@shared/models/rooms";
+import { mutationFetcher } from "@utils/swrFetcher";
 
 const { Title } = Typography;
 

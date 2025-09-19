@@ -4,9 +4,9 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router";
 import CustomerPage from "./pages/Customer";
 import CustomerDetails from "./pages/CustomerDetails";
 import Hotels from "./pages/Hotels";
-import FullScreenSpinner from "./shared/components/FullScreenSpinner";
-import { AuthProvider } from "./shared/contexts/AuthContext";
-import { AuthLayout, UnAuthLayout } from "./shared/layouts";
+import FullScreenSpinner from "@shared/components/FullScreenSpinner";
+import { AuthProvider } from "@shared/contexts/AuthContext";
+import { AuthLayout, UnAuthLayout } from "@shared/layouts";
 
 // Lazy load page components
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -15,7 +15,7 @@ const NotFound = lazy(() => import("./pages/Not-found"));
 const Users = lazy(() => import("./pages/Users"));
 const Features = lazy(() => import("./pages/Features"));
 const Amenities = lazy(() => import("./pages/Amenities"));
-const RoomType = lazy(() => import("./pages/RoomType"));
+const RoomType = lazy(() => import("./features/room-type/pages/RoomType"));
 const Rooms = lazy(() => import("./pages/Rooms"));
 const AddRoomPage = lazy(() => import("./pages/rooms/AddRoomPage"));
 const Addons = lazy(() => import("./pages/Addons"));

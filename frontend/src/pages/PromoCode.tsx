@@ -4,6 +4,8 @@ import {
   ExclamationCircleOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 import {
   Button,
   Dropdown,
@@ -32,8 +34,6 @@ import {
   type PromoCodeListResponse,
   type PromoCodeWithRelations,
 } from "../shared/models/promo-code";
-import { convertJsonToQueryParams } from "../shared/utils";
-import { fetcher, mutationFetcher } from "../utils/swrFetcher";
 
 dayjs.extend(isBetween);
 

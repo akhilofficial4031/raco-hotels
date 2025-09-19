@@ -4,6 +4,12 @@ import {
   ExclamationCircleOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import {
+  fetcher,
+  mutationFetcher,
+  multipartMutationFetcher,
+} from "@utils/swrFetcher";
 import {
   Button,
   Dropdown,
@@ -21,6 +27,7 @@ import useSWR, { mutate } from "swr";
 
 import AddEditHotel from "../features/hotels/components/AddEditHotel";
 import TableHeader from "../shared/components/TableHeader";
+import { APP_LOCALE } from "../shared/constants/app";
 import {
   type Hotel,
   type HotelListParamStructure,
@@ -28,13 +35,6 @@ import {
   type CreateHotelPayload,
   type HotelResponse,
 } from "../shared/models/hotels";
-import { convertJsonToQueryParams } from "../shared/utils";
-import {
-  fetcher,
-  mutationFetcher,
-  multipartMutationFetcher,
-} from "../utils/swrFetcher";
-import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 const { Text } = Typography;

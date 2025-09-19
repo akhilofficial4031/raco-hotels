@@ -1,11 +1,10 @@
+import { fetcher } from "@utils/swrFetcher";
 import { Button, Drawer, Form, Select, Space, Typography } from "antd";
-import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 
-import { type Hotel } from "../../shared/models/hotels";
-import { type RoomTypeListParamStructure } from "../../shared/models/room-type";
-import { fetcher } from "../../utils/swrFetcher";
+import { type Hotel } from "@shared/models/hotels";
+import { type RoomTypeListParamStructure } from "@shared/models/room-type";
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -13,6 +12,7 @@ const { Title } = Typography;
 interface RoomTypeFiltersProps {
   open: boolean;
   onClose: () => void;
+  // eslint-disable-next-line no-unused-vars
   onApplyFilters: (filters: Partial<RoomTypeListParamStructure>) => void;
   currentFilters: RoomTypeListParamStructure;
 }

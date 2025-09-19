@@ -5,12 +5,12 @@ import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 
-import { DATE_FORMAT_API } from "../../../shared/constants/app";
+import { DATE_FORMAT_API } from "@shared/constants/app";
 import { getHotels } from "../../hotels/services/hotelService";
-import { getRoomTypes } from "../../room-type/services/room-type.service";
+import { getRoomTypes } from "../../room-type/services/roomTypeService";
 
-import type { Hotel } from "../../../shared/models/hotels";
-import type { RoomType } from "../../../shared/models/room-type";
+import type { Hotel } from "@shared/models/hotels";
+import type { RoomType } from "@shared/models/room-type";
 
 interface BookingDetailsFormValues {
   hotelId: number | null;

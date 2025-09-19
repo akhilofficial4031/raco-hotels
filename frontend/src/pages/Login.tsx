@@ -6,7 +6,7 @@ import { Link } from "react-router";
 
 import { useAuth } from "../shared/contexts/AuthContext";
 import { type LoginRequest, type LoginResponse } from "../shared/models/login";
-import { mutationFetcher, type APIError } from "../utils/swrFetcher";
+import { mutationFetcher, type APIError } from "@utils/swrFetcher";
 
 const Login = () => {
   const {

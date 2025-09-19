@@ -8,7 +8,7 @@ import {
   type ForgotPasswordResponse,
   type ForgotPasswordRequest,
 } from "../shared/models/login";
-import { mutationFetcher } from "../utils/swrFetcher";
+import { mutationFetcher } from "@utils/swrFetcher";
 
 const ForgotPasswordPage = () => {
   const [apiError, setApiError] = useState<string | null>(null);

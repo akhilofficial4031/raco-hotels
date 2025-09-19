@@ -5,6 +5,8 @@ import {
   EyeOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 import {
   Button,
   Dropdown,
@@ -19,22 +21,21 @@ import { type ColumnsType } from "antd/es/table";
 import { useEffect, useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
 
+import TableHeader from "@shared/components/TableHeader";
+import { APP_LOCALE } from "@shared/constants/app";
+import {
+  type User,
+  type UserListParamStructure,
+  type UserListResponse,
+  type CreateUserPayload,
+} from "@shared/models/users";
+
 import {
   USER_STATUS_COLORS,
   USER_STATUS_LABELS,
   UserStatus,
 } from "../../../shared/types/user";
 import AddEditUser from "../features/users/AddEditUser";
-import TableHeader from "../shared/components/TableHeader";
-import {
-  type User,
-  type UserListParamStructure,
-  type UserListResponse,
-  type CreateUserPayload,
-} from "../shared/models/users";
-import { convertJsonToQueryParams } from "../shared/utils";
-import { fetcher, mutationFetcher } from "../utils/swrFetcher";
-import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 

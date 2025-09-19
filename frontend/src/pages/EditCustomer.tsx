@@ -21,7 +21,7 @@ import Spinner from "../shared/components/Spinner";
 import { type ApiResponse } from "../shared/models";
 import { type Customer } from "../shared/models/customer";
 import { updateCustomerById } from "../shared/services/customer.service";
-import { fetcher } from "../utils/swrFetcher";
+import { fetcher } from "@utils/swrFetcher";
 
 const { Title } = Typography;
 const { TextArea } = Input;

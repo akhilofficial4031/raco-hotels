@@ -22,7 +22,7 @@ import {
   type YearlyBookingsResponse,
 } from "../shared/services/dashboard.service";
 import { APP_LOCALE, LOCALE_DATE_OPTIONS_LONG } from "../shared/constants/app";
-import { fetcher } from "../utils/swrFetcher";
+import { fetcher } from "@utils/swrFetcher";
 
 const StatCard: React.FC<{
   title: string;

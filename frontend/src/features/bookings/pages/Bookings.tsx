@@ -29,9 +29,9 @@ import {
   type BookingListParamStructure,
   type BookingListResponse,
 } from "@shared/models/bookings";
-import { convertJsonToQueryParams } from "@shared/utils";
+import { convertJsonToQueryParams } from "@utils/queryParams";
 
-import { fetcher, mutationFetcher } from "../../../utils/swrFetcher";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 import BookingFilters from "../components/BookingFilters";
 
 const { confirm } = Modal;

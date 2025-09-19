@@ -14,7 +14,7 @@ import {
   type SetPasswordRequest,
   type SetPasswordResponse,
 } from "../shared/models/login";
-import { mutationFetcher } from "../utils/swrFetcher";
+import { mutationFetcher } from "@utils/swrFetcher";
 
 const SetPassword = () => {
   const { token } = useParams<{ token: string }>();

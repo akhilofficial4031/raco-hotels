@@ -28,9 +28,9 @@ import {
   type UpdateAddonConfigurationPayload,
   type AddonResponse,
 } from "@shared/models";
-import { convertJsonToQueryParams } from "@shared/utils";
+import { convertJsonToQueryParams } from "@utils/queryParams";
 
-import { fetcher, mutationFetcher } from "../utils/swrFetcher";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 
 const { confirm } = Modal;
 
