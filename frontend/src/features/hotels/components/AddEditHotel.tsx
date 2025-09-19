@@ -785,7 +785,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                   />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              {/* <Col span={8}>
                 <Form.Item
                   label="Timezone"
                   validateStatus={errors.timezone ? "error" : ""}
@@ -804,7 +804,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                     )}
                   />
                 </Form.Item>
-              </Col>
+              </Col> */}
               <Col span={8}>
                 <Form.Item
                   label="Google Maps URL"
