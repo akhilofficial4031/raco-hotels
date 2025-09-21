@@ -1,6 +1,6 @@
-import { type HotelListResponse } from "@shared/models";
+import { fetcher } from "@utils/swrFetcher";
 
-import { fetcher } from "../../../utils/swrFetcher";
+import { type HotelListResponse } from "../types/hotels";
 
 const HOTELS_API_ENDPOINT = "/hotels";
 

@@ -1,5 +1,6 @@
-import { type RoomTypeListResponse } from "../../../shared/models";
-import { fetcher } from "../../../utils/swrFetcher";
+import { fetcher } from "@utils/swrFetcher";
+
+import { type RoomTypeListResponse } from "../types/roomType";
 
 const ROOM_TYPES_API_ENDPOINT = "/room-types";
 

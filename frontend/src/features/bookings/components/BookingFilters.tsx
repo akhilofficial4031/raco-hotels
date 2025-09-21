@@ -13,9 +13,10 @@ import useSWR from "swr";
 
 import { DATE_FORMAT_API } from "@shared/constants/app";
 import { BOOKING_STATUS } from "@shared/constants/bookings";
-import { type BookingListParamStructure } from "@shared/models/bookings";
-import { type Hotel } from "@shared/models/hotels";
 import { fetcher } from "@utils/swrFetcher";
+import { type BookingListParamStructure } from "src/features/bookings/types/bookings";
+
+import { type Hotel } from "../../hotels/types/hotels";
 
 const { Option } = Select;
 const { Title } = Typography;

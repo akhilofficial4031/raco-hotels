@@ -4,12 +4,6 @@ import {
   ExclamationCircleOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
-import { convertJsonToQueryParams } from "@utils/queryParams";
-import {
-  fetcher,
-  mutationFetcher,
-  multipartMutationFetcher,
-} from "@utils/swrFetcher";
 import {
   Button,
   Dropdown,
@@ -25,16 +19,22 @@ import { useMemo, useState } from "react";
 import useSWR, { mutate } from "swr";
 
 import TableHeader from "@shared/components/TableHeader";
-import { type Hotel } from "@shared/models/hotels";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import {
+  fetcher,
+  mutationFetcher,
+  multipartMutationFetcher,
+} from "@utils/swrFetcher";
+
+import { type Hotel } from "../../hotels/types/hotels";
+import AddEditRoomType from "../components/AddEditRoomType";
+import RoomTypeFilters from "../components/RoomTypeFilters";
 import {
   type RoomTypeListParamStructure,
   type RoomTypeListResponse,
   type CreateRoomTypePayload,
   type RoomTypeWithRelations,
-} from "@shared/models/room-type";
-
-import AddEditRoomType from "../components/AddEditRoomType";
-import RoomTypeFilters from "../components/RoomTypeFilters";
+} from "../types/roomType";
 
 const { confirm } = Modal;
 const { Text } = Typography;

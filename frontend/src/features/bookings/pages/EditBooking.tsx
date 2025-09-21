@@ -7,16 +7,16 @@ import useSWR, { mutate } from "swr";
 import Spinner from "@shared/components/Spinner";
 import { DATE_FORMAT_API } from "@shared/constants/app";
 import { type ApiResponse } from "@shared/models";
-import { type Addon } from "@shared/models/addon";
-import { type Booking } from "@shared/models/bookings";
-import { type IRoom } from "@shared/models/rooms";
+import { fetcher } from "@utils/swrFetcher";
+import { type Booking } from "src/features/bookings/types/bookings";
 
-import { fetcher } from "../../../utils/swrFetcher";
+import { type Addon } from "../../addon/types/addon";
+import { type IRoom } from "../../rooms/types/rooms";
 import BookingDetailsForm from "../components/BookingDetailsForm";
 import CustomerInformationForm from "../components/CustomerInformationForm";
 import ReviewAndSubmit from "../components/ReviewAndSubmit";
 import RoomSelection from "../components/RoomSelection";
-import { updateBooking } from "../services/booking.service";
+import { updateBooking } from "../services/bookingService";
 import { type CustomerData } from "../types/schemas";
 
 const { Title } = Typography;

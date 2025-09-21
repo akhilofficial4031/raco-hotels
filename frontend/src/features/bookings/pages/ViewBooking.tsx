@@ -23,11 +23,12 @@ import {
 import { useNavigate, useParams } from "react-router";
 import useSWR, { mutate } from "swr";
 
-import Spinner from "../../../shared/components/Spinner";
-import { APP_LOCALE } from "../../../shared/constants/app";
-import { type ApiResponse } from "../../../shared/models";
-import { type Booking } from "../../../shared/models/bookings";
-import { fetcher, mutationFetcher } from "../../../utils/swrFetcher";
+import Spinner from "@shared/components/Spinner";
+import { APP_LOCALE } from "@shared/constants/app";
+import { type ApiResponse } from "@shared/models/common";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
+
+import { type Booking } from "../types/bookings";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;

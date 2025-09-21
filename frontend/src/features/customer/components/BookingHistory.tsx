@@ -19,11 +19,9 @@ import {
 import React from "react";
 import { useNavigate } from "react-router";
 
-import { type CustomerDetailsResponse } from "../../../shared/services/customer.service";
-import {
-  APP_LOCALE,
-  LOCALE_DATE_OPTIONS_SHORT,
-} from "../../../shared/constants/app";
+import { APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT } from "@shared/constants/app";
+
+import { type CustomerDetailsResponse } from "../services/customerService";
 
 type CustomerBooking = CustomerDetailsResponse["bookingHistory"]["past"][0];
 

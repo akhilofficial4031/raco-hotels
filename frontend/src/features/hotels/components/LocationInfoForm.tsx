@@ -2,7 +2,7 @@ import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Card, Divider, Form, Input } from "antd";
 import { Controller, useFieldArray, type Control } from "react-hook-form";
 
-import { type CreateHotelPayload } from "@shared/models/hotels";
+import { type CreateHotelPayload } from "../types/hotels";
 
 interface LocationInfoFormProps {
   control: Control<CreateHotelPayload>;

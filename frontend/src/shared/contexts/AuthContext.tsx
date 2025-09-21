@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router";
 
-import { type LoginUserResponse } from "../models/login";
+import { type LoginUserResponse } from "../../features/authentication/types/login";
 
 interface AuthContextType {
   user: LoginUserResponse | null;

@@ -18,23 +18,23 @@ import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 import { z } from "zod";
 
-import { type FeatureListResponse } from "@shared/models";
-import { type AmenityListResponse } from "@shared/models/amenity";
-import {
-  type Hotel,
-  type HotelImage,
-  type CreateHotelPayload,
-} from "@shared/models/hotels";
-
-import LocationInfoForm from "./LocationInfoForm";
 import {
   extractCoordinatesFromMapsUrl,
   generateGoogleMapsUrl,
   isValidGoogleMapsUrl,
   isShortenedGoogleMapsUrl,
   getMapsUrlErrorMessage,
-} from "../../../utils/maps";
-import { fetcher } from "../../../utils/swrFetcher";
+} from "@utils/maps";
+import { fetcher } from "@utils/swrFetcher";
+
+import LocationInfoForm from "./LocationInfoForm";
+import { type AmenityListResponse } from "../../amenities/types/amenity";
+import { type FeatureListResponse } from "../../feature/types/featuers";
+import {
+  type Hotel,
+  type HotelImage,
+  type CreateHotelPayload,
+} from "../types/hotels";
 
 import type { UploadFile, UploadProps } from "antd";
 

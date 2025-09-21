@@ -1,11 +1,12 @@
 /* eslint-disable no-unused-vars */
 import { zodResolver } from "@hookform/resolvers/zod";
-import { findCustomerByPhone } from "@shared/services/customer.service";
 import { Form, Input, Button, Row, Col, Space, message, Select } from "antd";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
-import { nationalities } from "../../../utils/nationalities";
+import { nationalities } from "@utils/nationalities";
+
+import { findCustomerByPhone } from "../../customer/services/customerService";
 import { type CustomerData, CustomerDataSchema } from "../types/schemas";
 
 const { TextArea } = Input;

@@ -25,14 +25,16 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import useSWR from "swr";
 import { z } from "zod";
 
-import { type Addon } from "@shared/models/addon";
-import { type Amenity } from "@shared/models/amenity";
-import { type Hotel } from "@shared/models/hotels";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
+
+import { type Addon } from "../../addon/types/addon";
+import { type Amenity } from "../../amenities/types/amenity";
+import { type Hotel } from "../../hotels/types/hotels";
 import {
   type RoomTypeWithRelations,
   type CreateRoomTypePayload,
   type RoomTypeFormData,
-} from "@shared/models/room-type";
+} from "../types/roomType";
 
 // Simplified interface for image display state
 interface ImageDisplayData {
@@ -41,7 +43,6 @@ interface ImageDisplayData {
   alt: string;
   sortOrder: number;
 }
-import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 
 import type { UploadFile, UploadProps } from "antd";
 

@@ -1,10 +1,11 @@
-import { fetcher } from "@utils/swrFetcher";
 import { Button, Drawer, Form, Select, Space, Typography } from "antd";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 
-import { type Hotel } from "@shared/models/hotels";
-import { type RoomTypeListParamStructure } from "@shared/models/room-type";
+import { fetcher } from "@utils/swrFetcher";
+
+import { type Hotel } from "../../hotels/types/hotels";
+import { type RoomTypeListParamStructure } from "../types/roomType";
 
 const { Option } = Select;
 const { Title } = Typography;
