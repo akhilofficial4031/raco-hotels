@@ -7,7 +7,19 @@ const LocationInfoImageSchema = z
   .object({
     url: z
       .string()
-      .url()
+      .refine((val) => {
+        // Allow placeholder URLs for image processing
+        if (val.startsWith("LOCATION_INFO_IMAGE_")) {
+          return true;
+        }
+        // Allow valid URLs
+        try {
+          new URL(val);
+          return true;
+        } catch {
+          return false;
+        }
+      }, "Must be a valid URL or placeholder for image processing")
       .openapi({ example: "https://cdn.example.com/img.jpg" }),
     alt: z
       .string()

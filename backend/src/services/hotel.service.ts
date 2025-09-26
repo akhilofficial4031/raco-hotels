@@ -213,14 +213,45 @@ export class HotelService {
     hotelData: z.infer<typeof CreateHotelRequestSchema>,
     imageFiles: File[],
     publicBaseUrl: string,
+    locationInfoImageFiles?: File[],
   ): Promise<{ hotel: DatabaseHotel; images: DatabaseHotelImage[] }> {
     // Validate that at least one image is provided
     if (!imageFiles || imageFiles.length === 0) {
       throw new Error("At least one image is required when creating a hotel");
     }
 
+    // Process location info images if provided
+    let processedHotelData = hotelData;
+    if (locationInfoImageFiles && locationInfoImageFiles.length > 0) {
+      processedHotelData = await this.processLocationInfoImages(
+        r2Bucket,
+        hotelData,
+        locationInfoImageFiles,
+        publicBaseUrl,
+        0, // temporary hotel ID, will be updated after hotel creation
+      );
+    }
+
     // First create the hotel (this now handles amenities and features)
-    const hotel = await this.createHotel(db, hotelData);
+    const hotel = await this.createHotel(db, processedHotelData);
+
+    // Update location info with actual hotel ID if there were processed images
+    if (locationInfoImageFiles && locationInfoImageFiles.length > 0) {
+      // Re-process with the actual hotel ID for correct R2 paths
+      const finalHotelData = await this.processLocationInfoImages(
+        r2Bucket,
+        hotelData,
+        locationInfoImageFiles,
+        publicBaseUrl,
+        hotel.id,
+      );
+      // Update the hotel with the corrected location info
+      if (finalHotelData.locationInfo) {
+        await HotelRepository.update(db, hotel.id, {
+          locationInfo: finalHotelData.locationInfo,
+        });
+      }
+    }
 
     // Then upload and create images
     const images: DatabaseHotelImage[] = [];
@@ -265,6 +296,7 @@ export class HotelService {
     imageFiles?: File[],
     replaceImages: boolean = false,
     publicBaseUrl?: string,
+    locationInfoImageFiles?: File[],
   ): Promise<{ hotel: DatabaseHotel; images: DatabaseHotelImage[] }> {
     // Get current images for validation
     const currentImages = await HotelRepository.findImagesByHotelId(db, id);
@@ -289,8 +321,20 @@ export class HotelService {
       }
     }
 
+    // Process location info images if provided
+    let processedHotelData = hotelData;
+    if (locationInfoImageFiles && locationInfoImageFiles.length > 0) {
+      processedHotelData = await this.processLocationInfoImages(
+        r2Bucket,
+        hotelData,
+        locationInfoImageFiles,
+        publicBaseUrl || "",
+        id,
+      );
+    }
+
     // Update hotel data (this now handles amenities and features)
-    const hotel = await this.updateHotel(db, id, hotelData);
+    const hotel = await this.updateHotel(db, id, processedHotelData);
 
     // Get current images
     let images = await HotelRepository.findImagesByHotelId(db, id);
@@ -487,5 +531,85 @@ export class HotelService {
       console.error("Failed to extract R2 key from URL:", url, error);
       return null;
     }
+  }
+
+  /**
+   * Process location info images by uploading them to R2 and replacing placeholder URLs
+   */
+  private static async processLocationInfoImages(
+    r2Bucket: R2Bucket,
+    hotelData: any,
+    locationInfoImageFiles: File[],
+    publicBaseUrl: string,
+    hotelId: number,
+  ): Promise<any> {
+    if (!hotelData.locationInfo || !locationInfoImageFiles.length) {
+      return hotelData;
+    }
+
+    // Create a copy of the hotel data to modify
+    const processedData = { ...hotelData };
+
+    // Process each location info section
+    processedData.locationInfo = await Promise.all(
+      hotelData.locationInfo.map(async (locationInfo: any) => {
+        // Process images in this location info section
+        const processedImages = await Promise.all(
+          (locationInfo.images || []).map(async (image: any) => {
+            // Check if this is a placeholder URL that needs to be replaced
+            if (image.url.startsWith("LOCATION_INFO_IMAGE_")) {
+              // Extract the index from the placeholder URL
+              const placeholderIndex = parseInt(
+                image.url.replace("LOCATION_INFO_IMAGE_", ""),
+                10,
+              );
+
+              // Get the corresponding file
+              const file = locationInfoImageFiles[placeholderIndex];
+              if (!file) {
+                console.warn(
+                  `Location info image file not found for placeholder: ${image.url}`,
+                );
+                return image;
+              }
+
+              try {
+                // Upload to R2 with location-info entity type
+                const uploadResult = await R2Service.uploadImage(
+                  r2Bucket,
+                  file,
+                  hotelId,
+                  publicBaseUrl,
+                  "location-info",
+                );
+
+                // Return updated image with actual URL
+                return {
+                  url: uploadResult.url,
+                  alt: image.alt,
+                };
+              } catch (error) {
+                console.error(
+                  `Failed to upload location info image ${file.name}:`,
+                  error,
+                );
+                // Keep the original placeholder if upload fails
+                return image;
+              }
+            }
+
+            // Return existing image as-is (for edit mode with existing images)
+            return image;
+          }),
+        );
+
+        return {
+          ...locationInfo,
+          images: processedImages,
+        };
+      }),
+    );
+
+    return processedData;
   }
 }

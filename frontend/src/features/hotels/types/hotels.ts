@@ -8,12 +8,30 @@ export interface LocationInfoImage {
   alt: string;
 }
 
+// Form-specific interfaces for handling file uploads
+export interface LocationInfoImageForm {
+  file?: File;
+  alt: string;
+  // For edit mode - existing images
+  id?: number;
+  url?: string;
+}
+
 export interface LocationInfo {
   heading: string;
   subHeading: string;
   bulletPoints: string[];
   description: string;
   images: LocationInfoImage[];
+}
+
+// Form-specific interface for handling file uploads
+export interface LocationInfoForm {
+  heading: string;
+  subHeading: string;
+  bulletPoints: string[];
+  description: string;
+  images: LocationInfoImageForm[];
 }
 
 export interface HotelImage {
@@ -79,7 +97,7 @@ export interface HotelDetailsResponse {
 
 export interface CreateHotelPayload {
   name: string;
-  slug: string;
+  slug?: string;
   description?: string;
   email?: string;
   phone?: string;
@@ -97,6 +115,32 @@ export interface CreateHotelPayload {
   checkInTime?: string;
   checkOutTime?: string;
   locationInfo?: LocationInfo[];
+  amenities?: number[];
+  features?: number[];
+  isActive?: number;
+}
+
+// Form-specific payload that uses file uploads for location info images
+export interface CreateHotelFormPayload {
+  name: string;
+  slug?: string;
+  description?: string;
+  email?: string;
+  phone?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  countryCode?: string;
+  googleMapsUrl?: string;
+  latitude?: number;
+  longitude?: number;
+  timezone?: string;
+  starRating?: number;
+  checkInTime?: string;
+  checkOutTime?: string;
+  locationInfo?: LocationInfoForm[];
   amenities?: number[];
   features?: number[];
   isActive?: number;

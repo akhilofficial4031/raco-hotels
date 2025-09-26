@@ -135,24 +135,50 @@ const Hotels = () => {
     data: CreateHotelPayload,
     images?: File[],
     replaceImages?: boolean,
+    locationInfoImages?: File[],
   ) => {
     setIsSaving(true);
+
+    // Debug: Log what we're receiving
+    console.log("handleFormSubmit received:", {
+      data,
+      imagesCount: images?.length || 0,
+      locationInfoImagesCount: locationInfoImages?.length || 0,
+      replaceImages,
+    });
+
     try {
-      // If images are provided, use multipart form data
-      if (images && images.length > 0) {
+      // If images or location info images are provided, use multipart form data
+      if (
+        (images && images.length > 0) ||
+        (locationInfoImages && locationInfoImages.length > 0)
+      ) {
         const formData = new FormData();
+
+        // Debug: Log the JSON data being appended
+        console.log("JSON data being sent:", JSON.stringify(data, null, 2));
         formData.append("hotelData", JSON.stringify(data));
 
-        // Add images
-        images.forEach((image) => {
-          formData.append("images", image);
-        });
+        // Add images if provided
+        if (images && images.length > 0) {
+          images.forEach((image) => {
+            formData.append("images", image);
+          });
+        }
+
+        // Add location info images if provided
+        if (locationInfoImages && locationInfoImages.length > 0) {
+          locationInfoImages.forEach((image) => {
+            formData.append("locationInfoImages", image);
+          });
+        }
 
         // Add replaceImages flag for edit mode
         if (isEditMode && replaceImages !== undefined) {
           formData.append("replaceImages", replaceImages.toString());
         }
 
+        console.log("Using multipart form data");
         if (isEditMode && currentHotel) {
           await multipartMutationFetcher(`/hotels/${currentHotel.id}`, {
             arg: { method: "PUT", formData },
@@ -166,6 +192,7 @@ const Hotels = () => {
         }
       } else {
         // No images, use regular JSON request
+        console.log("Using JSON request (no images)");
         if (isEditMode && currentHotel) {
           await mutationFetcher(`/hotels/${currentHotel.id}`, {
             arg: { method: "PUT", body: data },

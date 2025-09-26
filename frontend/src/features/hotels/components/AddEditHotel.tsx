@@ -34,6 +34,7 @@ import {
   type Hotel,
   type HotelImage,
   type CreateHotelPayload,
+  type CreateHotelFormPayload,
 } from "../types/hotels";
 
 import type { UploadFile, UploadProps } from "antd";
@@ -44,10 +45,17 @@ const { TextArea } = Input;
 // Remove local interface - using the one from models
 
 // Location info validation schema
-const locationInfoImageSchema = z.object({
-  url: z.string().url("Invalid URL"),
-  alt: z.string().min(1, "Alt text is required"),
-});
+const locationInfoImageSchema = z
+  .object({
+    file: z.instanceof(File).optional(),
+    alt: z.string().min(1, "Alt text is required"),
+    // For edit mode - existing images
+    id: z.number().optional(),
+    url: z.string().optional(),
+  })
+  .refine((data) => data.file || data.url, {
+    message: "Either a file upload or existing URL is required",
+  });
 
 const locationInfoSchema = z.object({
   heading: z.string().min(1, "Heading is required"),
@@ -60,7 +68,6 @@ const locationInfoSchema = z.object({
 // Main hotel schema
 const hotelSchema = z.object({
   name: z.string().min(1, "Hotel name is required"),
-  slug: z.string().min(1, "Slug is required"),
   description: z.string().optional(),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   phone: z.string().optional(),
@@ -89,6 +96,7 @@ interface AddEditHotelProps {
     hotelData: CreateHotelPayload,
     images?: File[],
     replaceImages?: boolean,
+    locationInfoImages?: File[],
   ) => void;
   onCancel: () => void;
   isSaving: boolean;
@@ -139,12 +147,11 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
     reset,
     setValue,
     formState: { errors },
-  } = useForm({
+  } = useForm<CreateHotelFormPayload>({
     resolver: zodResolver(hotelSchema),
     mode: "onBlur",
     defaultValues: {
       name: "",
-      slug: "",
       description: "",
       email: "",
       phone: "",
@@ -213,7 +220,6 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
 
       const resetData = {
         name: hotel.name || "",
-        slug: hotel.slug || "",
         description: hotel.description || "",
         email: hotel.email || "",
         phone: hotel.phone || "",
@@ -230,7 +236,14 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
         starRating: hotel.starRating ?? undefined,
         checkInTime: hotel.checkInTime || "",
         checkOutTime: hotel.checkOutTime || "",
-        locationInfo: hotel.locationInfo || [],
+        locationInfo:
+          hotel.locationInfo?.map((locationInfo) => ({
+            ...locationInfo,
+            images: locationInfo.images.map((image) => ({
+              alt: image.alt,
+              url: image.url,
+            })),
+          })) || [],
         amenities: amenityIds,
         features: featureIds,
         isActive: hotel.isActive ?? 1,
@@ -249,7 +262,6 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
 
       reset({
         name: "",
-        slug: "",
         description: "",
         email: "",
         phone: "",
@@ -307,15 +319,10 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
     return true;
   };
 
-  const handleFormSubmit = (formData: CreateHotelPayload) => {
+  const handleFormSubmit = (formData: CreateHotelFormPayload) => {
     // Validate required fields before proceeding
     if (!formData.name || formData.name.trim() === "") {
       message.error("Hotel name is required");
-      return;
-    }
-
-    if (!formData.slug || formData.slug.trim() === "") {
-      message.error("Hotel slug is required");
       return;
     }
 
@@ -354,10 +361,44 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
       }
     }
 
+    // Extract location info images for separate upload
+    const locationInfoImageFiles: File[] = [];
+    const cleanedLocationInfo = formData.locationInfo?.map((locationInfo) => {
+      const cleanedImages = locationInfo.images.map((imageForm) => {
+        // If it's a file upload, add to separate array and return placeholder
+        if (imageForm.file) {
+          locationInfoImageFiles.push(imageForm.file);
+          return {
+            url: `LOCATION_INFO_IMAGE_${locationInfoImageFiles.length - 1}`, // Placeholder
+            alt: imageForm.alt,
+          };
+        }
+        // If it's an existing image, keep the URL
+        if (imageForm.url) {
+          return {
+            url: imageForm.url,
+            alt: imageForm.alt,
+          };
+        }
+        // Fallback (shouldn't happen due to validation)
+        return {
+          url: "",
+          alt: imageForm.alt,
+        };
+      });
+
+      return {
+        heading: locationInfo.heading,
+        subHeading: locationInfo.subHeading,
+        bulletPoints: locationInfo.bulletPoints,
+        description: locationInfo.description,
+        images: cleanedImages,
+      };
+    });
+
     const cleanedData: CreateHotelPayload = {
       // Required fields - ensure they're never undefined or empty
       name: formData.name.trim(),
-      slug: formData.slug.trim(),
       // Clean optional fields - convert empty strings to undefined
       email:
         formData.email && formData.email.trim()
@@ -413,33 +454,29 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
       longitude:
         extractedCoordinates?.longitude || formData.longitude || undefined,
       starRating: formData.starRating || undefined,
-      locationInfo: formData.locationInfo?.length
-        ? formData.locationInfo
+      locationInfo: cleanedLocationInfo?.length
+        ? cleanedLocationInfo
         : undefined,
       amenities: formData.amenities?.length ? formData.amenities : undefined,
       features: formData.features?.length ? formData.features : undefined,
       isActive: formData.isActive ?? 1,
     };
 
+    // Debug: Log the data being submitted
+    console.log("Form submission data:", {
+      cleanedData,
+      uploadedImages: uploadedImages.length,
+      replaceImages: isEditMode ? replaceImages : undefined,
+      locationInfoImageFiles: locationInfoImageFiles.length,
+    });
+
     // Pass image data to parent
     onSubmit(
       cleanedData,
       uploadedImages,
       isEditMode ? replaceImages : undefined,
+      locationInfoImageFiles.length > 0 ? locationInfoImageFiles : undefined,
     );
-  };
-
-  const generateSlug = (name: string) => {
-    if (!name || typeof name !== "string") {
-      return "";
-    }
-    return name
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9 -]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-+|-+$/g, ""); // Remove leading/trailing dashes
   };
 
   // Image upload handlers
@@ -519,7 +556,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
             className="shadow-sm border-gray-200"
           >
             <Row gutter={[24, 16]}>
-              <Col span={12}>
+              <Col span={24}>
                 <Form.Item
                   label="Hotel Name"
                   required
@@ -534,33 +571,6 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                         size="large"
                         {...field}
                         value={field.value || ""}
-                        onChange={(e) => {
-                          const value = e.target.value || "";
-                          field.onChange(value);
-                          // Generate slug without triggering validation to prevent errors
-                          const newSlug = generateSlug(value);
-                          setValue("slug", newSlug, { shouldValidate: false });
-                        }}
-                      />
-                    )}
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="Slug"
-                  required
-                  validateStatus={errors.slug ? "error" : ""}
-                  help={errors.slug?.message}
-                >
-                  <Controller
-                    name="slug"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        value={field.value || ""}
-                        size="large"
                       />
                     )}
                   />
@@ -965,7 +975,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
             }
             className="shadow-sm border-gray-200"
           >
-            <LocationInfoForm control={control as any} errors={errors as any} />
+            <LocationInfoForm control={control} errors={errors} />
           </Card>
 
           {/* Amenities & Features */}
