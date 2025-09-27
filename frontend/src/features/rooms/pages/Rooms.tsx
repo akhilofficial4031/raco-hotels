@@ -72,6 +72,20 @@ function Rooms() {
   // Fetch hotels for the selector
   const { data: hotelsData } = useSWR("/hotels", () => getHotels("limit=-1"));
 
+  // Set first hotel as default when hotels are loaded and no hotel is selected
+  useEffect(() => {
+    if (
+      hotelsData?.data?.hotels?.length &&
+      hotelsData.data.hotels.length > 0 &&
+      !selectedHotelId &&
+      !queryParams.get("hotelId")
+    ) {
+      const firstHotel = hotelsData.data.hotels[0];
+      setSelectedHotelId(firstHotel.id);
+      setQueryParams({ hotelId: String(firstHotel.id) });
+    }
+  }, [hotelsData, selectedHotelId]);
+
   // Fetch rooms for the selected hotel
   const { data: roomsData, isLoading } = useSWR(
     selectedHotelId ? `/rooms?hotelId=${selectedHotelId}` : null,
