@@ -55,6 +55,10 @@ const EditCustomer = lazy(
 const Reviews = lazy(() => import("./features/reviews/pages/Reviews"));
 const Payment = lazy(() => import("./features/payments/pages/Payment"));
 const PromoCode = lazy(() => import("./features/promo-code/pages/PromoCode"));
+
+// Content Management System
+const CmsPage = lazy(() => import("./features/cms/pages/cms-page"));
+
 // Helper function to wrap lazy components with Suspense
 const withSuspense = (Component: React.ComponentType) => {
   return function SuspenseWrapper(props: any) {
@@ -358,6 +362,31 @@ const router = createBrowserRouter([
                 href: "/promo-codes",
               }),
             },
+          },
+          {
+            path: "cms",
+            handle: {
+              crumb: () => ({
+                label: "Content Management",
+                href: "/cms",
+              }),
+            },
+            children: [
+              {
+                index: true,
+                element: <Navigate to="/cms/homepage" replace />,
+              },
+              {
+                path: "homepage",
+                Component: withSuspense(CmsPage),
+                handle: {
+                  crumb: () => ({
+                    label: "Homepage Content",
+                    href: "/cms/homepage",
+                  }),
+                },
+              },
+            ],
           },
           {
             path: "*",

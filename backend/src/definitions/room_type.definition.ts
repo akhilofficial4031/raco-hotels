@@ -38,7 +38,8 @@ export const RoomTypeRouteDefinitions = {
     method: "post",
     path: "/room-types",
     summary: "Create room type",
-    description: "Create a new room type with optional amenities and images. Slug is auto-generated from the room type name within the hotel scope.",
+    description:
+      "Create a new room type with optional amenities and images. Slug is auto-generated from the room type name within the hotel scope.",
     tags: [ApiTags.ROOMS],
     successSchema: RoomTypeResponseSchema,
     successDescription: "Room type created successfully",

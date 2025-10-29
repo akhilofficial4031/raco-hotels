@@ -9,6 +9,7 @@ import {
   TagOutlined,
   UserOutlined,
   WalletOutlined,
+  AuditOutlined,
 } from "@ant-design/icons";
 
 export const SIDEBAR_ITEMS = [
@@ -83,6 +84,11 @@ export const SIDEBAR_ITEMS = [
         label: "Promo Codes",
         icon: <TagOutlined />,
         path: "/promo-codes",
+      },
+      {
+        label: "Cms",
+        icon: <AuditOutlined />,
+        path: "/cms",
       },
     ],
   },

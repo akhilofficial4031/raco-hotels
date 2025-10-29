@@ -22,6 +22,20 @@
       "when": 1756723875271,
       "tag": "0002_solid_lester",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1761321983983,
+      "tag": "0003_bizarre_stardust",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1761322249761,
+      "tag": "0004_dashing_wolverine",
+      "breakpoints": true
     }
   ]
 }

@@ -32,3 +32,23 @@ export const contentBlock = sqliteTable(
     contentHotelIdx: index("idx_content_hotel").on(t.hotelId),
   }),
 );
+
+// Homepage content storage - stores complete homepage JSON structure
+export const homepageContent = sqliteTable(
+  "homepage_content",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    content: text("content").notNull(), // JSON string of entire homepage structure
+    version: integer("version").notNull().default(1),
+    isPublished: integer("is_published").notNull().default(1),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => ({
+    homepagePublishedIdx: index("idx_homepage_published").on(t.isPublished),
+  }),
+);

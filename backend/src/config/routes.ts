@@ -37,6 +37,10 @@ export const PUBLIC_ROUTES = [
   // Booking routes - temporarily public for testing
   "POST:/bookings",
 
+  // Content routes - public read access
+  "GET:/content/homepage",
+  "GET:/public/homepage",
+
   // Add other public routes here as needed
   // "/public-endpoint",
   // "GET:/some-route",

@@ -1,4 +1,4 @@
-import { and, count, desc, eq, like, or } from "drizzle-orm";
+import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
 
 import {
   hotel as hotelTable,
@@ -162,5 +162,48 @@ export class ReviewRepository {
       .where(eq(reviewTable.id, id))
       .returning();
     return rows.length > 0;
+  }
+
+  /**
+   * Fetch approved reviews for public display
+   * Used by the public homepage API to show testimonials
+   * Only returns reviews with status "Approved"
+   */
+  static async findPublishedReviews(
+    db: D1Database,
+    limit: number = 10,
+  ): Promise<
+    Array<{
+      id: number;
+      rating: number;
+      title: string | null;
+      body: string | null;
+      userName: string | null;
+      publishedAt: string | null;
+    }>
+  > {
+    const database = getDb(db);
+
+    const rows = await database
+      .select({
+        id: reviewTable.id,
+        rating: reviewTable.rating,
+        title: reviewTable.title,
+        body: reviewTable.body,
+        userName: userTable.fullName,
+        publishedAt: reviewTable.publishedAt,
+      })
+      .from(reviewTable)
+      .leftJoin(userTable, eq(reviewTable.userId, userTable.id))
+      .where(
+        or(
+          eq(reviewTable.status, "Approved"),
+          eq(reviewTable.status, "approved"),
+        ),
+      )
+      .orderBy(desc(reviewTable.createdAt))
+      .limit(limit);
+
+    return rows as any;
   }
 }

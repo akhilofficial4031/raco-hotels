@@ -52,4 +52,24 @@ contentRoutes.openapi(
   ),
 );
 
+// Homepage Content Routes
+contentRoutes.openapi(
+  ContentRouteDefinitions.getHomepageContent,
+  smartPermissionHandler(PERMISSIONS.CONTENT_READ, (c) =>
+    ContentController.getHomepageContent(c as AppContext),
+  ),
+);
+
+contentRoutes.openapi(
+  ContentRouteDefinitions.saveHomepageContent,
+  smartPermissionHandler(PERMISSIONS.CONTENT_UPDATE, (c) =>
+    ContentController.saveHomepageContent(c as AppContext),
+  ),
+);
+
+// Public API - Authentication handled by PUBLIC_ROUTES configuration
+contentRoutes.openapi(ContentRouteDefinitions.getPublicHomepageContent, (c) =>
+  ContentController.getPublicHomepageContent(c as AppContext),
+);
+
 export default contentRoutes;

@@ -6,6 +6,10 @@ import {
   ContentBlockResponseSchema,
   CreateContentBlockRequestSchema,
   UpdateContentBlockRequestSchema,
+  HomepageContentQueryParamsSchema,
+  HomepageContentResponseSchema,
+  SaveHomepageContentRequestSchema,
+  PublicHomepageContentResponseSchema,
 } from "../schemas";
 
 export const ContentRouteDefinitions = {
@@ -64,6 +68,45 @@ export const ContentRouteDefinitions = {
     successSchema: ContentBlockResponseSchema,
     successDescription: "Content block deleted successfully",
     paramsSchema: ContentBlockPathParamsSchema,
+    includeNotFound: true,
+  }),
+
+  // Homepage Content Routes
+  getHomepageContent: createRoute({
+    method: "get",
+    path: "/content/homepage",
+    summary: "Get homepage content",
+    description:
+      "Retrieve complete homepage content structure with all sections",
+    tags: [ApiTags.CONTENT],
+    successSchema: HomepageContentResponseSchema,
+    successDescription: "Homepage content retrieved successfully",
+    includeNotFound: true,
+  }),
+
+  saveHomepageContent: createRoute({
+    method: "put",
+    path: "/content/homepage",
+    summary: "Save homepage content",
+    description:
+      "Save or update complete homepage content. Images will be automatically uploaded to R2 storage.",
+    tags: [ApiTags.CONTENT],
+    successSchema: HomepageContentResponseSchema,
+    successDescription: "Homepage content saved successfully",
+    requestSchema: SaveHomepageContentRequestSchema,
+    includeBadRequest: true,
+  }),
+
+  // Public API - No authentication required
+  getPublicHomepageContent: createRoute({
+    method: "get",
+    path: "/public/homepage",
+    summary: "Get public homepage content",
+    description:
+      "Retrieve complete homepage content with testimonials for public website. No authentication required.",
+    tags: [ApiTags.CONTENT],
+    successSchema: PublicHomepageContentResponseSchema,
+    successDescription: "Public homepage content retrieved successfully",
     includeNotFound: true,
   }),
 };

@@ -75,3 +75,161 @@ export const ContentBlocksListResponseSchema = z
     }),
   })
   .openapi("ContentBlocksListResponse");
+
+// Homepage Content Schemas
+const ButtonConfigSchema = z.object({
+  text: z.string(),
+  type: z.enum(["primary", "secondary"]).optional(),
+});
+
+const ImageConfigSchema = z.object({
+  src: z.string(),
+  alt: z.string(),
+});
+
+const BadgeConfigSchema = z.object({
+  src: z.string(),
+  alt: z.string(),
+});
+
+export const HomePageContentSchema = z
+  .object({
+    topBanner: z.object({
+      isVisible: z.boolean(),
+      text: z.string(),
+      linkText: z.string(),
+      linkUrl: z.string(),
+    }),
+    hero: z
+      .object({
+        tagline: z.string(),
+        title: z.object({
+          highlight: z.string(),
+          subtitle: z.string(),
+        }),
+        description: z.string(),
+        primaryButton: ButtonConfigSchema,
+        image: ImageConfigSchema,
+      })
+      .optional(),
+    aboutUs: z
+      .object({
+        sectionTag: z.string(),
+        title: z.string(),
+        description: z.string(),
+        badge: BadgeConfigSchema,
+        primaryButton: ButtonConfigSchema,
+        image: ImageConfigSchema,
+      })
+      .optional(),
+    ourStays: z
+      .object({
+        sectionTag: z.string(),
+        title: z.string(),
+        description: z.string(),
+      })
+      .optional(),
+    featuredStays: z
+      .object({
+        title: z.string(),
+        description: z.string(),
+        primaryButton: ButtonConfigSchema,
+      })
+      .optional(),
+    signatureExperiences: z
+      .object({
+        sectionTag: z.string(),
+        title: z.string(),
+        description: z.string(),
+        club: z.object({
+          name: z.string(),
+          tagline: z.string(),
+          title: z.string(),
+          description: z.string(),
+          buttons: z.array(ButtonConfigSchema),
+        }),
+        images: z.array(ImageConfigSchema),
+        badge: BadgeConfigSchema,
+      })
+      .optional(),
+    gravityBar: z
+      .object({
+        sectionTag: z.string(),
+        title: z.string(),
+        description: z.string(),
+        name: z.string(),
+        image: ImageConfigSchema,
+        buttons: z.array(ButtonConfigSchema),
+        badge: BadgeConfigSchema,
+      })
+      .optional(),
+    restaurant: z
+      .object({
+        name: z.string(),
+        sectionTag: z.string(),
+        title: z.string(),
+        description: z.string(),
+        buttons: z.array(ButtonConfigSchema),
+        images: z.array(ImageConfigSchema),
+        badge: BadgeConfigSchema,
+      })
+      .optional(),
+    gallery: z
+      .object({
+        sectionTag: z.string(),
+        title: z.string(),
+        images: z.array(ImageConfigSchema),
+        buttons: z.array(ButtonConfigSchema),
+      })
+      .optional(),
+    seo: z
+      .object({
+        title: z.string(),
+        description: z.string(),
+        keywords: z.string(),
+      })
+      .optional(),
+  })
+  .openapi("HomePageContent");
+
+// No query params needed for homepage content
+export const HomepageContentQueryParamsSchema = z
+  .object({})
+  .openapi("HomepageContentQueryParams");
+
+export const HomepageContentResponseSchema = z
+  .object({
+    success: z.boolean(),
+    data: HomePageContentSchema,
+    message: z.string().optional(),
+  })
+  .openapi("HomepageContentResponse");
+
+export const SaveHomepageContentRequestSchema = HomePageContentSchema.openapi(
+  "SaveHomepageContentRequest",
+);
+
+// Public Homepage Content with Testimonials
+const TestimonialItemSchema = z.object({
+  name: z.string(),
+  location: z.string(),
+  avatar: z.string(),
+  testimonial: z.string(),
+  rating: z.number().int().min(1).max(5).optional(),
+});
+
+export const PublicHomePageContentSchema = HomePageContentSchema.extend({
+  testimonials: z.object({
+    sectionTag: z.string(),
+    title: z.string(),
+    items: z.array(TestimonialItemSchema),
+  }),
+}).openapi("PublicHomePageContent");
+
+export const PublicHomepageContentResponseSchema = z
+  .object({
+    success: z.boolean(),
+    data: PublicHomePageContentSchema,
+    message: z.string().optional(),
+  })
+  .openapi("PublicHomepageContentResponse");

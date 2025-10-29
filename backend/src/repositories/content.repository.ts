@@ -1,6 +1,9 @@
 import { and, desc, eq } from "drizzle-orm";
 
-import { contentBlock as contentBlockTable } from "../../drizzle/schema";
+import {
+  contentBlock as contentBlockTable,
+  homepageContent as homepageContentTable,
+} from "../../drizzle/schema";
 import { getDb } from "../db";
 
 import type {
@@ -9,6 +12,10 @@ import type {
   UpdateContentBlockData,
   ContentBlockFilters,
 } from "../types";
+import type {
+  HomepageContentRecord,
+  HomePageContent,
+} from "../types/content.types";
 
 export class ContentRepository {
   static async findAll(
@@ -98,6 +105,73 @@ export class ContentRepository {
     const rows = await database
       .delete(contentBlockTable)
       .where(eq(contentBlockTable.id, id))
+      .returning();
+    return rows.length > 0;
+  }
+
+  // Homepage Content Methods
+  static async getHomepageContent(
+    db: D1Database,
+  ): Promise<HomepageContentRecord | null> {
+    const database = getDb(db);
+
+    const rows = await database
+      .select()
+      .from(homepageContentTable)
+      .where(eq(homepageContentTable.isPublished, 1))
+      .orderBy(desc(homepageContentTable.updatedAt))
+      .limit(1);
+
+    return (rows[0] as any) || null;
+  }
+
+  static async saveHomepageContent(
+    db: D1Database,
+    content: HomePageContent,
+  ): Promise<HomepageContentRecord> {
+    const database = getDb(db);
+    const nowIso = new Date().toISOString();
+    const contentString = JSON.stringify(content);
+
+    // Check if content exists
+    const existing = await this.getHomepageContent(db);
+
+    if (existing) {
+      // Update existing
+      const [updated] = await database
+        .update(homepageContentTable)
+        .set({
+          content: contentString,
+          version: existing.version + 1,
+          updatedAt: nowIso,
+        } as any)
+        .where(eq(homepageContentTable.id, existing.id))
+        .returning();
+      return updated as any;
+    } else {
+      // Create new
+      const [created] = await database
+        .insert(homepageContentTable)
+        .values({
+          content: contentString,
+          version: 1,
+          isPublished: 1,
+          createdAt: nowIso,
+          updatedAt: nowIso,
+        } as any)
+        .returning();
+      return created as any;
+    }
+  }
+
+  static async deleteHomepageContent(
+    db: D1Database,
+    id: number,
+  ): Promise<boolean> {
+    const database = getDb(db);
+    const rows = await database
+      .delete(homepageContentTable)
+      .where(eq(homepageContentTable.id, id))
       .returning();
     return rows.length > 0;
   }
