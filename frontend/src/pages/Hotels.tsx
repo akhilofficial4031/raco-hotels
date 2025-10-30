@@ -21,6 +21,7 @@ import useSWR, { mutate } from "swr";
 
 import AddEditHotel from "../features/hotels/components/AddEditHotel";
 import TableHeader from "../shared/components/TableHeader";
+import { APP_LOCALE } from "../shared/constants/app";
 import {
   type Hotel,
   type HotelListParamStructure,
@@ -34,7 +35,6 @@ import {
   mutationFetcher,
   multipartMutationFetcher,
 } from "../utils/swrFetcher";
-import { APP_LOCALE } from "../shared/constants/app";
 
 const { confirm } = Modal;
 const { Text } = Typography;
