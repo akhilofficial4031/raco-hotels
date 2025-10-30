@@ -89,12 +89,19 @@ export class HotelController {
 
           // Extract image files
           const imageFiles: File[] = [];
+          const locationInfoImageFiles: File[] = [];
           for (const [key, value] of formData.entries()) {
             if (
               (key.startsWith("images[") || key === "images") &&
               value instanceof File
             ) {
               imageFiles.push(value);
+            } else if (
+              (key.startsWith("locationInfoImages[") ||
+                key === "locationInfoImages") &&
+              value instanceof File
+            ) {
+              locationInfoImageFiles.push(value);
             }
           }
 
@@ -108,6 +115,7 @@ export class HotelController {
               validatedData,
               imageFiles,
               c.env.R2_PUBLIC_BASE_URL || "",
+              locationInfoImageFiles,
             );
 
             return HotelResponse.hotelWithImagesCreated(
@@ -122,23 +130,11 @@ export class HotelController {
             throw e;
           }
         } else {
-          // Handle JSON payload (hotel only)
-          const payload = await c.req.json();
-          try {
-            // Validate the JSON payload
-            const validatedData = CreateHotelRequestSchema.parse(payload);
-            const created = await HotelService.createHotel(
-              c.env.DB,
-              validatedData,
-            );
-            // Return as hotel with images format but with empty images array
-            return HotelResponse.hotelWithImagesCreated(c, created, []);
-          } catch (e) {
-            if (e instanceof Error && e.message.includes("slug")) {
-              return ApiResponse.conflict(c, e.message);
-            }
-            throw e;
-          }
+          // Handle JSON payload (hotel only) - DEPRECATED: Hotels must have images
+          return ApiResponse.badRequest(
+            c,
+            "Hotel creation requires images. Please use multipart/form-data with hotelData and images fields",
+          );
         }
       },
       "operation.createHotelFailed",
@@ -174,12 +170,19 @@ export class HotelController {
 
           // Extract image files
           const imageFiles: File[] = [];
+          const locationInfoImageFiles: File[] = [];
           for (const [key, value] of formData.entries()) {
             if (
               (key.startsWith("images[") || key === "images") &&
               value instanceof File
             ) {
               imageFiles.push(value);
+            } else if (
+              (key.startsWith("locationInfoImages[") ||
+                key === "locationInfoImages") &&
+              value instanceof File
+            ) {
+              locationInfoImageFiles.push(value);
             }
           }
 
@@ -195,6 +198,9 @@ export class HotelController {
               imageFiles.length > 0 ? imageFiles : undefined,
               replaceImages,
               c.env.R2_PUBLIC_BASE_URL || "",
+              locationInfoImageFiles.length > 0
+                ? locationInfoImageFiles
+                : undefined,
             );
 
             return HotelResponse.hotelWithImagesUpdated(

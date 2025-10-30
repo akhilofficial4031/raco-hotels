@@ -2,7 +2,7 @@ import { CreditCardOutlined } from "@ant-design/icons";
 import { Avatar, Card, List, Space, Tag, Typography } from "antd";
 import React from "react";
 
-import { type CustomerDetailsResponse } from "../../../shared/services/customer.service";
+import { type CustomerDetailsResponse } from "../services/customerService";
 
 const { Text } = Typography;
 

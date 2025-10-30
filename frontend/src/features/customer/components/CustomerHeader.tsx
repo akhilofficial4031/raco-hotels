@@ -12,7 +12,7 @@ import { Avatar, Button, Dropdown, Space, Tag, Typography } from "antd";
 import React from "react";
 import { useNavigate } from "react-router";
 
-import { type CustomerDetailsResponse } from "../../../shared/services/customer.service";
+import { type CustomerDetailsResponse } from "../services/customerService";
 
 const { Title, Text } = Typography;
 

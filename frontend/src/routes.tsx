@@ -1,36 +1,64 @@
 import { Suspense, lazy } from "react";
 import { createBrowserRouter, Navigate, Outlet } from "react-router";
 
-import CustomerPage from "./pages/Customer";
-import CustomerDetails from "./pages/CustomerDetails";
-import Hotels from "./pages/Hotels";
-import FullScreenSpinner from "./shared/components/FullScreenSpinner";
-import { AuthProvider } from "./shared/contexts/AuthContext";
-import { AuthLayout, UnAuthLayout } from "./shared/layouts";
+import FullScreenSpinner from "@shared/components/FullScreenSpinner";
+import { AuthProvider } from "@shared/contexts/AuthContext";
+import { AuthLayout, UnAuthLayout } from "@shared/layouts";
 
-// Lazy load page components
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Login = lazy(() => import("./pages/Login"));
-const NotFound = lazy(() => import("./pages/Not-found"));
-const Users = lazy(() => import("./pages/Users"));
-const Features = lazy(() => import("./pages/Features"));
-const Amenities = lazy(() => import("./pages/Amenities"));
-const RoomType = lazy(() => import("./pages/RoomType"));
-const Rooms = lazy(() => import("./pages/Rooms"));
-const AddRoomPage = lazy(() => import("./pages/rooms/AddRoomPage"));
-const Addons = lazy(() => import("./pages/Addons"));
-const AddonConfiguration = lazy(() => import("./pages/AddonConfiguration"));
-const Reviews = lazy(() => import("./pages/Reviews"));
-const PromoCode = lazy(() => import("./pages/PromoCode"));
+// Lazy load page components with chunked loading for better performance
+// Core pages - loaded immediately
+const Dashboard = lazy(() => import("./features/dashboard/pages/Dashboard"));
+const Login = lazy(() => import("./features/authentication/pages/Login"));
+const NotFound = lazy(() => import("@shared/pages/Not-found"));
+
+// Authentication pages - grouped together
+const ForgotPassword = lazy(
+  () => import("./features/authentication/pages/ForgotPassword"),
+);
+const SetPassword = lazy(
+  () => import("./features/authentication/pages/SetPasswotd"),
+);
+
+// User management
+const Users = lazy(() => import("./features/users/pages/Users"));
+
+// Hotel & Room management - related features grouped
+const Hotels = lazy(() => import("./features/hotels/pages/Hotels"));
+const RoomType = lazy(() => import("./features/room-type/pages/RoomType"));
+const Rooms = lazy(() => import("./features/rooms/pages/Rooms"));
+const AddRoomPage = lazy(() => import("./features/rooms/pages/AddRoomPage"));
+
+// Property features & amenities
+const Features = lazy(() => import("./features/feature/pages/Features"));
+const Amenities = lazy(() => import("./features/amenities/pages/Amenities"));
+const Addons = lazy(() => import("./features/addon/pages/Addons"));
+const AddonConfiguration = lazy(
+  () => import("./features/addon/pages/AddonConfiguration"),
+);
+
+// Booking management - grouped for better caching
 const Bookings = lazy(() => import("./features/bookings/pages/Bookings"));
 const NewBookings = lazy(() => import("./features/bookings/pages/NewBookings"));
 const ViewBooking = lazy(() => import("./features/bookings/pages/ViewBooking"));
 const EditBooking = lazy(() => import("./features/bookings/pages/EditBooking"));
-const EditCustomer = lazy(() => import("./pages/EditCustomer"));
-const Payment = lazy(() => import("./pages/Payment"));
 
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const SetPassword = lazy(() => import("./pages/SetPasswotd"));
+// Customer management
+const CustomerPage = lazy(() => import("./features/customer/pages/Customer"));
+const CustomerDetails = lazy(
+  () => import("./features/customer/pages/CustomerDetails"),
+);
+const EditCustomer = lazy(
+  () => import("./features/customer/pages/EditCustomer"),
+);
+
+// Business operations - reviews, payments, promo codes
+const Reviews = lazy(() => import("./features/reviews/pages/Reviews"));
+const Payment = lazy(() => import("./features/payments/pages/Payment"));
+const PromoCode = lazy(() => import("./features/promo-code/pages/PromoCode"));
+
+// Content Management System
+const CmsPage = lazy(() => import("./features/cms/pages/cms-page"));
+
 // Helper function to wrap lazy components with Suspense
 const withSuspense = (Component: React.ComponentType) => {
   return function SuspenseWrapper(props: any) {
@@ -124,61 +152,6 @@ const router = createBrowserRouter([
                 href: "/room-types",
               }),
             },
-          },
-          {
-            path: "addons",
-            Component: withSuspense(Addons),
-            handle: {
-              crumb: () => ({
-                label: "Addons",
-                href: "/addons",
-              }),
-            },
-          },
-          {
-            path: "addons/configuration/:id",
-            Component: withSuspense(AddonConfiguration),
-            handle: {
-              crumb: () => ({
-                label: "Addon Configuration",
-                href: "/addons",
-              }),
-            },
-          },
-          {
-            path: "rooms",
-            handle: {
-              crumb: () => ({
-                label: "Rooms",
-                href: "/rooms",
-              }),
-            },
-            children: [
-              {
-                index: true,
-                Component: withSuspense(Rooms),
-              },
-              {
-                path: "add",
-                Component: withSuspense(AddRoomPage),
-                handle: {
-                  crumb: () => ({
-                    label: "Add Room",
-                    href: "/rooms/add",
-                  }),
-                },
-              },
-              {
-                path: "edit/:id",
-                Component: withSuspense(Rooms),
-                handle: {
-                  crumb: () => ({
-                    label: "Edit Room",
-                    href: "/rooms",
-                  }),
-                },
-              },
-            ],
           },
           {
             path: "addons",
@@ -389,6 +362,31 @@ const router = createBrowserRouter([
                 href: "/promo-codes",
               }),
             },
+          },
+          {
+            path: "cms",
+            handle: {
+              crumb: () => ({
+                label: "Content Management",
+                href: "/cms",
+              }),
+            },
+            children: [
+              {
+                index: true,
+                element: <Navigate to="/cms/homepage" replace />,
+              },
+              {
+                path: "homepage",
+                Component: withSuspense(CmsPage),
+                handle: {
+                  crumb: () => ({
+                    label: "Homepage Content",
+                    href: "/cms/homepage",
+                  }),
+                },
+              },
+            ],
           },
           {
             path: "*",

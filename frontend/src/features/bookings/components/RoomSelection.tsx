@@ -1,7 +1,4 @@
 /* eslint-disable no-unused-vars */
-import { type Addon } from "@shared/models/addon";
-import { type RoomTypeWithRelations } from "@shared/models/room-type";
-import { RoomStatus, type IRoom } from "@shared/models/rooms";
 import {
   Button,
   Card,
@@ -13,11 +10,15 @@ import {
   Spin,
   Typography,
 } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 
-import { fetcher } from "../../../utils/swrFetcher";
-import { getRoomTypesByHotel } from "../../room-type/services/room-type.service";
+import { fetcher } from "@utils/swrFetcher";
+
+import { type Addon } from "../../addon/types/addon";
+import { getRoomTypesByHotel } from "../../room-type/services/roomTypeService";
+import { type RoomTypeWithRelations } from "../../room-type/types/roomType";
+import { RoomStatus, type IRoom } from "../../rooms/types/rooms";
 
 const { Title, Text } = Typography;
 

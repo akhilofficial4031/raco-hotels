@@ -24,15 +24,15 @@ import useSWR, { mutate } from "swr";
 
 import TableHeader from "@shared/components/TableHeader";
 import { APP_LOCALE } from "@shared/constants/app";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
+
+import BookingFilters from "../components/BookingFilters";
 import {
   type Booking,
   type BookingListParamStructure,
   type BookingListResponse,
-} from "@shared/models/bookings";
-import { convertJsonToQueryParams } from "@shared/utils";
-
-import { fetcher, mutationFetcher } from "../../../utils/swrFetcher";
-import BookingFilters from "../components/BookingFilters";
+} from "../types/bookings";
 
 const { confirm } = Modal;
 

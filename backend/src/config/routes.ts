@@ -39,6 +39,9 @@ export const PUBLIC_ROUTES = [
 
   // room availability
   "GET:/availability",
+  // Content routes - public read access
+  "GET:/content/homepage",
+  "GET:/public/homepage",
 
   // Add other public routes here as needed
   // "/public-endpoint",

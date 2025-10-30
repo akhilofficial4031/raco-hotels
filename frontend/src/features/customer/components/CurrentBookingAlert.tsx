@@ -2,11 +2,9 @@ import { HomeOutlined } from "@ant-design/icons";
 import { Alert, Typography } from "antd";
 import React from "react";
 
-import { type CustomerDetailsResponse } from "../../../shared/services/customer.service";
-import {
-  APP_LOCALE,
-  LOCALE_DATE_OPTIONS_SHORT,
-} from "../../../shared/constants/app";
+import { APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT } from "@shared/constants/app";
+
+import { type CustomerDetailsResponse } from "../services/customerService";
 
 const { Text } = Typography;
 

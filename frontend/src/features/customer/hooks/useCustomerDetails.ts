@@ -1,11 +1,8 @@
 import useSWR from "swr";
 
-import { fetcher } from "../../../utils/swrFetcher";
+import { fetcher } from "@utils/swrFetcher";
 
-import {
-  CustomerDetailsResponse,
-  type CustomerDetailsResponseData,
-} from "../../../shared/services/customer.service";
+import { type CustomerDetailsResponseData } from "../services/customerService";
 
 export const useCustomerDetails = (customerId: string | undefined) => {
   const { data, error, isLoading, mutate } =

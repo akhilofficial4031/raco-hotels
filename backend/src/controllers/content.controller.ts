@@ -89,4 +89,70 @@ export class ContentController {
       "operation.deleteContentBlockFailed",
     );
   }
+
+  // Homepage Content Methods
+  static async getHomepageContent(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const content = await ContentService.getHomepageContent(c.env.DB);
+
+        if (!content) {
+          return ApiResponse.notFound(c, "Homepage content not found");
+        }
+
+        return ApiResponse.success(c, content);
+      },
+      "operation.fetchHomepageContentFailed",
+    );
+  }
+
+  static async saveHomepageContent(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const payload = await c.req.json();
+
+        // Get R2 bucket and public URL from environment
+        const r2Bucket = c.env.R2_BUCKET;
+        const publicBaseUrl = c.env.R2_PUBLIC_URL || "";
+
+        if (!r2Bucket) {
+          return ApiResponse.error(c, "R2 storage not configured", 500);
+        }
+
+        const processedContent =
+          await ContentService.processAndSaveHomepageContent(
+            c.env.DB,
+            r2Bucket,
+            payload,
+            publicBaseUrl,
+          );
+
+        return ApiResponse.success(
+          c,
+          processedContent,
+          "Homepage content saved successfully",
+        );
+      },
+      "operation.saveHomepageContentFailed",
+    );
+  }
+
+  // Public API - No authentication required
+  static async getPublicHomepageContent(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const content = await ContentService.getPublicHomepageContent(c.env.DB);
+
+        if (!content) {
+          return ApiResponse.notFound(c, "Homepage content not found");
+        }
+
+        return ApiResponse.success(c, content);
+      },
+      "operation.fetchPublicHomepageContentFailed",
+    );
+  }
 }
