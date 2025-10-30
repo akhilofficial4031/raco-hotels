@@ -69,6 +69,22 @@ export class RoomTypeRepository {
     });
     return (row as any) || null;
   }
+
+  static async findAllByHotelId(
+    db: D1Database,
+    hotelId: number,
+  ): Promise<DatabaseRoomType[]> {
+    const database = getDb(db);
+    const rows = await database.query.roomType.findMany({
+      where: eq(schema.roomType.hotelId, hotelId),
+      with: {
+        images: true,
+      },
+      orderBy: desc(schema.roomType.createdAt),
+    });
+    return rows as any;
+  }
+
   static async findBySlug(
     db: D1Database,
     hotelId: number,

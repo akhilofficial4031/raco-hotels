@@ -228,4 +228,19 @@ export class RoomTypeController {
       "operation.updateRoomTypeImageSortOrderFailed",
     );
   }
+
+  static async getPublicRoomTypesByHotelId(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const hotelId = parseInt(c.req.param("hotelId"), 10);
+        const items = await RoomTypeService.getRoomTypesByHotelId(
+          c.env.DB,
+          hotelId,
+        );
+        return ApiResponse.success(c, { roomTypes: items });
+      },
+      "operation.fetchRoomTypesFailed",
+    );
+  }
 }

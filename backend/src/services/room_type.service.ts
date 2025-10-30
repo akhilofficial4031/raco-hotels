@@ -196,6 +196,24 @@ export class RoomTypeService {
     return roomType;
   }
 
+  static async getRoomTypesByHotelId(db: D1Database, hotelId: number) {
+    const roomTypes = await RoomTypeRepository.findAllByHotelId(db, hotelId);
+
+    // Fetch all related data for each room type
+    const roomTypesWithRelations = await Promise.all(
+      roomTypes.map(async (roomType) => {
+        const [amenities, rooms, addons] = await Promise.all([
+          RoomTypeRepository.getAmenities(db, roomType.id),
+          RoomRepository.findByRoomTypeId(db, roomType.id),
+          RoomTypeRepository.getAddons(db, roomType.id),
+        ]);
+        return { ...roomType, amenities, rooms, addons };
+      }),
+    );
+
+    return roomTypesWithRelations;
+  }
+
   static async getRoomTypeById(db: D1Database, id: number) {
     const rt = await RoomTypeRepository.findById(db, id);
     if (!rt) return null;

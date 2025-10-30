@@ -178,3 +178,13 @@ export const RoomTypesListResponseSchema = z
     }),
   })
   .openapi("RoomTypesListResponse");
+
+export const PublicRoomTypesListResponseSchema = z
+  .object({
+    success: z.boolean(),
+    data: z.object({
+      roomTypes: z.array(RoomTypeWithRelationsSchema),
+      message: z.string().optional(),
+    }),
+  })
+  .openapi("PublicRoomTypesListResponse");
