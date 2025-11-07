@@ -139,7 +139,7 @@ const BulletPointsForm: React.FC<BulletPointsFormProps> = ({
     <>
       <Form.Item
         label="Bullet Points"
-        help="Enter each bullet point separated by commas (e.g., 5 min to beach, Close to metro, Free WiFi)"
+        help="Enter each bullet point on a new line."
       >
         <Controller
           name={`locationInfo.${locationIndex}.bulletPoints`}
@@ -149,20 +149,19 @@ const BulletPointsForm: React.FC<BulletPointsFormProps> = ({
               {...field}
               value={
                 Array.isArray(field.value)
-                  ? field.value.join(", ")
+                  ? field.value.join("\n")
                   : field.value || ""
               }
               onChange={(e) => {
                 const value = e.target.value;
-                // Convert comma-separated string back to array for form state
-                const bulletPointsArray = value
-                  .split(",")
-                  .map((point) => point.trim())
-                  .filter((point) => point.length > 0);
+                // Convert newline-separated string back to array for form state
+                const bulletPointsArray = value.split("\n");
                 field.onChange(bulletPointsArray);
               }}
               rows={3}
-              placeholder="5 min to beach, Close to metro, Free WiFi"
+              placeholder={`5 min to beach
+Close to metro, with shops nearby
+Free WiFi`}
               size="large"
             />
           )}

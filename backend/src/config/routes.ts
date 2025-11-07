@@ -41,6 +41,8 @@ export const PUBLIC_ROUTES = [
   // Booking routes - temporarily public for testing
   "POST:/bookings",
 
+  // room availability
+  "GET:/availability",
   // Content routes - public read access
   "GET:/content/homepage",
   "GET:/public/homepage",
@@ -58,9 +60,18 @@ export const PUBLIC_ROUTE_PATTERNS: RegExp[] = [
   // Public room routes with dynamic IDs
   /^\/public\/rooms\/[^/]+$/,
 
+  // Public room types by hotel
+  /^\/room-types\/hotel\/[^/]+$/,
+
   // Public hotel routes by slug
   // Matches /hotels/slug/{slug} for public hotel access by slug
   /^\/hotels\/slug\/[a-zA-Z0-9_-]+$/,
+
+  //Public hotel routes by id
+  /^\/hotels\/[^/]+$/,
+
+  //Public roomtypes routes by id
+  /^\/room-types\/[^/]+$/,
 ];
 
 /**

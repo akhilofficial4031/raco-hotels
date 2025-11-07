@@ -9,6 +9,7 @@ import {
   CreateRoomTypeRequestSchema,
   UpdateRoomTypeRequestSchema,
   RoomTypeImageSchema,
+  PublicRoomTypesListResponseSchema,
 } from "../schemas";
 
 export const RoomTypeRouteDefinitions = {
@@ -211,4 +212,21 @@ export const RoomTypeRouteDefinitions = {
       },
     },
   },
+
+  getPublicRoomTypesByHotelId: createRoute({
+    method: "get",
+    path: "/room-types/hotel/{hotelId}",
+    summary: "Get all room types for a hotel (public)",
+    description: "Retrieve a list of all room types for a specific hotel.",
+    tags: [ApiTags.ROOMS],
+    successSchema: PublicRoomTypesListResponseSchema,
+    successDescription: "Room types retrieved successfully",
+    paramsSchema: z.object({
+      hotelId: z
+        .string()
+        .transform((v) => parseInt(v, 10))
+        .openapi({ example: "1", description: "Hotel ID" }),
+    }),
+    includeNotFound: true,
+  }),
 };

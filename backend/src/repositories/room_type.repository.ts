@@ -69,6 +69,22 @@ export class RoomTypeRepository {
     });
     return (row as any) || null;
   }
+
+  static async findAllByHotelId(
+    db: D1Database,
+    hotelId: number,
+  ): Promise<DatabaseRoomType[]> {
+    const database = getDb(db);
+    const rows = await database.query.roomType.findMany({
+      where: eq(schema.roomType.hotelId, hotelId),
+      with: {
+        images: true,
+      },
+      orderBy: desc(schema.roomType.createdAt),
+    });
+    return rows as any;
+  }
+
   static async findBySlug(
     db: D1Database,
     hotelId: number,
@@ -273,8 +289,19 @@ export class RoomTypeRepository {
   ): Promise<DatabaseRoomTypeAmenity[]> {
     const database = getDb(db);
     const rows = await database
-      .select()
+      .select({
+        roomTypeId: schema.roomTypeAmenity.roomTypeId,
+        amenityId: schema.roomTypeAmenity.amenityId,
+        createdAt: schema.roomTypeAmenity.createdAt,
+        name: schema.amenity.name,
+        icon: schema.amenity.icon,
+        code: schema.amenity.code,
+      })
       .from(schema.roomTypeAmenity)
+      .innerJoin(
+        schema.amenity,
+        eq(schema.roomTypeAmenity.amenityId, schema.amenity.id),
+      )
       .where(eq(schema.roomTypeAmenity.roomTypeId, roomTypeId));
     return rows as any;
   }
@@ -311,8 +338,22 @@ export class RoomTypeRepository {
   ): Promise<DatabaseRoomTypeAddon[]> {
     const database = getDb(db);
     const rows = await database
-      .select()
+      .select({
+        roomTypeId: schema.roomTypeAddon.roomTypeId,
+        addonId: schema.roomTypeAddon.addonId,
+        priceCents: schema.roomTypeAddon.priceCents,
+        createdAt: schema.roomTypeAddon.createdAt,
+        updatedAt: schema.roomTypeAddon.updatedAt,
+        name: schema.addon.name,
+        description: schema.addon.description,
+        category: schema.addon.category,
+        unitType: schema.addon.unitType,
+      })
       .from(schema.roomTypeAddon)
+      .innerJoin(
+        schema.addon,
+        eq(schema.roomTypeAddon.addonId, schema.addon.id),
+      )
       .where(eq(schema.roomTypeAddon.roomTypeId, roomTypeId));
     return rows as any;
   }
