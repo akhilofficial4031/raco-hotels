@@ -34,6 +34,10 @@ export const PUBLIC_ROUTES = [
   // Room public routes
   "GET:/public/rooms",
 
+  // Room availability - public endpoint for searching available rooms
+  "GET:/rooms/availability",
+  "GET:/availability",
+
   // Booking routes - temporarily public for testing
   "POST:/bookings",
 
