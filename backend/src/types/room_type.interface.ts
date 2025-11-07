@@ -37,22 +37,27 @@ export interface DatabaseRoomTypeImage extends DatabaseMediaReference {
  * Database representation of a room type amenity association
  */
 export interface DatabaseRoomTypeAmenity {
-  id: number;
   roomTypeId: number;
   amenityId: number;
   createdAt: string;
+  name: string;
+  icon: string | null;
+  code: string;
 }
 
 /**
  * Database representation of a room type addon association
  */
 export interface DatabaseRoomTypeAddon {
-  id: number;
   roomTypeId: number;
   addonId: number;
   priceCents: number;
   createdAt: string;
   updatedAt: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  unitType: string;
 }
 
 /**
