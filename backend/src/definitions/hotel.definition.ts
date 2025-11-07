@@ -3,8 +3,6 @@ import { z } from "zod";
 import { createRoute, ApiTags } from "../lib/route-wrapper";
 import {
   HotelsListResponseSchema,
-  CreateHotelRequestSchema,
-  UpdateHotelRequestSchema,
   HotelPathParamsSchema,
   HotelSlugPathParamsSchema,
   HotelQueryParamsSchema,
@@ -61,7 +59,7 @@ export const HotelRouteDefinitions = {
     description:
       "Create a new hotel with hotel information. Slug is auto-generated from the hotel name. Supports both JSON and multipart/form-data (with images).",
     tags: [ApiTags.HOTELS],
-    requestSchema: CreateHotelRequestSchema,
+    // Note: requestSchema removed to allow manual FormData handling in controller
     successSchema: HotelWithImagesResponseSchema,
     successDescription: "Hotel created successfully",
     includeBadRequest: true,
@@ -76,7 +74,7 @@ export const HotelRouteDefinitions = {
       "Update an existing hotel information. Slug is auto-generated when name changes. Supports both JSON and multipart/form-data (with images).",
     tags: [ApiTags.HOTELS],
     paramsSchema: HotelPathParamsSchema,
-    requestSchema: UpdateHotelRequestSchema,
+    // Note: requestSchema removed to allow manual FormData handling in controller
     successSchema: HotelWithImagesResponseSchema,
     successDescription: "Hotel updated successfully",
     includeBadRequest: true,
