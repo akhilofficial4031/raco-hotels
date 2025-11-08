@@ -12,7 +12,7 @@ import { type Booking } from "src/features/bookings/types/bookings";
 
 import { type AddonInBooking } from "../../addon/types/addon";
 import { type RoomTypeWithRelations } from "../../room-type/types/roomType";
-import { type Room } from "../../rooms/types/rooms";
+import { type BookingRoomTypeRooms } from "../../rooms/types/rooms";
 import BookingDetailsForm from "../components/BookingDetailsForm";
 import CustomerInformationForm from "../components/CustomerInformationForm";
 import ReviewAndSubmit from "../components/ReviewAndSubmit";
@@ -25,7 +25,7 @@ const { Title } = Typography;
 interface BookingData {
   bookingDetails?: any;
   customerData?: CustomerData;
-  selectedRooms?: Room[];
+  selectedRooms?: BookingRoomTypeRooms[];
   selectedAddons?: AddonInBooking[];
 }
 
@@ -98,7 +98,7 @@ function EditBooking() {
   };
 
   const handleRoomSelectionFinish = (values: {
-    selectedRooms: Room[];
+    selectedRooms: BookingRoomTypeRooms[];
     selectedAddons: AddonInBooking[];
     roomTypeDetails?: RoomTypeWithRelations;
   }) => {
@@ -153,7 +153,7 @@ function EditBooking() {
         notes: bookingData.customerData?.notes,
       },
       selectedRooms: bookingData.selectedRooms?.map((room) => ({
-        id: room.id,
+        id: room.roomId,
       })),
       selectedAddons: bookingData.selectedAddons?.map((addon) => ({
         id: addon.id,
