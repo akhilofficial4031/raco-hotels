@@ -9,6 +9,10 @@ export interface Addon {
   isActive: number;
 }
 
+export interface AddonInBooking extends Addon {
+  priceCents: number;
+}
+
 export interface AddonResponseInBooking {
   addon: Addon;
   bookingAddon: BookingAddon;

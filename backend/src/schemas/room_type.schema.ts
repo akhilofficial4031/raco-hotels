@@ -67,6 +67,14 @@ export const RoomTypeWithRelationsSchema = RoomTypeSchema.extend({
   rooms: z
     .array(RoomUnitSchema)
     .openapi({ description: "Individual room units of this room type" }),
+  hotel: z
+    .object({
+      id: z.number().int().positive().openapi({ example: 1 }),
+      name: z.string().openapi({ example: "Grand Plaza Hotel" }),
+      slug: z.string().nullable().openapi({ example: "grand-plaza-hotel" }),
+    })
+    .optional()
+    .openapi({ description: "Hotel information" }),
 }).openapi("RoomTypeWithRelations");
 
 export const CreateRoomTypeRequestSchema = z

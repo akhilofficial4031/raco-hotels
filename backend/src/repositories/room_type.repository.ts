@@ -47,6 +47,13 @@ export class RoomTypeRepository {
       where: whereClause,
       with: {
         images: true,
+        hotel: {
+          columns: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
       },
       orderBy: desc(schema.roomType.createdAt),
       limit,
@@ -64,6 +71,13 @@ export class RoomTypeRepository {
       where: eq(schema.roomType.id, id),
       with: {
         images: true,
+        hotel: {
+          columns: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
       },
       limit: 1,
     });
@@ -79,6 +93,13 @@ export class RoomTypeRepository {
       where: eq(schema.roomType.hotelId, hotelId),
       with: {
         images: true,
+        hotel: {
+          columns: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
       },
       orderBy: desc(schema.roomType.createdAt),
     });

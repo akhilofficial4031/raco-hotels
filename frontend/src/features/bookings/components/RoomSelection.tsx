@@ -13,12 +13,17 @@ import {
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 
+import { type ApiResponse } from "@shared/types/api";
 import { fetcher } from "@utils/swrFetcher";
 
-import { type Addon } from "../../addon/types/addon";
+import { type AddonInBooking } from "../../addon/types/addon";
 import { getRoomTypesByHotel } from "../../room-type/services/roomTypeService";
 import { type RoomTypeWithRelations } from "../../room-type/types/roomType";
-import { RoomStatus, type IRoom } from "../../rooms/types/rooms";
+import {
+  type IRoomAvailability,
+  type BookingRoomTypeRooms,
+  RoomStatus,
+} from "../../rooms/types/rooms";
 
 const { Title, Text } = Typography;
 
@@ -29,13 +34,13 @@ interface RoomSelectionProps {
   checkOutDate: string;
   numRooms: number;
   onNext: (_values: {
-    selectedRooms: IRoom[];
-    selectedAddons: Addon[];
+    selectedRooms: BookingRoomTypeRooms[];
+    selectedAddons: AddonInBooking[];
     roomTypeDetails?: RoomTypeWithRelations;
   }) => void;
   onBack: () => void;
-  initialSelectedRooms?: IRoom[];
-  initialSelectedAddons?: Addon[];
+  initialSelectedRooms?: BookingRoomTypeRooms[];
+  initialSelectedAddons?: AddonInBooking[];
   mode?: "create" | "edit" | "checkin";
 }
 
@@ -52,7 +57,7 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
   mode = "create",
 }) => {
   const [selectedRooms, setSelectedRooms] =
-    useState<IRoom[]>(initialSelectedRooms);
+    useState<BookingRoomTypeRooms[]>(initialSelectedRooms);
   const [selectedAddons, setSelectedAddons] = useState<Set<number>>(
     new Set(initialSelectedAddons.map((a) => a.id)),
   );
@@ -68,32 +73,26 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
 
   const availabilityQuery =
     mode === "create" || mode === "checkin"
-      ? `/availability?hotelId=${hotelId}&roomTypeId=${roomTypeId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`
-      : `/availability?hotelId=${hotelId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`;
+      ? `/rooms/availability?hotelId=${hotelId}&roomTypeId=${roomTypeId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`
+      : `/rooms/availability?hotelId=${hotelId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`;
 
-  const { data: availabilityData, isLoading: isLoadingAvailability } = useSWR<{
-    data: { results: IRoom[] };
-  }>(availabilityQuery, fetcher, {
+  const { data: availabilityData, isLoading: isLoadingAvailability } = useSWR<
+    ApiResponse<IRoomAvailability>
+  >(availabilityQuery, fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
   });
 
-  const { data: addonsData, isLoading: isLoadingAddons } = useSWR<{
-    data: { addons: Addon[] };
-  }>(`/addons?roomTypeId=${roomTypeId}`, fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-  });
+  // Remove separate addon API call since addons are included in room type data
 
-  const availableRooms = availabilityData?.data?.results || [];
-  const allAddons = addonsData?.data?.addons || [];
+  const availableRooms = availabilityData?.data.roomTypes[0].rooms || [];
 
   const allRoomsToDisplay = useMemo(() => {
-    const roomMap = new Map<number, IRoom>();
+    const roomMap = new Map<number, BookingRoomTypeRooms>();
     // Add available rooms
-    availableRooms.forEach((room) => roomMap.set(room.id, room));
+    availableRooms.forEach((room) => roomMap.set(room.roomId, room));
     // Add/overwrite with initial selected rooms to ensure they are present
-    initialSelectedRooms.forEach((room) => roomMap.set(room.id, room));
+    initialSelectedRooms.forEach((room) => roomMap.set(room.roomId, room));
     return Array.from(roomMap.values());
   }, [availableRooms, initialSelectedRooms]);
 
@@ -105,11 +104,17 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
 
   const addons = useMemo(() => {
     if (!roomTypeDetails?.addons) return [];
-    const pricedAddonIds = new Set(
-      roomTypeDetails.addons.map((a: any) => a.addonId),
-    );
-    return allAddons.filter((addon) => pricedAddonIds.has(addon.id));
-  }, [allAddons, roomTypeDetails]);
+    // Transform room type addons to include pricing information
+    return roomTypeDetails.addons.map((roomTypeAddon: any) => ({
+      id: roomTypeAddon.addonId,
+      name: roomTypeAddon.name,
+      description: roomTypeAddon.description,
+      category: roomTypeAddon.category,
+      unitType: roomTypeAddon.unitType,
+      isActive: 1, // Assume active if included in room type
+      priceCents: roomTypeAddon.priceCents,
+    }));
+  }, [roomTypeDetails]);
 
   const groupedRooms = useMemo(() => {
     if (!allRoomsToDisplay) return {};
@@ -120,26 +125,30 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
         sensitivity: "base",
       });
     });
+    console.log("sortedRooms", sortedRooms);
 
-    return sortedRooms.reduce((acc: { [key: string]: IRoom[] }, room) => {
-      const floor = room.floor || "Uncategorized";
-      if (!acc[floor]) {
-        acc[floor] = [];
-      }
-      acc[floor].push(room);
-      return acc;
-    }, {});
+    return sortedRooms.reduce(
+      (acc: { [key: string]: BookingRoomTypeRooms[] }, room) => {
+        const floor = room.floor || "Uncategorized";
+        if (!acc[floor]) {
+          acc[floor] = [];
+        }
+        acc[floor].push(room);
+        return acc;
+      },
+      {},
+    );
   }, [allRoomsToDisplay]);
 
-  if (isLoadingAvailability || isLoadingAddons) {
+  if (isLoadingAvailability) {
     return <Spin />;
   }
 
-  const handleRoomSelect = (room: IRoom) => {
+  const handleRoomSelect = (room: BookingRoomTypeRooms) => {
     setSelectedRooms((prev) => {
-      const isSelected = prev.some((r) => r.id === room.id);
+      const isSelected = prev.some((r) => r.roomId === room.roomId);
       if (isSelected) {
-        return prev.filter((r) => r.id !== room.id);
+        return prev.filter((r) => r.roomId !== room.roomId);
       }
       if (prev.length < numRooms) {
         return [...prev, room];
@@ -162,7 +171,7 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
   };
 
   const handleNext = () => {
-    const fullSelectedAddons = allAddons.filter((addon) =>
+    const fullSelectedAddons = addons.filter((addon) =>
       selectedAddons.has(addon.id),
     );
     onNext({
@@ -186,13 +195,15 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
             className="shadow-sm border-gray-200 !mb-2"
           >
             <div className="flex flex-wrap gap-2">
-              {groupedRooms[floor].map((room: IRoom) => {
-                const isSelected = selectedRooms.some((r) => r.id === room.id);
+              {groupedRooms[floor].map((room: BookingRoomTypeRooms) => {
+                const isSelected = selectedRooms.some(
+                  (r) => r.roomId === room.roomId,
+                );
                 const isAvailable = room.status === RoomStatus.Available;
                 const isSelectable = isAvailable || isSelected;
                 return (
                   <Popover
-                    key={room.id}
+                    key={room.roomId}
                     content={`Status: ${room.status}`}
                     title="Room Details"
                   >
@@ -230,21 +241,34 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
       <List
         itemLayout="horizontal"
         dataSource={addons}
-        renderItem={(addon: Addon) => (
+        renderItem={(addon: AddonInBooking) => (
           <List.Item
             onClick={() => handleAddonToggle(addon.id)}
             className="cursor-pointer hover:bg-gray-50"
           >
-            <div className="flex items-center w-full">
-              <Checkbox
-                checked={selectedAddons.has(addon.id)}
-                onChange={() => handleAddonToggle(addon.id)}
-              />
-              <div className="ml-4">
-                <Text strong>{addon.name}</Text>
-                <br />
-                <Text type="secondary">{addon.description}</Text>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center">
+                <Checkbox
+                  checked={selectedAddons.has(addon.id)}
+                  onChange={() => handleAddonToggle(addon.id)}
+                />
+                <div className="ml-4">
+                  <Text>
+                    {addon.name} - ₹{(addon.priceCents / 100).toFixed(2)}
+                  </Text>
+                  <br />
+                  <Text type="secondary">{addon.description}</Text>
+                </div>
               </div>
+              {/* <div className="text-right">
+                <Text strong className="text-lg">
+                  ₹{(addon.priceCents / 100).toFixed(2)}
+                </Text>
+                <br />
+                <Text type="secondary" className="text-sm">
+                  per {addon.unitType}
+                </Text>
+              </div> */}
             </div>
           </List.Item>
         )}

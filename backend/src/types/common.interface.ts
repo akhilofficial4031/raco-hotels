@@ -16,6 +16,7 @@ export interface BaseEntity extends BaseTimestamps {
 // Hotel-scoped entity (entities that belong to a specific hotel)
 export interface HotelScopedEntity extends BaseEntity {
   hotelId: number;
+  hotelName: string;
 }
 
 // Pagination parameters for API requests

@@ -13,16 +13,16 @@ import CustomerInformationForm from "../components/CustomerInformationForm";
 import ReviewAndSubmit from "../components/ReviewAndSubmit";
 import RoomSelection from "../components/RoomSelection";
 
-import type { Addon } from "../../addon/types/addon";
-import type { IRoom } from "../../rooms/types/rooms";
+import type { AddonInBooking } from "../../addon/types/addon";
+import type { BookingRoomTypeRooms } from "../../rooms/types/rooms";
 import type { CustomerData } from "../types/schemas";
 
 const { Title } = Typography;
 
 interface BookingData {
   bookingDetails?: any;
-  selectedRooms?: IRoom[];
-  selectedAddons?: Addon[];
+  selectedRooms?: BookingRoomTypeRooms[];
+  selectedAddons?: AddonInBooking[];
   customerData?: CustomerData;
   roomTypeDetails?: RoomTypeWithRelations;
   appliedPromoCode?: PromoCode | null;
@@ -42,8 +42,8 @@ const NewBookings = () => {
   };
 
   const handleRoomSelectionFinish = (values: {
-    selectedRooms: IRoom[];
-    selectedAddons: Addon[];
+    selectedRooms: BookingRoomTypeRooms[];
+    selectedAddons: AddonInBooking[];
     roomTypeDetails?: RoomTypeWithRelations;
   }) => {
     setBookingData((prev) => ({
@@ -115,7 +115,7 @@ const NewBookings = () => {
           notes: bookingData.customerData?.notes,
         },
         selectedRooms: bookingData.selectedRooms?.map((room) => ({
-          id: room.id,
+          id: room.roomId,
         })),
         selectedAddons: bookingData.selectedAddons?.map((addon) => {
           const roomTypeAddon = bookingData.roomTypeDetails?.addons?.find(

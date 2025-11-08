@@ -21,11 +21,11 @@ import { useEffect, useState } from "react";
 
 import { DATE_FORMAT_API } from "@shared/constants/app";
 
-import { type Addon } from "../../addon/types/addon";
+import { type AddonInBooking } from "../../addon/types/addon";
 import { validatePromoCode } from "../../promo-code/services/promoCodeService";
 import { type PromoCode } from "../../promo-code/types/promoCode";
 import { type RoomTypeWithRelations } from "../../room-type/types/roomType";
-import { type IRoom } from "../../rooms/types/rooms";
+import { type BookingRoomTypeRooms } from "../../rooms/types/rooms";
 import { type CustomerData } from "../types/schemas";
 
 const { Title, Text } = Typography;
@@ -43,8 +43,8 @@ interface BookingData {
     status?: string;
     amountPaidCents?: number;
   };
-  selectedRooms?: IRoom[];
-  selectedAddons?: Addon[];
+  selectedRooms?: BookingRoomTypeRooms[];
+  selectedAddons?: AddonInBooking[];
   customerData?: CustomerData;
   roomTypeDetails?: RoomTypeWithRelations;
 }
