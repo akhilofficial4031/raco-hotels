@@ -1,4 +1,5 @@
 import { relations } from "drizzle-orm";
+
 import { roomType } from "./room_type";
 import { roomTypeImage } from "./room_type_image";
 

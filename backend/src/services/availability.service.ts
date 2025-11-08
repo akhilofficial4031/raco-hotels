@@ -9,17 +9,20 @@ import type { z } from "zod";
  */
 export class AvailabilityService {
   /**
-   * Search for available room types by hotel ID or slug
-   * 
+   * Unified search for available room types with rooms
+   * Handles both specific room type and all room types scenarios
+   *
    * Business rules:
-   * 1. Either hotelId or hotelSlug must be provided
-   * 2. Check-in date must be before check-out date
-   * 3. Check-in date must not be in the past
-   * 4. Date range should not exceed 30 days (optional limit)
-   * 
+   * 1. hotelId is mandatory
+   * 2. roomTypeId is optional - if provided, searches only that room type
+   * 3. numberOfRooms is optional - validates available count if provided
+   * 4. Check-in date must be before check-out date
+   * 5. Check-in date must not be in the past
+   * 6. Date range should not exceed 30 days (optional limit)
+   *
    * @param db - D1Database instance
    * @param query - Search parameters
-   * @returns Available room types with counts
+   * @returns Available room types with rooms
    */
   static async searchRoomAvailability(
     db: D1Database,
@@ -27,30 +30,33 @@ export class AvailabilityService {
   ) {
     const {
       hotelId,
-      hotelSlug,
+      roomTypeId,
       checkInDate,
       checkOutDate,
+      numberOfRooms,
       minPriceCents,
       maxPriceCents,
       guestCount,
     } = query;
 
     // Validation: Check required fields
+    if (!hotelId) {
+      throw new Error("validation: hotelId is required");
+    }
+
     if (!checkInDate || !checkOutDate) {
       throw new Error("validation: Check-in and check-out dates are required");
     }
 
-    if (!hotelId && !hotelSlug) {
-      throw new Error("validation: Either hotelId or hotelSlug must be provided");
-    }
-
     // Validation: Date logic
     if (checkInDate >= checkOutDate) {
-      throw new Error("validation: Check-in date must be before check-out date");
+      throw new Error(
+        "validation: Check-in date must be before check-out date",
+      );
     }
 
     // Validation: Check if check-in date is not in the past
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     if (checkInDate < today) {
       throw new Error("validation: Check-in date cannot be in the past");
     }
@@ -61,8 +67,12 @@ export class AvailabilityService {
       throw new Error("validation: Date range cannot exceed 30 days");
     }
 
-    // Determine hotel identifier (prefer ID over slug for performance)
-    const hotelIdentifier = hotelId ? parseInt(hotelId, 10) : hotelSlug!;
+    // Parse numeric parameters
+    const hotelIdNum = parseInt(hotelId, 10);
+    const roomTypeIdNum = roomTypeId ? parseInt(roomTypeId, 10) : undefined;
+    const numberOfRoomsNum = numberOfRooms
+      ? parseInt(numberOfRooms, 10)
+      : undefined;
 
     // Build filters
     const filters = {
@@ -71,18 +81,27 @@ export class AvailabilityService {
       guestCount: guestCount ? parseInt(guestCount, 10) : undefined,
     };
 
-    // Call optimized repository method
-    const result = await AvailabilityRepository.findAvailableRoomTypesByHotel(
+    // Call unified repository method
+    const result = await AvailabilityRepository.findAvailableRoomTypesWithRooms(
       db,
-      hotelIdentifier,
+      hotelIdNum,
       checkInDate,
       checkOutDate,
+      roomTypeIdNum,
+      numberOfRoomsNum,
       filters,
     );
 
     // Check if hotel was found
     if (result.hotelId === null) {
       throw new Error("validation: Hotel not found or inactive");
+    }
+
+    // Additional validation: if roomTypeId was specified but no results found
+    if (roomTypeId && result.roomTypes.length === 0) {
+      throw new Error(
+        "validation: No available rooms found for the specified room type",
+      );
     }
 
     return {
@@ -137,7 +156,10 @@ export class AvailabilityService {
   /**
    * Helper method to calculate days between two dates
    */
-  private static calculateDaysDifference(startDate: string, endDate: string): number {
+  private static calculateDaysDifference(
+    startDate: string,
+    endDate: string,
+  ): number {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());

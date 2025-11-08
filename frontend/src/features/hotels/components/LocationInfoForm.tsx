@@ -14,7 +14,7 @@ import {
   Image,
   message,
 } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useFieldArray, type Control } from "react-hook-form";
 
 import { type CreateHotelFormPayload } from "../types/hotels";
@@ -190,6 +190,23 @@ const ImagesForm: React.FC<ImagesFormProps> = ({ control, locationIndex }) => {
 
   const imageBaseUrl = import.meta.env.VITE_BUCKET_URL;
 
+  useEffect(() => {
+    const initialFileLists: Record<number, UploadFile[]> = {};
+    fields.forEach((field, index) => {
+      if (field.url) {
+        initialFileLists[index] = [
+          {
+            uid: field.id,
+            name: field.url.split("/").pop() || `image-${index}.png`,
+            status: "done",
+            url: `${imageBaseUrl}/${field.url.replace("r2://", "")}`,
+          },
+        ];
+      }
+    });
+    setFileLists(initialFileLists);
+  }, [fields, imageBaseUrl]);
+
   const handleUploadChange = (index: number, info: UploadFile[]) => {
     setFileLists((prev) => ({ ...prev, [index]: info }));
   };
@@ -262,23 +279,6 @@ const ImagesForm: React.FC<ImagesFormProps> = ({ control, locationIndex }) => {
                 }}
               />
             </div>
-
-            {/* Show existing image if in edit mode */}
-            {field.url && (
-              <div className="mb-2">
-                <span className="text-xs text-gray-500 block mb-1">
-                  Current Image:
-                </span>
-                <Image
-                  src={`${imageBaseUrl}/${field.url.replace("r2://", "")}`}
-                  alt={field.alt || "Location image"}
-                  className="w-20 h-20 object-cover rounded"
-                  preview={{
-                    mask: <EyeOutlined className="text-white" />,
-                  }}
-                />
-              </div>
-            )}
 
             {/* File Upload */}
             <div>
