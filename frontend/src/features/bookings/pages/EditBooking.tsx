@@ -10,8 +10,9 @@ import { type ApiResponse } from "@shared/models";
 import { fetcher } from "@utils/swrFetcher";
 import { type Booking } from "src/features/bookings/types/bookings";
 
-import { type Addon } from "../../addon/types/addon";
-import { type IRoom } from "../../rooms/types/rooms";
+import { type AddonInBooking } from "../../addon/types/addon";
+import { type RoomTypeWithRelations } from "../../room-type/types/roomType";
+import { type BookingRoomTypeRooms } from "../../rooms/types/rooms";
 import BookingDetailsForm from "../components/BookingDetailsForm";
 import CustomerInformationForm from "../components/CustomerInformationForm";
 import ReviewAndSubmit from "../components/ReviewAndSubmit";
@@ -24,8 +25,8 @@ const { Title } = Typography;
 interface BookingData {
   bookingDetails?: any;
   customerData?: CustomerData;
-  selectedRooms?: IRoom[];
-  selectedAddons?: Addon[];
+  selectedRooms?: BookingRoomTypeRooms[];
+  selectedAddons?: AddonInBooking[];
 }
 
 function EditBooking() {
@@ -97,8 +98,9 @@ function EditBooking() {
   };
 
   const handleRoomSelectionFinish = (values: {
-    selectedRooms: IRoom[];
-    selectedAddons: Addon[];
+    selectedRooms: BookingRoomTypeRooms[];
+    selectedAddons: AddonInBooking[];
+    roomTypeDetails?: RoomTypeWithRelations;
   }) => {
     setBookingData((prev) => ({
       ...prev,
@@ -151,7 +153,7 @@ function EditBooking() {
         notes: bookingData.customerData?.notes,
       },
       selectedRooms: bookingData.selectedRooms?.map((room) => ({
-        id: room.id,
+        id: room.roomId,
       })),
       selectedAddons: bookingData.selectedAddons?.map((addon) => ({
         id: addon.id,

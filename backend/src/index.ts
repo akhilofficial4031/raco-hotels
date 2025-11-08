@@ -16,6 +16,7 @@ import bookingRoutes from "./routes/booking.route";
 // import cancellationPolicyRoutes from "./routes/cancellation_policy.route";
 import contentRoutes from "./routes/content.route";
 import customerRoutes from "./routes/customer.route";
+import dashboardRoutes from "./routes/dashboard.route";
 import featureRoutes from "./routes/feature.route";
 import hotelRoutes from "./routes/hotel.route";
 import jobRoutes from "./routes/job.route";
@@ -28,7 +29,6 @@ import systemRoutes from "./routes/system.route";
 import taxFeeRoutes from "./routes/tax_fee.route";
 // Import middleware and utilities
 import userRoutes from "./routes/user.route";
-import dashboardRoutes from "./routes/dashboard.route";
 import { i18nMiddleware } from "./utils/i18n";
 import { getLocalizedMessage } from "./utils/i18n";
 
@@ -91,9 +91,9 @@ app.route("/api", amenityRoutes);
 app.route("/api", featureRoutes);
 app.route("/api", hotelRoutes);
 app.route("/api", roomTypeRoutes);
+app.route("/api", availabilityRoutes); // Move availability routes BEFORE room routes to avoid path conflicts
 app.route("/api", roomRoutes);
 app.route("/api", roomPublicRoutes);
-app.route("/api", availabilityRoutes);
 app.route("/api", bookingRoutes);
 app.route("/api", reviewRoutes);
 app.route("/api", contentRoutes);

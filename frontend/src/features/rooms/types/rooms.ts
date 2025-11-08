@@ -44,3 +44,82 @@ export interface ICreateRoom {
 export interface IUpdateRoom extends Partial<Omit<ICreateRoom, "roomNumbers">> {
   roomNumber?: string;
 }
+
+export interface IRoomAvailability {
+  checkInDate: string;
+  checkOutDate: string;
+  hotelId: number;
+  roomTypes: IRoomType[];
+  totalRoomTypesAvailable: number;
+}
+
+export interface IRoomType {
+  id: number;
+  hotelId: number;
+  name: string;
+  slug: string;
+  description: string;
+  baseOccupancy: number;
+  maxOccupancy: number;
+  basePriceCents: number;
+  currencyCode: string;
+  sizeSqft: number;
+  bedType: string;
+  smokingAllowed: number;
+  totalRooms: number;
+  isActive: number;
+  createdAt: string;
+  updatedAt: string;
+  images: RoomImage[];
+  amenities: RoomAmenity[];
+  rooms: BookingRoomTypeRooms[];
+  addons?: Addon[];
+}
+
+export interface BookingRoomTypeRooms {
+  floor: string;
+  roomDescription: string;
+  roomId: number;
+  roomNumber: string;
+  status: RoomStatus;
+}
+
+export interface RoomImage {
+  id: number;
+  roomTypeId: number;
+  url: string;
+  alt: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface RoomAmenity {
+  amenityId: number;
+  roomTypeId: number;
+  createdAt: string;
+}
+
+export interface Room {
+  id: number;
+  hotelId: number;
+  roomTypeId: number;
+  roomNumber: string;
+  floor: string;
+  description: string;
+  status: string;
+  isActive: number;
+  createdAt: string;
+  updatedAt: string;
+  roomType: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface Addon {
+  id: number;
+  name: string;
+  description: string;
+  priceCents: number;
+  currencyCode: string;
+}

@@ -1,7 +1,7 @@
-import { ApiResponse, handleAsyncRoute } from "../lib/responses";
+import { HTTP_STATUS } from "../constants";
+import { handleAsyncRoute } from "../lib/responses";
 import { AvailabilityService } from "../services/availability.service";
 import { createLocalizedResponse, createLocalizedError } from "../utils/i18n";
-import { HTTP_STATUS } from "../constants";
 
 import type { AppContext } from "../types";
 
@@ -11,19 +11,21 @@ import type { AppContext } from "../types";
  */
 export class AvailabilityController {
   /**
-   * Get room availability for a hotel
+   * Unified room availability endpoint
    * Public endpoint - no authentication required
-   * 
+   *
    * Query parameters:
-   * - hotelId OR hotelSlug (required): Hotel identifier
+   * - hotelId (required): Hotel ID
+   * - roomTypeId (optional): Room type ID for specific room type search
    * - checkInDate (required): YYYY-MM-DD format
    * - checkOutDate (required): YYYY-MM-DD format
+   * - numberOfRooms (optional): Number of rooms required for validation
    * - minPriceCents (optional): Minimum price filter
    * - maxPriceCents (optional): Maximum price filter
    * - guestCount (optional): Number of guests
-   * 
+   *
    * @param c - Hono context
-   * @returns Available room types with counts
+   * @returns Available room types with individual rooms
    */
   static async getRoomAvailability(c: AppContext) {
     return handleAsyncRoute(
@@ -31,14 +33,14 @@ export class AvailabilityController {
       async () => {
         const query = c.req.query();
 
-        // Validate that at least one identifier is provided
-        if (!query.hotelId && !query.hotelSlug) {
+        // Validate that hotelId is provided
+        if (!query.hotelId) {
           return createLocalizedError(
             c,
             "errorCodes.validationError",
-            "availability.hotelIdentifierRequired",
+            "availability.hotelIdRequired",
             HTTP_STATUS.BAD_REQUEST,
-            { details: "Either hotelId or hotelSlug must be provided" }
+            { details: "hotelId is required" },
           );
         }
 
@@ -49,16 +51,17 @@ export class AvailabilityController {
             "errorCodes.validationError",
             "availability.datesRequired",
             HTTP_STATUS.BAD_REQUEST,
-            { details: "Check-in and check-out dates are required" }
+            { details: "Check-in and check-out dates are required" },
           );
         }
 
         try {
           // Call service to get availability
-          const availabilityData = await AvailabilityService.searchRoomAvailability(
-            c.env.DB,
-            query as any,
-          );
+          const availabilityData =
+            await AvailabilityService.searchRoomAvailability(
+              c.env.DB,
+              query as any,
+            );
 
           // Return success response with availability data
           return createLocalizedResponse(
@@ -76,7 +79,7 @@ export class AvailabilityController {
               "errorCodes.validationError",
               "availability.validationFailed",
               HTTP_STATUS.BAD_REQUEST,
-              { details: errorDetail }
+              { details: errorDetail },
             );
           }
 
@@ -85,25 +88,6 @@ export class AvailabilityController {
         }
       },
       "availability.fetchFailed",
-    );
-  }
-
-  /**
-   * Legacy availability endpoint - kept for backward compatibility
-   * @deprecated Use getRoomAvailability instead
-   */
-  static async getAvailability(c: AppContext) {
-    return handleAsyncRoute(
-      c,
-      async () => {
-        const query = c.req.query();
-        const results = await AvailabilityService.search(
-          c.env.DB,
-          query as any,
-        );
-        return ApiResponse.success(c, { results });
-      },
-      "operation.fetchAvailabilityFailed",
     );
   }
 }

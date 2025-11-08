@@ -24,6 +24,11 @@ export interface DatabaseRoomType extends HotelScopedEntity {
   images?: DatabaseRoomTypeImage[];
   amenities?: DatabaseRoomTypeAmenity[];
   addons?: DatabaseRoomTypeAddon[];
+  hotel?: {
+    id: number;
+    name: string;
+    slug: string | null;
+  };
 }
 
 /**

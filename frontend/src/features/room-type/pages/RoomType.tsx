@@ -1,8 +1,10 @@
+/* eslint-disable no-unused-vars */
 import {
   DeleteOutlined,
   EditOutlined,
   ExclamationCircleOutlined,
   MoreOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -16,6 +18,7 @@ import {
 } from "antd";
 import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
+import { Navigate, useNavigate } from "react-router";
 import useSWR, { mutate } from "swr";
 
 import TableHeader from "@shared/components/TableHeader";
@@ -45,7 +48,8 @@ const RoomType = () => {
   const [currentRoomType, setCurrentRoomType] =
     useState<RoomTypeWithRelations | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-
+  const [formKey, setFormKey] = useState(0); // Add counter for form reset
+  const navigate = useNavigate();
   const [filterParams, setFilterParams] = useState<RoomTypeListParamStructure>({
     page: 1,
     limit: 10,
@@ -88,6 +92,7 @@ const RoomType = () => {
 
   const handleAddRoomType = () => {
     setCurrentRoomType(null);
+    setFormKey((prev) => prev + 1); // Increment key to force form reset
     setOpenAddRoomTypePanel(true);
   };
 
@@ -193,11 +198,6 @@ const RoomType = () => {
     }).format(price);
   };
 
-  const getHotelName = (hotelId: number) => {
-    const hotel = hotelsResponse?.data?.hotels?.find((h) => h.id === hotelId);
-    return hotel?.name || `Hotel ${hotelId}`;
-  };
-
   const columns: ColumnsType<RoomTypeWithRelations> = [
     {
       title: "Name",
@@ -215,9 +215,11 @@ const RoomType = () => {
     },
     {
       title: "Hotel",
-      dataIndex: "hotelId",
-      key: "hotelId",
-      render: (hotelId: number) => getHotelName(hotelId),
+      dataIndex: "hotel",
+      key: "hotel",
+      render: (
+        hotel: { id: number; name: string; slug: string | null } | undefined,
+      ) => hotel?.name || "Unknown Hotel",
     },
     {
       title: "Occupancy",
@@ -290,6 +292,12 @@ const RoomType = () => {
                 label: "Delete",
                 onClick: () => handleDeleteRoomType(record),
               },
+              {
+                key: "manage-rooms",
+                icon: <SettingOutlined />,
+                label: "Manage Rooms",
+                onClick: () => navigate(`/rooms?hotelId=${record.hotelId}`),
+              },
             ],
           }}
         >
@@ -335,6 +343,7 @@ const RoomType = () => {
         </div>
       </div>
       <AddEditRoomType
+        key={currentRoomType ? `edit-${currentRoomType.id}` : `new-${formKey}`}
         open={openAddRoomTypePanel}
         onClose={() => setOpenAddRoomTypePanel(false)}
         onSubmit={handleFormSubmit}

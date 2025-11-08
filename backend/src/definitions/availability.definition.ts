@@ -10,54 +10,46 @@ import {
  */
 export const AvailabilityRouteDefinitions = {
   /**
-   * Get room availability for a hotel
-   * Primary endpoint for searching available rooms
+   * Unified room availability endpoint
+   * Handles both specific room type and all room types searches
    */
   getRoomAvailability: createPublicRoute({
     method: "get",
     path: "/rooms/availability",
     summary: "Search room availability by hotel",
-    description: `Search for available room types in a hotel for specific dates.
+    description: `Unified endpoint for searching available room types and rooms in a hotel.
     
     **Features:**
-    - Search by hotel ID or hotel slug
+    - Search by hotel ID (mandatory)
+    - Optional room type filtering (roomTypeId)
+    - Optional room count validation (numberOfRooms)
     - Filter by price range (min/max)
     - Filter by guest count (max occupancy)
-    - Returns room types with availability counts
-    - Optimized single-query performance
+    - Returns room types with individual room details
     
     **Business Rules:**
-    - Either hotelId or hotelSlug must be provided
+    - hotelId is mandatory
+    - roomTypeId is optional - if provided, searches only that room type
+    - numberOfRooms is optional - validates available count if provided
     - Check-in date must be before check-out date
     - Check-in date cannot be in the past
     - Maximum date range is 30 days
     
+    **Response:**
+    - Always returns array of room types
+    - Each room type includes available individual rooms
+    - Only room types with available rooms are returned
+    
     **Performance:**
     - Uses optimized SQL with proper indexing
-    - Single query with JOINs for efficiency
-    - Returns only room types with availability > 0`,
+    - Filters rooms by "available" status only
+    - Excludes rooms with booking conflicts`,
     tags: [ApiTags.ROOMS],
     successSchema: RoomsAvailabilityResponseSchema,
-    successDescription: "Available room types retrieved successfully",
+    successDescription:
+      "Available room types with rooms retrieved successfully",
     querySchema: RoomsAvailabilityQueryParamsSchema,
     includeBadRequest: true,
     includeNotFound: true,
-  }),
-
-  /**
-   * Legacy availability endpoint - kept for backward compatibility
-   * @deprecated Use getRoomAvailability instead
-   */
-  getRoomsAvailability: createPublicRoute({
-    method: "get",
-    path: "/availability",
-    summary: "Search room availability (Legacy)",
-    description:
-      "Legacy endpoint. Use /rooms/availability instead. Query room types available for a date range with optional filters.",
-    tags: [ApiTags.ROOMS],
-    successSchema: RoomsAvailabilityResponseSchema,
-    successDescription: "Availability retrieved successfully",
-    querySchema: RoomsAvailabilityQueryParamsSchema,
-    includeBadRequest: true,
   }),
 };

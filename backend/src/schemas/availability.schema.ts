@@ -1,25 +1,22 @@
 import { z } from "zod";
 
+import { RoomTypeImageSchema } from "./room_type.schema";
+
 /**
  * Query parameters for room availability search
  * Supports searching by hotel ID or slug with date range
  */
 export const RoomsAvailabilityQueryParamsSchema = z
   .object({
-    hotelId: z
-      .string()
-      .optional()
-      .openapi({
-        example: "1",
-        description: "Hotel ID (numeric) - use either hotelId or hotelSlug",
-      }),
-    hotelSlug: z
-      .string()
-      .optional()
-      .openapi({
-        example: "grand-plaza-hotel",
-        description: "Hotel slug (text identifier) - use either hotelId or hotelSlug",
-      }),
+    hotelId: z.string().openapi({
+      example: "1",
+      description: "Hotel ID (numeric) - required",
+    }),
+    roomTypeId: z.string().optional().openapi({
+      example: "1",
+      description:
+        "Room Type ID (numeric) - when provided, searches only this room type",
+    }),
     checkInDate: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -34,32 +31,55 @@ export const RoomsAvailabilityQueryParamsSchema = z
         example: "2024-12-23",
         description: "Check-out date in YYYY-MM-DD format",
       }),
-    minPriceCents: z
-      .string()
-      .optional()
-      .openapi({
-        example: "5000",
-        description: "Minimum price filter in cents",
-      }),
-    maxPriceCents: z
-      .string()
-      .optional()
-      .openapi({
-        example: "20000",
-        description: "Maximum price filter in cents",
-      }),
-    guestCount: z
-      .string()
-      .optional()
-      .openapi({
-        example: "2",
-        description: "Number of guests (filters by max occupancy)",
-      }),
+    numberOfRooms: z.string().optional().openapi({
+      example: "2",
+      description: "Number of rooms required - validates availability count",
+    }),
+    minPriceCents: z.string().optional().openapi({
+      example: "5000",
+      description: "Minimum price filter in cents",
+    }),
+    maxPriceCents: z.string().optional().openapi({
+      example: "20000",
+      description: "Maximum price filter in cents",
+    }),
+    guestCount: z.string().optional().openapi({
+      example: "2",
+      description: "Number of guests (filters by max occupancy)",
+    }),
   })
   .openapi("RoomsAvailabilityQueryParams");
 
 /**
- * Available room type details with availability count
+ * Individual room details
+ */
+export const AvailableRoomSchema = z
+  .object({
+    roomId: z.number().int().openapi({
+      example: 101,
+      description: "Unique identifier for the room",
+    }),
+    roomNumber: z.string().openapi({
+      example: "101",
+      description: "Room number",
+    }),
+    floor: z.string().nullable().openapi({
+      example: "1",
+      description: "Floor number",
+    }),
+    roomDescription: z.string().nullable().openapi({
+      example: "Corner room with city view",
+      description: "Description of the specific room",
+    }),
+    status: z.string().openapi({
+      example: "available",
+      description: "Current status of the room",
+    }),
+  })
+  .openapi("AvailableRoom");
+
+/**
+ * Available room type details with availability count and available rooms
  */
 export const AvailableRoomTypeSchema = z
   .object({
@@ -115,6 +135,12 @@ export const AvailableRoomTypeSchema = z
       example: 5,
       description: "Number of rooms available for the selected dates",
     }),
+    images: z.array(RoomTypeImageSchema).openapi({
+      description: "List of images for this room type",
+    }),
+    rooms: z.array(AvailableRoomSchema).openapi({
+      description: "List of available individual rooms for this room type",
+    }),
   })
   .openapi("AvailableRoomType");
 
@@ -152,10 +178,10 @@ export const RoomsAvailabilityResponseSchema = z
   .openapi("RoomsAvailabilityResponse");
 
 /**
- * Legacy schemas - kept for backward compatibility
- * @deprecated Use AvailableRoomTypeSchema instead
+ * Legacy schema - kept for backward compatibility
+ * @deprecated Use AvailableRoomSchema instead
  */
-export const AvailableRoomSchema = z.object({
+export const LegacyAvailableRoomSchema = z.object({
   id: z.number().int(),
   hotelId: z.number().int(),
   roomTypeId: z.number().int(),
