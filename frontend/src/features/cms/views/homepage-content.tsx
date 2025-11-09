@@ -215,6 +215,8 @@ function HomepageContent() {
     handleSubmit,
     reset,
     formState: { errors },
+    getValues,
+    trigger,
   } = useForm({
     resolver: zodResolver(homepageContentSchema) as any,
     mode: "onBlur",
@@ -410,8 +412,8 @@ function HomepageContent() {
     }
   };
 
-  const handleFormError = (errors: FieldErrors<any>) => {
-    console.warn("Form validation errors:", errors);
+  const handleFormError = (formErrors: FieldErrors<any>) => {
+    console.warn("Form validation errors:", formErrors);
     // Show error message if validation fails
     const errorMessages: string[] = [];
 
@@ -428,10 +430,42 @@ function HomepageContent() {
       }
     };
 
-    flattenErrors(errors);
+    flattenErrors(formErrors);
     if (errorMessages.length > 0) {
       message.error(`Validation errors: ${errorMessages.join(", ")}`);
       console.error("Detailed errors:", errorMessages);
+    }
+  };
+
+  const handleSave = async () => {
+    const fieldMap: Record<string, (keyof HomePageContent)[]> = {
+      "1": ["topBanner"],
+      "2": ["hero"],
+      "3": ["aboutUs"],
+      "4": ["ourStays", "featuredStays"],
+      "5": ["signatureExperiences"],
+      "6": ["seo"],
+    };
+
+    const fieldsToValidate = fieldMap[activeTab];
+
+    if (!fieldsToValidate) {
+      return;
+    }
+
+    const isValid = await trigger(fieldsToValidate);
+
+    if (isValid) {
+      const formData = getValues();
+      await handleFormSubmit(formData);
+    } else {
+      const tabErrors: FieldErrors<HomePageContent> = {};
+      for (const field of fieldsToValidate) {
+        if (errors[field]) {
+          tabErrors[field] = errors[field] as any;
+        }
+      }
+      handleFormError(tabErrors);
     }
   };
 
@@ -582,7 +616,7 @@ function HomepageContent() {
           </Button>
           <Button
             type="primary"
-            htmlType="submit"
+            onClick={handleSave}
             size="large"
             loading={isSaving}
             className="px-8"
