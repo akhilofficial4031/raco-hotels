@@ -2,7 +2,6 @@ import {
   DeleteOutlined,
   PlusOutlined,
   UploadOutlined,
-  EyeOutlined,
 } from "@ant-design/icons";
 import {
   Button,
