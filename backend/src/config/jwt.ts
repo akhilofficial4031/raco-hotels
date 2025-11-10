@@ -106,6 +106,20 @@ export function verifyToken(token: string): JWTPayload {
   }) as JWTPayload;
 }
 
+// Decode Token Without Verification (for checking expiry)
+export function decodeTokenWithoutVerification(
+  token: string,
+): JWTPayload | null {
+  try {
+    return jwt.decode(token) as JWTPayload;
+  } catch {
+    return null;
+  }
+}
+
+// Export JWT error types for error handling
+export { TokenExpiredError, JsonWebTokenError } from "jsonwebtoken";
+
 // Generate CSRF Token
 export function generateCSRFToken(): string {
   return jwt.sign({ type: "csrf", timestamp: Date.now() }, JWT_CONFIG.SECRET, {

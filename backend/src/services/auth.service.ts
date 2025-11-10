@@ -4,6 +4,13 @@ import { randomBytes } from "@noble/hashes/utils";
 
 import { UserStatus } from "../../../shared/types/user";
 import { getMessage, DEFAULT_LOCALE } from "../config/messages";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  generateCSRFToken,
+  verifyToken,
+  type JWTPayload,
+} from "../config/jwt";
 import { AuthRepository } from "../repositories/auth.repository";
 import { UserRepository } from "../repositories/user.repository";
 import {
@@ -121,6 +128,75 @@ export class AuthService {
       return acc + byte.toString(36);
     }, "");
     return `${timestamp}_${randomPart}`;
+  }
+
+  // Refresh tokens - centralized logic for token refresh
+  static async refreshTokens(
+    kv: KVNamespace,
+    db: D1Database,
+    refreshToken: string,
+  ): Promise<{
+    accessToken: string;
+    refreshToken: string;
+    csrfToken: string;
+    payload: JWTPayload;
+  } | null> {
+    try {
+      // Verify refresh token
+      const decoded = verifyToken(refreshToken);
+
+      if (!decoded.tokenId) {
+        return null;
+      }
+
+      // Check if token exists and is valid in KV
+      const storedToken = await this.getRefreshToken(kv, decoded.tokenId);
+
+      if (!storedToken || storedToken.token !== refreshToken) {
+        return null;
+      }
+
+      // Get user to ensure they still exist and are active
+      const user = await this.getUserForToken(db, decoded.userId);
+
+      if (!user) {
+        // Remove invalid token from KV
+        await this.revokeRefreshToken(kv, decoded.tokenId);
+        return null;
+      }
+
+      // Generate new token ID for security (token rotation)
+      const newTokenId = this.generateTokenId();
+
+      // Generate new tokens
+      const newTokenPayload = {
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        tokenId: newTokenId,
+      };
+
+      const newAccessToken = generateAccessToken(newTokenPayload);
+      const newRefreshToken = generateRefreshToken(newTokenPayload);
+      const newCsrfToken = generateCSRFToken();
+
+      // Remove old refresh token and store new ones
+      await this.revokeRefreshToken(kv, decoded.tokenId);
+      await Promise.all([
+        this.storeRefreshToken(kv, newTokenId, newRefreshToken, user.id),
+        this.storeAccessToken(kv, newTokenId, newAccessToken, user.id),
+      ]);
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        csrfToken: newCsrfToken,
+        payload: newTokenPayload,
+      };
+    } catch (error) {
+      // Token verification failed or other error
+      return null;
+    }
   }
 
   // Store refresh token in KV
