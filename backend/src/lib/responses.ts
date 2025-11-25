@@ -1,6 +1,6 @@
 import { type Context } from "hono";
 
-import { HTTP_STATUS, ERROR_CODES } from "../constants";
+import { HTTP_STATUS } from "../constants";
 import {
   getI18n,
   createLocalizedResponse,
@@ -47,57 +47,60 @@ export class ApiResponse {
     return c.json(response, statusCode as any);
   }
 
-  static badRequest(c: Context, message: string, details?: any) {
-    return this.error(
+  static badRequest(c: Context, messageKey: string, details?: any) {
+    return createLocalizedError(
       c,
-      ERROR_CODES.VALIDATION_ERROR,
-      message,
+      "errorCodes.validationError",
+      messageKey,
       HTTP_STATUS.BAD_REQUEST,
       details,
     );
   }
 
-  static unauthorized(c: Context, message: string = "Unauthorized access") {
-    return this.error(
+  static unauthorized(c: Context, messageKey: string = "auth.unauthorized") {
+    return createLocalizedError(
       c,
-      ERROR_CODES.UNAUTHORIZED_ACCESS,
-      message,
+      "errorCodes.unauthorizedAccess",
+      messageKey,
       HTTP_STATUS.UNAUTHORIZED,
     );
   }
 
-  static forbidden(c: Context, message: string = "Forbidden") {
-    return this.error(
+  static forbidden(c: Context, messageKey: string = "auth.forbidden") {
+    return createLocalizedError(
       c,
-      ERROR_CODES.UNAUTHORIZED_ACCESS,
-      message,
+      "errorCodes.unauthorizedAccess",
+      messageKey,
       HTTP_STATUS.FORBIDDEN,
     );
   }
 
-  static notFound(c: Context, message: string = "Resource not found") {
-    return this.error(
+  static notFound(c: Context, messageKey: string) {
+    return createLocalizedError(
       c,
-      ERROR_CODES.USER_NOT_FOUND,
-      message,
+      "errorCodes.notFound",
+      messageKey,
       HTTP_STATUS.NOT_FOUND,
     );
   }
 
-  static conflict(c: Context, message: string = "Resource conflict") {
-    return this.error(
+  static conflict(c: Context, messageKey: string) {
+    return createLocalizedError(
       c,
-      ERROR_CODES.USER_ALREADY_EXISTS,
-      message,
+      "errorCodes.validationError",
+      messageKey,
       HTTP_STATUS.CONFLICT,
     );
   }
 
-  static internalError(c: Context, message: string = "Internal server error") {
-    return this.error(
+  static internalError(
+    c: Context,
+    messageKey: string = "system.internalError",
+  ) {
+    return createLocalizedError(
       c,
-      ERROR_CODES.INTERNAL_ERROR,
-      message,
+      "errorCodes.internalError",
+      messageKey,
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
     );
   }

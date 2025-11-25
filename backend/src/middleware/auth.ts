@@ -43,7 +43,6 @@ export const authMiddleware = createMiddleware(async (c, next) => {
     }
 
     let payload: JWTPayload | null = null;
-    let tokenRefreshed = false;
 
     try {
       // Try to verify the access token
@@ -127,7 +126,6 @@ export const authMiddleware = createMiddleware(async (c, next) => {
 
         // Use the new token payload
         payload = refreshResult.payload;
-        tokenRefreshed = true;
       } else if (error instanceof HTTPException) {
         throw error;
       } else {

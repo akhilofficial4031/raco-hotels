@@ -38,7 +38,7 @@ export class RoomController {
       async () => {
         const id = parseInt(c.req.param("id"), 10);
         const item = await RoomService.getRoomById(c.env.DB, id);
-        if (!item) return ApiResponse.notFound(c, "Room not found");
+        if (!item) return ApiResponse.notFound(c, "room.notFound");
         return ApiResponse.success(c, { room: item });
       },
       "operation.fetchRoomFailed",
@@ -59,10 +59,10 @@ export class RoomController {
             (e.message.includes("exist") ||
               e.message.includes("Room type not found"))
           ) {
-            const message = e.message.includes("exist")
-              ? e.message
-              : "Room type not found";
-            return ApiResponse.badRequest(c, message);
+            const messageKey = e.message.includes("exist")
+              ? "room.notFound"
+              : "room.roomTypeNotFound";
+            return ApiResponse.badRequest(c, messageKey);
           }
           throw e;
         }
@@ -83,12 +83,12 @@ export class RoomController {
         } catch (e) {
           if (e instanceof Error) {
             if (e.message === "Room not found")
-              return ApiResponse.notFound(c, "Room not found");
+              return ApiResponse.notFound(c, "room.notFound");
             if (
               e.message.includes("exists") ||
               e.message.includes("Room type not found")
             )
-              return ApiResponse.badRequest(c, e.message);
+              return ApiResponse.badRequest(c, "room.roomTypeNotFound");
           }
           throw e;
         }
@@ -104,18 +104,18 @@ export class RoomController {
         const id = parseInt(c.req.param("id"), 10);
         try {
           const deleted = await RoomService.deleteRoom(c.env.DB, id);
-          if (!deleted) return ApiResponse.notFound(c, "Room not found");
+          if (!deleted) return ApiResponse.notFound(c, "room.notFound");
           return ApiResponse.success(c, {});
         } catch (e) {
           if (e instanceof Error) {
             if (e.message === "Room not found") {
-              return ApiResponse.notFound(c, "Room not found");
+              return ApiResponse.notFound(c, "room.notFound");
             }
             if (
               e.message ===
               "This room cannot be deleted because it is associated with a booking."
             ) {
-              return ApiResponse.badRequest(c, e.message);
+              return ApiResponse.badRequest(c, "room.cannotDeleteWithBooking");
             }
           }
           throw e;

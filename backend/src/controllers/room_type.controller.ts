@@ -36,7 +36,7 @@ export class RoomTypeController {
       async () => {
         const id = parseInt(c.req.param("id"), 10);
         const item = await RoomTypeService.getRoomTypeById(c.env.DB, id);
-        if (!item) return ApiResponse.notFound(c, "Room type not found");
+        if (!item) return ApiResponse.notFound(c, "roomType.notFound");
         return ApiResponse.success(c, { roomType: item });
       },
       "operation.fetchRoomTypeFailed",
@@ -56,7 +56,7 @@ export class RoomTypeController {
           return ApiResponse.created(c, { roomType: created });
         } catch (e) {
           if (e instanceof Error && e.message.includes("slug")) {
-            return ApiResponse.conflict(c, e.message);
+            return ApiResponse.conflict(c, "roomType.slugConflict");
           }
           throw e;
         }
@@ -81,9 +81,9 @@ export class RoomTypeController {
         } catch (e) {
           if (e instanceof Error) {
             if (e.message === "Room type not found")
-              return ApiResponse.notFound(c, "Room type not found");
+              return ApiResponse.notFound(c, "roomType.notFound");
             if (e.message.includes("slug"))
-              return ApiResponse.conflict(c, e.message);
+              return ApiResponse.conflict(c, "roomType.slugConflict");
           }
           throw e;
         }
@@ -99,11 +99,11 @@ export class RoomTypeController {
         const id = parseInt(c.req.param("id"), 10);
         try {
           const deleted = await RoomTypeService.deleteRoomType(c.env.DB, id);
-          if (!deleted) return ApiResponse.notFound(c, "Room type not found");
+          if (!deleted) return ApiResponse.notFound(c, "roomType.notFound");
           return ApiResponse.success(c, {});
         } catch (e) {
           if (e instanceof Error && e.message === "Room type not found") {
-            return ApiResponse.notFound(c, "Room type not found");
+            return ApiResponse.notFound(c, "roomType.notFound");
           }
           throw e;
         }
@@ -125,7 +125,7 @@ export class RoomTypeController {
           roomTypeId,
         );
         if (!roomType) {
-          return ApiResponse.notFound(c, "Room type not found");
+          return ApiResponse.notFound(c, "roomType.notFound");
         }
 
         // Extract image files
@@ -137,7 +137,7 @@ export class RoomTypeController {
         }
 
         if (imageFiles.length === 0) {
-          return ApiResponse.badRequest(c, "No image files provided");
+          return ApiResponse.badRequest(c, "roomType.noImagesProvided");
         }
 
         // Extract replace images flag
@@ -163,16 +163,16 @@ export class RoomTypeController {
         } catch (e) {
           if (e instanceof Error) {
             if (e.message === "Room type not found") {
-              return ApiResponse.notFound(c, "Room type not found");
+              return ApiResponse.notFound(c, "roomType.notFound");
             }
             if (e.message.includes("Invalid image type")) {
-              return ApiResponse.badRequest(c, e.message);
+              return ApiResponse.badRequest(c, "roomType.invalidImageType");
             }
             if (
               e.message.includes("At least one image") ||
               e.message.includes("Cannot replace all images")
             ) {
-              return ApiResponse.badRequest(c, e.message);
+              return ApiResponse.badRequest(c, "roomType.cannotReplaceAllImages");
             }
           }
           throw e;
@@ -193,15 +193,15 @@ export class RoomTypeController {
             c.env.R2_BUCKET,
             imageId,
           );
-          if (!deleted) return ApiResponse.notFound(c, "Image not found");
+          if (!deleted) return ApiResponse.notFound(c, "roomType.imageNotFound");
           return ApiResponse.success(c, {});
         } catch (e) {
           if (e instanceof Error) {
             if (e.message === "Image not found") {
-              return ApiResponse.notFound(c, "Image not found");
+              return ApiResponse.notFound(c, "roomType.imageNotFound");
             }
             if (e.message.includes("Cannot delete the last image")) {
-              return ApiResponse.badRequest(c, e.message);
+              return ApiResponse.badRequest(c, "roomType.cannotDeleteLastImage");
             }
           }
           throw e;
@@ -219,7 +219,7 @@ export class RoomTypeController {
         const payload = await c.req.json();
 
         if (typeof payload.sortOrder !== "number") {
-          return ApiResponse.badRequest(c, "Sort order must be a number");
+          return ApiResponse.badRequest(c, "roomType.sortOrderInvalid");
         }
 
         try {
@@ -231,7 +231,7 @@ export class RoomTypeController {
           return ApiResponse.success(c, { image: updated });
         } catch (e) {
           if (e instanceof Error && e.message === "Image not found") {
-            return ApiResponse.notFound(c, "Image not found");
+            return ApiResponse.notFound(c, "roomType.imageNotFound");
           }
           throw e;
         }

@@ -10,7 +10,7 @@ export class JobController {
     const isDev = c.env.ENVIRONMENT === "development";
 
     if (!isDev && (!cronHeader || cronHeader !== c.env.CRON_SECRET)) {
-      return ApiResponse.unauthorized(c);
+      return ApiResponse.unauthorized(c, "system.cronUnauthorized");
     }
 
     return handleAsyncRoute(

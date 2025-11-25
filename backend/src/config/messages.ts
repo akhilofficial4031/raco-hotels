@@ -60,6 +60,8 @@ export interface Messages {
     validationError: string;
     notFoundEndpoint: string;
     checkDocumentation: string;
+    r2NotConfigured: string;
+    cronUnauthorized: string;
   };
 
   // Service information
@@ -79,6 +81,102 @@ export interface Messages {
     retrieved: string;
     listRetrieved: string;
     notFound: string;
+    dataRequired: string;
+    invalidData: string;
+    requiresImages: string;
+    imageNotFound: string;
+    sortOrderInvalid: string;
+  };
+
+  // Room type messages
+  roomType: {
+    created: string;
+    updated: string;
+    deleted: string;
+    retrieved: string;
+    listRetrieved: string;
+    notFound: string;
+    slugConflict: string;
+    imageNotFound: string;
+    noImagesProvided: string;
+    sortOrderInvalid: string;
+    cannotReplaceAllImages: string;
+    cannotDeleteLastImage: string;
+    invalidImageType: string;
+  };
+
+  // Room messages
+  room: {
+    created: string;
+    updated: string;
+    deleted: string;
+    retrieved: string;
+    listRetrieved: string;
+    notFound: string;
+    roomTypeNotFound: string;
+    cannotDeleteWithBooking: string;
+  };
+
+  // Content messages
+  content: {
+    created: string;
+    updated: string;
+    deleted: string;
+    retrieved: string;
+    listRetrieved: string;
+    blockNotFound: string;
+    homepageNotFound: string;
+  };
+
+  // Promo code messages
+  promoCode: {
+    created: string;
+    updated: string;
+    deleted: string;
+    retrieved: string;
+    listRetrieved: string;
+    notFound: string;
+  };
+
+  // Customer messages
+  customer: {
+    created: string;
+    updated: string;
+    deleted: string;
+    retrieved: string;
+    listRetrieved: string;
+    notFound: string;
+    invalidId: string;
+    invalidPhone: string;
+  };
+
+  // Review messages
+  review: {
+    created: string;
+    updated: string;
+    deleted: string;
+    retrieved: string;
+    listRetrieved: string;
+    notFound: string;
+  };
+
+  // Tax and fee messages
+  taxFee: {
+    created: string;
+    updated: string;
+    deleted: string;
+    retrieved: string;
+    listRetrieved: string;
+    notFound: string;
+  };
+
+  // Availability messages
+  availability: {
+    retrieved: string;
+    hotelIdRequired: string;
+    datesRequired: string;
+    validationFailed: string;
+    fetchFailed: string;
   };
 
   addonConfiguration: {
@@ -223,6 +321,8 @@ const enMessages: Messages = {
     validationError: "Validation error",
     notFoundEndpoint: "Endpoint not found",
     checkDocumentation: "Check the API documentation at /swagger-ui",
+    r2NotConfigured: "R2 storage is not configured",
+    cronUnauthorized: "Unauthorized: Invalid cron secret",
   },
 
   service: {
@@ -240,6 +340,96 @@ const enMessages: Messages = {
     retrieved: "Hotel retrieved successfully",
     listRetrieved: "Hotels retrieved successfully",
     notFound: "Hotel not found",
+    dataRequired: "Hotel data is required",
+    invalidData: "Invalid hotel data JSON",
+    requiresImages:
+      "Hotel creation requires images. Please use multipart/form-data with hotelData and images fields",
+    imageNotFound: "Image not found",
+    sortOrderInvalid: "Sort order must be a number",
+  },
+
+  roomType: {
+    created: "Room type created successfully",
+    updated: "Room type updated successfully",
+    deleted: "Room type deleted successfully",
+    retrieved: "Room type retrieved successfully",
+    listRetrieved: "Room types retrieved successfully",
+    notFound: "Room type not found",
+    slugConflict: "A room type with this slug already exists",
+    imageNotFound: "Image not found",
+    noImagesProvided: "No image files provided",
+    sortOrderInvalid: "Sort order must be a number",
+    cannotReplaceAllImages: "Cannot replace all images at once",
+    cannotDeleteLastImage: "Cannot delete the last image",
+    invalidImageType: "Invalid image type",
+  },
+
+  room: {
+    created: "Room created successfully",
+    updated: "Room updated successfully",
+    deleted: "Room deleted successfully",
+    retrieved: "Room retrieved successfully",
+    listRetrieved: "Rooms retrieved successfully",
+    notFound: "Room not found",
+    roomTypeNotFound: "Room type not found",
+    cannotDeleteWithBooking:
+      "This room cannot be deleted because it is associated with a booking",
+  },
+
+  content: {
+    created: "Content block created successfully",
+    updated: "Content block updated successfully",
+    deleted: "Content block deleted successfully",
+    retrieved: "Content block retrieved successfully",
+    listRetrieved: "Content blocks retrieved successfully",
+    blockNotFound: "Content block not found",
+    homepageNotFound: "Homepage content not found",
+  },
+
+  promoCode: {
+    created: "Promo code created successfully",
+    updated: "Promo code updated successfully",
+    deleted: "Promo code deleted successfully",
+    retrieved: "Promo code retrieved successfully",
+    listRetrieved: "Promo codes retrieved successfully",
+    notFound: "Promo code not found",
+  },
+
+  customer: {
+    created: "Customer created successfully",
+    updated: "Customer updated successfully",
+    deleted: "Customer deleted successfully",
+    retrieved: "Customer retrieved successfully",
+    listRetrieved: "Customers retrieved successfully",
+    notFound: "Customer not found",
+    invalidId: "Invalid customer ID",
+    invalidPhone: "Invalid phone number format",
+  },
+
+  review: {
+    created: "Review created successfully",
+    updated: "Review updated successfully",
+    deleted: "Review deleted successfully",
+    retrieved: "Review retrieved successfully",
+    listRetrieved: "Reviews retrieved successfully",
+    notFound: "Review not found",
+  },
+
+  taxFee: {
+    created: "Tax/fee created successfully",
+    updated: "Tax/fee updated successfully",
+    deleted: "Tax/fee deleted successfully",
+    retrieved: "Tax/fee retrieved successfully",
+    listRetrieved: "Taxes/fees retrieved successfully",
+    notFound: "Tax/fee not found",
+  },
+
+  availability: {
+    retrieved: "Availability data retrieved successfully",
+    hotelIdRequired: "Hotel ID is required",
+    datesRequired: "Check-in and check-out dates are required",
+    validationFailed: "Availability validation failed",
+    fetchFailed: "Failed to fetch availability",
   },
 
   addonConfiguration: {
@@ -384,6 +574,8 @@ const esMessages: Messages = {
     validationError: "Error de validación",
     notFoundEndpoint: "Endpoint no encontrado",
     checkDocumentation: "Revisa la documentación de la API en /swagger-ui",
+    r2NotConfigured: "El almacenamiento R2 no está configurado",
+    cronUnauthorized: "No autorizado: Secreto de cron inválido",
   },
 
   service: {
@@ -401,6 +593,97 @@ const esMessages: Messages = {
     retrieved: "Hotel obtenido exitosamente",
     listRetrieved: "Hoteles obtenidos exitosamente",
     notFound: "Hotel no encontrado",
+    dataRequired: "Se requieren datos del hotel",
+    invalidData: "JSON de datos del hotel inválido",
+    requiresImages:
+      "La creación del hotel requiere imágenes. Por favor use multipart/form-data con los campos hotelData e images",
+    imageNotFound: "Imagen no encontrada",
+    sortOrderInvalid: "El orden debe ser un número",
+  },
+
+  roomType: {
+    created: "Tipo de habitación creado exitosamente",
+    updated: "Tipo de habitación actualizado exitosamente",
+    deleted: "Tipo de habitación eliminado exitosamente",
+    retrieved: "Tipo de habitación obtenido exitosamente",
+    listRetrieved: "Tipos de habitación obtenidos exitosamente",
+    notFound: "Tipo de habitación no encontrado",
+    slugConflict: "Ya existe un tipo de habitación con este slug",
+    imageNotFound: "Imagen no encontrada",
+    noImagesProvided: "No se proporcionaron archivos de imagen",
+    sortOrderInvalid: "El orden debe ser un número",
+    cannotReplaceAllImages:
+      "No se pueden reemplazar todas las imágenes a la vez",
+    cannotDeleteLastImage: "No se puede eliminar la última imagen",
+    invalidImageType: "Tipo de imagen inválido",
+  },
+
+  room: {
+    created: "Habitación creada exitosamente",
+    updated: "Habitación actualizada exitosamente",
+    deleted: "Habitación eliminada exitosamente",
+    retrieved: "Habitación obtenida exitosamente",
+    listRetrieved: "Habitaciones obtenidas exitosamente",
+    notFound: "Habitación no encontrada",
+    roomTypeNotFound: "Tipo de habitación no encontrado",
+    cannotDeleteWithBooking:
+      "Esta habitación no se puede eliminar porque está asociada con una reserva",
+  },
+
+  content: {
+    created: "Bloque de contenido creado exitosamente",
+    updated: "Bloque de contenido actualizado exitosamente",
+    deleted: "Bloque de contenido eliminado exitosamente",
+    retrieved: "Bloque de contenido obtenido exitosamente",
+    listRetrieved: "Bloques de contenido obtenidos exitosamente",
+    blockNotFound: "Bloque de contenido no encontrado",
+    homepageNotFound: "Contenido de página de inicio no encontrado",
+  },
+
+  promoCode: {
+    created: "Código promocional creado exitosamente",
+    updated: "Código promocional actualizado exitosamente",
+    deleted: "Código promocional eliminado exitosamente",
+    retrieved: "Código promocional obtenido exitosamente",
+    listRetrieved: "Códigos promocionales obtenidos exitosamente",
+    notFound: "Código promocional no encontrado",
+  },
+
+  customer: {
+    created: "Cliente creado exitosamente",
+    updated: "Cliente actualizado exitosamente",
+    deleted: "Cliente eliminado exitosamente",
+    retrieved: "Cliente obtenido exitosamente",
+    listRetrieved: "Clientes obtenidos exitosamente",
+    notFound: "Cliente no encontrado",
+    invalidId: "ID de cliente inválido",
+    invalidPhone: "Formato de teléfono inválido",
+  },
+
+  review: {
+    created: "Reseña creada exitosamente",
+    updated: "Reseña actualizada exitosamente",
+    deleted: "Reseña eliminada exitosamente",
+    retrieved: "Reseña obtenida exitosamente",
+    listRetrieved: "Reseñas obtenidas exitosamente",
+    notFound: "Reseña no encontrada",
+  },
+
+  taxFee: {
+    created: "Impuesto/tarifa creado exitosamente",
+    updated: "Impuesto/tarifa actualizado exitosamente",
+    deleted: "Impuesto/tarifa eliminado exitosamente",
+    retrieved: "Impuesto/tarifa obtenido exitosamente",
+    listRetrieved: "Impuestos/tarifas obtenidos exitosamente",
+    notFound: "Impuesto/tarifa no encontrado",
+  },
+
+  availability: {
+    retrieved: "Datos de disponibilidad obtenidos exitosamente",
+    hotelIdRequired: "Se requiere el ID del hotel",
+    datesRequired: "Se requieren las fechas de entrada y salida",
+    validationFailed: "Falló la validación de disponibilidad",
+    fetchFailed: "Error al obtener disponibilidad",
   },
 
   addonConfiguration: {
@@ -548,6 +831,8 @@ const frMessages: Messages = {
     validationError: "Erreur de validation",
     notFoundEndpoint: "Point de terminaison non trouvé",
     checkDocumentation: "Consultez la documentation de l'API à /swagger-ui",
+    r2NotConfigured: "Le stockage R2 n'est pas configuré",
+    cronUnauthorized: "Non autorisé: Secret de cron invalide",
   },
 
   service: {
@@ -565,6 +850,97 @@ const frMessages: Messages = {
     retrieved: "Hôtel récupéré avec succès",
     listRetrieved: "Hôtels récupérés avec succès",
     notFound: "Hôtel non trouvé",
+    dataRequired: "Les données de l'hôtel sont requises",
+    invalidData: "JSON de données d'hôtel invalide",
+    requiresImages:
+      "La création d'hôtel nécessite des images. Veuillez utiliser multipart/form-data avec les champs hotelData et images",
+    imageNotFound: "Image non trouvée",
+    sortOrderInvalid: "L'ordre de tri doit être un nombre",
+  },
+
+  roomType: {
+    created: "Type de chambre créé avec succès",
+    updated: "Type de chambre mis à jour avec succès",
+    deleted: "Type de chambre supprimé avec succès",
+    retrieved: "Type de chambre récupéré avec succès",
+    listRetrieved: "Types de chambre récupérés avec succès",
+    notFound: "Type de chambre non trouvé",
+    slugConflict: "Un type de chambre avec ce slug existe déjà",
+    imageNotFound: "Image non trouvée",
+    noImagesProvided: "Aucun fichier image fourni",
+    sortOrderInvalid: "L'ordre de tri doit être un nombre",
+    cannotReplaceAllImages:
+      "Impossible de remplacer toutes les images à la fois",
+    cannotDeleteLastImage: "Impossible de supprimer la dernière image",
+    invalidImageType: "Type d'image invalide",
+  },
+
+  room: {
+    created: "Chambre créée avec succès",
+    updated: "Chambre mise à jour avec succès",
+    deleted: "Chambre supprimée avec succès",
+    retrieved: "Chambre récupérée avec succès",
+    listRetrieved: "Chambres récupérées avec succès",
+    notFound: "Chambre non trouvée",
+    roomTypeNotFound: "Type de chambre non trouvé",
+    cannotDeleteWithBooking:
+      "Cette chambre ne peut pas être supprimée car elle est associée à une réservation",
+  },
+
+  content: {
+    created: "Bloc de contenu créé avec succès",
+    updated: "Bloc de contenu mis à jour avec succès",
+    deleted: "Bloc de contenu supprimé avec succès",
+    retrieved: "Bloc de contenu récupéré avec succès",
+    listRetrieved: "Blocs de contenu récupérés avec succès",
+    blockNotFound: "Bloc de contenu non trouvé",
+    homepageNotFound: "Contenu de la page d'accueil non trouvé",
+  },
+
+  promoCode: {
+    created: "Code promo créé avec succès",
+    updated: "Code promo mis à jour avec succès",
+    deleted: "Code promo supprimé avec succès",
+    retrieved: "Code promo récupéré avec succès",
+    listRetrieved: "Codes promo récupérés avec succès",
+    notFound: "Code promo non trouvé",
+  },
+
+  customer: {
+    created: "Client créé avec succès",
+    updated: "Client mis à jour avec succès",
+    deleted: "Client supprimé avec succès",
+    retrieved: "Client récupéré avec succès",
+    listRetrieved: "Clients récupérés avec succès",
+    notFound: "Client non trouvé",
+    invalidId: "ID de client invalide",
+    invalidPhone: "Format de numéro de téléphone invalide",
+  },
+
+  review: {
+    created: "Avis créé avec succès",
+    updated: "Avis mis à jour avec succès",
+    deleted: "Avis supprimé avec succès",
+    retrieved: "Avis récupéré avec succès",
+    listRetrieved: "Avis récupérés avec succès",
+    notFound: "Avis non trouvé",
+  },
+
+  taxFee: {
+    created: "Taxe/frais créé avec succès",
+    updated: "Taxe/frais mis à jour avec succès",
+    deleted: "Taxe/frais supprimé avec succès",
+    retrieved: "Taxe/frais récupéré avec succès",
+    listRetrieved: "Taxes/frais récupérés avec succès",
+    notFound: "Taxe/frais non trouvé",
+  },
+
+  availability: {
+    retrieved: "Données de disponibilité récupérées avec succès",
+    hotelIdRequired: "L'ID de l'hôtel est requis",
+    datesRequired: "Les dates d'arrivée et de départ sont requises",
+    validationFailed: "La validation de disponibilité a échoué",
+    fetchFailed: "Échec de la récupération de la disponibilité",
   },
 
   addonConfiguration: {

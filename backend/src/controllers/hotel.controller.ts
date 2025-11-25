@@ -77,14 +77,14 @@ export class HotelController {
           // Extract hotel data from form
           const hotelDataStr = formData.get("hotelData");
           if (!hotelDataStr || typeof hotelDataStr !== "string") {
-            return ApiResponse.badRequest(c, "Hotel data is required");
+            return ApiResponse.badRequest(c, "hotel.dataRequired");
           }
 
           let hotelData;
           try {
             hotelData = JSON.parse(hotelDataStr);
           } catch {
-            return ApiResponse.badRequest(c, "Invalid hotel data JSON");
+            return ApiResponse.badRequest(c, "hotel.invalidData");
           }
 
           // Extract image files
@@ -125,16 +125,13 @@ export class HotelController {
             );
           } catch (e) {
             if (e instanceof Error && e.message.includes("slug")) {
-              return ApiResponse.conflict(c, e.message);
+              return ApiResponse.conflict(c, "hotel.notFound");
             }
             throw e;
           }
         } else {
           // Handle JSON payload (hotel only) - DEPRECATED: Hotels must have images
-          return ApiResponse.badRequest(
-            c,
-            "Hotel creation requires images. Please use multipart/form-data with hotelData and images fields",
-          );
+          return ApiResponse.badRequest(c, "hotel.requiresImages");
         }
       },
       "operation.createHotelFailed",
@@ -155,14 +152,14 @@ export class HotelController {
           // Extract hotel data from form
           const hotelDataStr = formData.get("hotelData");
           if (!hotelDataStr || typeof hotelDataStr !== "string") {
-            return ApiResponse.badRequest(c, "Hotel data is required");
+            return ApiResponse.badRequest(c, "hotel.dataRequired");
           }
 
           let hotelData;
           try {
             hotelData = JSON.parse(hotelDataStr);
           } catch {
-            return ApiResponse.badRequest(c, "Invalid hotel data JSON");
+            return ApiResponse.badRequest(c, "hotel.invalidData");
           }
 
           // Extract replace images flag
@@ -213,7 +210,7 @@ export class HotelController {
               if (e.message === "Hotel not found")
                 return HotelResponse.hotelNotFound(c);
               if (e.message.includes("slug")) {
-                return ApiResponse.conflict(c, e.message);
+                return ApiResponse.conflict(c, "hotel.notFound");
               }
             }
             throw e;
@@ -237,7 +234,7 @@ export class HotelController {
               if (e.message === "Hotel not found")
                 return HotelResponse.hotelNotFound(c);
               if (e.message.includes("slug")) {
-                return ApiResponse.conflict(c, e.message);
+                return ApiResponse.conflict(c, "hotel.notFound");
               }
             }
             throw e;
@@ -278,11 +275,11 @@ export class HotelController {
             c.env.R2_BUCKET,
             imageId,
           );
-          if (!deleted) return ApiResponse.notFound(c, "Image not found");
+          if (!deleted) return ApiResponse.notFound(c, "hotel.imageNotFound");
           return HotelResponse.hotelImageDeleted(c);
         } catch (e) {
           if (e instanceof Error && e.message === "Image not found") {
-            return ApiResponse.notFound(c, "Image not found");
+            return ApiResponse.notFound(c, "hotel.imageNotFound");
           }
           throw e;
         }
@@ -299,7 +296,7 @@ export class HotelController {
         const payload = await c.req.json();
 
         if (typeof payload.sortOrder !== "number") {
-          return ApiResponse.badRequest(c, "Sort order must be a number");
+          return ApiResponse.badRequest(c, "hotel.sortOrderInvalid");
         }
 
         try {
@@ -311,7 +308,7 @@ export class HotelController {
           return HotelResponse.hotelImageUpdated(c, updated);
         } catch (e) {
           if (e instanceof Error && e.message === "Image not found") {
-            return ApiResponse.notFound(c, "Image not found");
+            return ApiResponse.notFound(c, "hotel.imageNotFound");
           }
           throw e;
         }

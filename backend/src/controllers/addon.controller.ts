@@ -62,7 +62,7 @@ export class AddonController {
           return AddonResponse.addonCreated(c, created);
         } catch (e) {
           if (e instanceof Error && e.message.includes("Invalid")) {
-            return ApiResponse.badRequest(c, e.message);
+            return ApiResponse.badRequest(c, "system.validationError");
           }
           throw e;
         }
@@ -86,7 +86,7 @@ export class AddonController {
             if (e.message === "Addon not found")
               return AddonResponse.addonNotFound(c);
             if (e.message.includes("Invalid"))
-              return ApiResponse.badRequest(c, e.message);
+              return ApiResponse.badRequest(c, "system.validationError");
           }
           throw e;
         }

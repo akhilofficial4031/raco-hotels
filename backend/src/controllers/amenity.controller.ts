@@ -59,7 +59,7 @@ export class AmenityController {
           return AmenityResponse.amenityCreated(c, created);
         } catch (e) {
           if (e instanceof Error && e.message.includes("slug")) {
-            return ApiResponse.conflict(c, e.message);
+            return ApiResponse.conflict(c, "system.resourceConflict");
           }
           throw e;
         }

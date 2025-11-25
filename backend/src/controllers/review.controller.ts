@@ -33,7 +33,7 @@ export class ReviewController {
       async () => {
         const id = parseInt(c.req.param("id"), 10);
         const item = await ReviewService.getReviewById(c.env.DB, id);
-        if (!item) return ApiResponse.notFound(c, "Review not found");
+        if (!item) return ApiResponse.notFound(c, "review.notFound");
         return ApiResponse.success(c, { review: item });
       },
       "operation.fetchReviewFailed",
@@ -67,7 +67,7 @@ export class ReviewController {
           return ApiResponse.success(c, { review: updated });
         } catch (e) {
           if (e instanceof Error && e.message === "Review not found")
-            return ApiResponse.notFound(c, e.message);
+            return ApiResponse.notFound(c, "review.notFound");
           throw e;
         }
       },
@@ -82,11 +82,11 @@ export class ReviewController {
         const id = parseInt(c.req.param("id"), 10);
         try {
           const deleted = await ReviewService.deleteReview(c.env.DB, id);
-          if (!deleted) return ApiResponse.notFound(c, "Review not found");
+          if (!deleted) return ApiResponse.notFound(c, "review.notFound");
           return ApiResponse.success(c, {});
         } catch (e) {
           if (e instanceof Error && e.message === "Review not found")
-            return ApiResponse.notFound(c, e.message);
+            return ApiResponse.notFound(c, "review.notFound");
           throw e;
         }
       },

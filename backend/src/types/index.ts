@@ -10,7 +10,8 @@ export interface AppBindings {
   KV: KVNamespace;
   // Optional vars from wrangler [vars]
   R2_PUBLIC_BASE_URL?: string;
-  EMAIL_API_KEY?: string;
+  NOTIFICATIONAPI_CLIENT_ID?: string;
+  NOTIFICATIONAPI_CLIENT_SECRET?: string;
   ENVIRONMENT?: "development" | "production";
   CRON_SECRET?: string;
 }

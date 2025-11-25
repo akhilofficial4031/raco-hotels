@@ -7,8 +7,69 @@ import type {
   PublicHomePageContent,
   TestimonialItem,
 } from "../types/content.types";
+import type {
+  DatabaseContentBlock,
+  CreateContentBlockData,
+  UpdateContentBlockData,
+  ContentBlockFilters,
+} from "../types";
 
 export class ContentService {
+  /**
+   * Get all content blocks with optional filters
+   */
+  static async getContentBlocks(
+    db: D1Database,
+    filters: ContentBlockFilters = {},
+  ): Promise<{ items: DatabaseContentBlock[] }> {
+    const items = await ContentRepository.findAll(db, filters);
+    return { items };
+  }
+
+  /**
+   * Get a single content block by ID
+   */
+  static async getContentBlockById(
+    db: D1Database,
+    id: number,
+  ): Promise<DatabaseContentBlock | null> {
+    return await ContentRepository.findById(db, id);
+  }
+
+  /**
+   * Create a new content block
+   */
+  static async createContentBlock(
+    db: D1Database,
+    data: CreateContentBlockData,
+  ): Promise<DatabaseContentBlock> {
+    return await ContentRepository.create(db, data);
+  }
+
+  /**
+   * Update an existing content block
+   */
+  static async updateContentBlock(
+    db: D1Database,
+    id: number,
+    data: UpdateContentBlockData,
+  ): Promise<DatabaseContentBlock> {
+    const updated = await ContentRepository.update(db, id, data);
+    if (!updated) {
+      throw new Error("Content block not found");
+    }
+    return updated;
+  }
+
+  /**
+   * Delete a content block
+   */
+  static async deleteContentBlock(
+    db: D1Database,
+    id: number,
+  ): Promise<boolean> {
+    return await ContentRepository.delete(db, id);
+  }
   /**
    * Process homepage content by uploading base64 images to R2
    * and replacing them with public URLs

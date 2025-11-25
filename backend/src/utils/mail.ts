@@ -1,59 +1,93 @@
-import { Resend } from "resend";
+import notificationapi from "notificationapi-node-server-sdk";
 
 import {
   renderWelcomeEmail,
+  renderWelcomePasswordEmail,
   renderBookingConfirmationEmail,
   renderPasswordResetEmail,
   renderNotificationEmail,
 } from "./mail-templates";
+import {
+  EMAIL_CONFIG,
+  getDefaultEmailOptions,
+  type EmailOptions,
+} from "../config/mail";
 
 import type { AppContext } from "../types";
 
-export interface SendMailParams {
-  to: string;
-  subject: string;
-  html: string;
-  from?: string;
-}
-
-// Cache for Resend instances by API key
-const resendInstances = new Map<string, Resend>();
+/**
+ * NotificationAPI client instance cache
+ * We cache the instance to avoid re-initialization on every request
+ */
+let notificationApiInstance: typeof notificationapi | null = null;
 
 /**
- * Get or create a Resend instance for the given API key
+ * Initialize NotificationAPI client
+ * This function should be called once when the application starts or on first use
  */
-function getResendInstance(apiKey: string): Resend {
-  if (!resendInstances.has(apiKey)) {
-    resendInstances.set(apiKey, new Resend(apiKey));
+function getNotificationApiInstance(c: AppContext): typeof notificationapi {
+  if (!notificationApiInstance) {
+    const clientId = c.env.NOTIFICATIONAPI_CLIENT_ID;
+    const clientSecret = c.env.NOTIFICATIONAPI_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      throw new Error(
+        "NotificationAPI credentials not configured. Please set NOTIFICATIONAPI_CLIENT_ID and NOTIFICATIONAPI_CLIENT_SECRET in environment variables.",
+      );
+    }
+
+    notificationapi.init(clientId, clientSecret);
+    notificationApiInstance = notificationapi;
   }
-  return resendInstances.get(apiKey)!;
+
+  return notificationApiInstance;
 }
 
 /**
- * Send email using cached Resend instance
+ * Send email with custom HTML template via NotificationAPI
+ * This bypasses dashboard templates and sends HTML directly
  */
-export async function sendMail(
+async function sendEmailWithCustomHTML(
   c: AppContext,
-  { to, subject, html, from = "onboarding@resend.dev" }: SendMailParams,
+  {
+    userEmail,
+    userId,
+    subject,
+    html,
+    emailOptions,
+  }: {
+    userEmail: string;
+    userId: string;
+    subject: string;
+    html: string;
+    emailOptions?: EmailOptions;
+  },
 ) {
-  const apiKey = c.env.EMAIL_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("Email API key not configured");
-  }
-
-  const resend = getResendInstance(apiKey);
+  const api = getNotificationApiInstance(c);
 
   try {
-    const response = await resend.emails.send({
-      from,
-      to: Array.isArray(to) ? to : [to],
-      subject,
-      html,
+    const defaultOptions = getDefaultEmailOptions();
+    const finalEmailOptions = {
+      ...defaultOptions,
+      ...emailOptions,
+    };
+
+    // Send email with inline HTML (no notificationId needed)
+    await api.send({
+      user: {
+        id: userId,
+        email: userEmail,
+      },
+      email: {
+        subject,
+        html,
+        ...finalEmailOptions,
+      },
     });
 
-    return response;
+    return { success: true };
   } catch (error) {
+    console.error("Failed to send email:", error);
     throw new Error(
       `Failed to send email: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
@@ -68,11 +102,15 @@ export async function sendWelcomeEmail(
   to: string,
   userName: string,
 ) {
-  const html = renderWelcomeEmail({ userName });
+  const { subject, html } = renderWelcomeEmail({
+    userName,
+    loginUrl: "#", // Default login URL, can be configured
+  });
 
-  return sendMail(c, {
-    to,
-    subject: "Welcome to Raco Hotels!",
+  return sendEmailWithCustomHTML(c, {
+    userEmail: to,
+    userId: to,
+    subject,
     html,
   });
 }
@@ -86,11 +124,15 @@ export async function sendWelcomePasswordEmail(
   userName: string,
   setPasswordUrl: string,
 ) {
-  const html = renderWelcomeEmail({ userName, loginUrl: setPasswordUrl });
+  const { subject, html } = renderWelcomePasswordEmail({
+    userName,
+    setPasswordUrl,
+  });
 
-  return sendMail(c, {
-    to,
-    subject: "Welcome to Raco Hotels - Set Your Password",
+  return sendEmailWithCustomHTML(c, {
+    userEmail: to,
+    userId: to,
+    subject,
     html,
   });
 }
@@ -111,14 +153,16 @@ export async function sendBookingConfirmation(
     bookingId: string;
   },
 ) {
-  const html = renderBookingConfirmationEmail({
+  const { subject, html } = renderBookingConfirmationEmail({
     customerName,
     ...bookingDetails,
+    bookingUrl: "#", // Can be configured with actual booking URL
   });
 
-  return sendMail(c, {
-    to,
-    subject: `Booking Confirmed - ${bookingDetails.hotelName}`,
+  return sendEmailWithCustomHTML(c, {
+    userEmail: to,
+    userId: to,
+    subject,
     html,
   });
 }
@@ -130,16 +174,18 @@ export async function sendPasswordResetEmail(
   c: AppContext,
   to: string,
   resetUrl: string,
-  tokenExpiryDays: number = 7,
+  tokenExpiryDays: number = EMAIL_CONFIG.PASSWORD_RESET_TOKEN_EXPIRY_DAYS,
 ) {
-  const html = renderPasswordResetEmail({
+  const { subject, html } = renderPasswordResetEmail({
     resetUrl,
     tokenExpiryDays,
+    userEmail: to,
   });
 
-  return sendMail(c, {
-    to,
-    subject: "Reset Your Password - Raco Hotels",
+  return sendEmailWithCustomHTML(c, {
+    userEmail: to,
+    userId: to,
+    subject,
     html,
   });
 }
@@ -155,16 +201,17 @@ export async function sendNotificationEmail(
   actionUrl?: string,
   actionText?: string,
 ) {
-  const html = renderNotificationEmail({
+  const emailTemplate = renderNotificationEmail({
     subject,
     message,
     actionUrl,
     actionText,
   });
 
-  return sendMail(c, {
-    to,
-    subject: `Raco Hotels - ${subject}`,
-    html,
+  return sendEmailWithCustomHTML(c, {
+    userEmail: to,
+    userId: to,
+    subject: emailTemplate.subject,
+    html: emailTemplate.html,
   });
 }

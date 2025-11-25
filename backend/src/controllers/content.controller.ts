@@ -25,7 +25,7 @@ export class ContentController {
       async () => {
         const id = parseInt(c.req.param("id"), 10);
         const item = await ContentService.getContentBlockById(c.env.DB, id);
-        if (!item) return ApiResponse.notFound(c, "Content block not found");
+        if (!item) return ApiResponse.notFound(c, "content.blockNotFound");
         return ApiResponse.success(c, { contentBlock: item });
       },
       "operation.fetchContentBlockFailed",
@@ -62,7 +62,7 @@ export class ContentController {
           return ApiResponse.success(c, { contentBlock: updated });
         } catch (e) {
           if (e instanceof Error && e.message === "Content block not found")
-            return ApiResponse.notFound(c, e.message);
+            return ApiResponse.notFound(c, "content.blockNotFound");
           throw e;
         }
       },
@@ -77,12 +77,11 @@ export class ContentController {
         const id = parseInt(c.req.param("id"), 10);
         try {
           const deleted = await ContentService.deleteContentBlock(c.env.DB, id);
-          if (!deleted)
-            return ApiResponse.notFound(c, "Content block not found");
+          if (!deleted) return ApiResponse.notFound(c, "content.blockNotFound");
           return ApiResponse.success(c, {});
         } catch (e) {
           if (e instanceof Error && e.message === "Content block not found")
-            return ApiResponse.notFound(c, e.message);
+            return ApiResponse.notFound(c, "content.blockNotFound");
           throw e;
         }
       },
@@ -98,7 +97,7 @@ export class ContentController {
         const content = await ContentService.getHomepageContent(c.env.DB);
 
         if (!content) {
-          return ApiResponse.notFound(c, "Homepage content not found");
+          return ApiResponse.notFound(c, "content.homepageNotFound");
         }
 
         return ApiResponse.success(c, content);
@@ -115,10 +114,10 @@ export class ContentController {
 
         // Get R2 bucket and public URL from environment
         const r2Bucket = c.env.R2_BUCKET;
-        const publicBaseUrl = c.env.R2_PUBLIC_URL || "";
+        const publicBaseUrl = c.env.R2_PUBLIC_BASE_URL || "";
 
         if (!r2Bucket) {
-          return ApiResponse.error(c, "R2 storage not configured", 500);
+          return ApiResponse.internalError(c, "system.r2NotConfigured");
         }
 
         const processedContent =
@@ -147,7 +146,7 @@ export class ContentController {
         const content = await ContentService.getPublicHomepageContent(c.env.DB);
 
         if (!content) {
-          return ApiResponse.notFound(c, "Homepage content not found");
+          return ApiResponse.notFound(c, "content.homepageNotFound");
         }
 
         return ApiResponse.success(c, content);

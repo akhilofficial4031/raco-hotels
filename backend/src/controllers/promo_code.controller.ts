@@ -33,7 +33,7 @@ export class PromoCodeController {
       async () => {
         const id = parseInt(c.req.param("id"), 10);
         const item = await PromoCodeService.getPromoCodeById(c.env.DB, id);
-        if (!item) return ApiResponse.notFound(c, "Promo code not found");
+        if (!item) return ApiResponse.notFound(c, "promoCode.notFound");
         return ApiResponse.success(c, { promoCode: item });
       },
       "operation.fetchPromoCodeFailed",
@@ -51,7 +51,7 @@ export class PromoCodeController {
           hotelId,
           code,
         );
-        if (!item) return ApiResponse.notFound(c, "Promo code not found");
+        if (!item) return ApiResponse.notFound(c, "promoCode.notFound");
         return ApiResponse.success(c, { promoCode: item });
       },
       "operation.getPromoCodeByCodeFailed",
@@ -88,7 +88,7 @@ export class PromoCodeController {
           return ApiResponse.success(c, { promoCode: updated });
         } catch (e) {
           if (e instanceof Error && e.message === "Promo code not found")
-            return ApiResponse.notFound(c, e.message);
+            return ApiResponse.notFound(c, "promoCode.notFound");
           throw e;
         }
       },
@@ -103,11 +103,11 @@ export class PromoCodeController {
         const id = parseInt(c.req.param("id"), 10);
         try {
           const deleted = await PromoCodeService.deletePromoCode(c.env.DB, id);
-          if (!deleted) return ApiResponse.notFound(c, "Promo code not found");
+          if (!deleted) return ApiResponse.notFound(c, "promoCode.notFound");
           return ApiResponse.success(c, {});
         } catch (e) {
           if (e instanceof Error && e.message === "Promo code not found")
-            return ApiResponse.notFound(c, e.message);
+            return ApiResponse.notFound(c, "promoCode.notFound");
           throw e;
         }
       },
