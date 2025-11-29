@@ -1,6 +1,14 @@
 /* eslint-disable no-unused-vars */
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { useLocation, useNavigate } from "react-router";
+
+import { fetcher } from "@utils/swrFetcher";
 
 import { type LoginUserResponse } from "../../features/authentication/types/login";
 
@@ -32,20 +40,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Handle logout
+  const logout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
   // Check for existing user data on mount
   useEffect(() => {
-    const checkAuthStatus = () => {
+    const checkAuthStatus = async () => {
       try {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           const userData = JSON.parse(storedUser) as LoginUserResponse;
           setUser(userData);
+
+          // Verify session with backend
+          try {
+            const response = await fetcher<{
+              data: { user: LoginUserResponse };
+            }>("/auth/verify");
+            if (response?.data?.user) {
+              setUser(response.data.user);
+              localStorage.setItem("user", JSON.stringify(response.data.user));
+            }
+          } catch (error) {
+            console.error("Session verification failed:", error);
+            // Note: swrFetcher handles 401 by dispatching auth:unauthorized event
+            // which is caught by the listener below
+          }
         }
       } catch (error) {
         console.error("Error parsing stored user data:", error);
         // Clear invalid data
         localStorage.removeItem("user");
         localStorage.removeItem("token");
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -53,6 +85,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     checkAuthStatus();
   }, []);
+
+  // Listen for unauthorized events (401) from API calls
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+    };
+  }, [logout]);
 
   // Handle login
   const login = (userData: LoginUserResponse) => {
@@ -63,14 +108,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Otherwise redirect to dashboard
     const from = location.state?.from?.pathname || "/dashboard";
     navigate(from, { replace: true });
-  };
-
-  // Handle logout
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    navigate("/login", { replace: true });
   };
 
   const isAuthenticated = !!user;

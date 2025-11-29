@@ -12,7 +12,6 @@ import {
   AboutUsForm,
   HeroForm,
   SeoForm,
-  SignatureExperiencesForm,
   SimpleSectionsForm,
   TopBannerForm,
 } from "../components";
@@ -525,18 +524,18 @@ function HomepageContent() {
                   </div>
                 ),
               },
-              {
-                label: "Signature Experiences",
-                key: "5",
-                children: (
-                  <div className="p-4">
-                    <SignatureExperiencesForm
-                      control={control}
-                      errors={errors}
-                    />
-                  </div>
-                ),
-              },
+              // {
+              //   label: "Signature Experiences",
+              //   key: "5",
+              //   children: (
+              //     <div className="p-4">
+              //       <SignatureExperiencesForm
+              //         control={control}
+              //         errors={errors}
+              //       />
+              //     </div>
+              //   ),
+              // },
               {
                 label: "SEO",
                 key: "6",
