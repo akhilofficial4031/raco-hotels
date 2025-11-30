@@ -1,8 +1,6 @@
 import { Card, Col, Form, Input, Row } from "antd";
 import { Controller, type Control, type FieldErrors } from "react-hook-form";
 
-import type { HomePageContent } from "../types";
-
 const { TextArea } = Input;
 
 interface SeoFormProps {

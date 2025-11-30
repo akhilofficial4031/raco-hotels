@@ -3,16 +3,16 @@ import { ContentRepository } from "../repositories/content.repository";
 import { ReviewRepository } from "../repositories/review.repository";
 
 import type {
-  HomePageContent,
-  PublicHomePageContent,
-  TestimonialItem,
-} from "../types/content.types";
-import type {
   DatabaseContentBlock,
   CreateContentBlockData,
   UpdateContentBlockData,
   ContentBlockFilters,
 } from "../types";
+import type {
+  HomePageContent,
+  PublicHomePageContent,
+  TestimonialItem,
+} from "../types/content.types";
 
 export class ContentService {
   /**
@@ -134,7 +134,7 @@ export class ContentService {
       }
 
       // Process signatureExperiences images
-      if (processedContent.signatureExperiences) {
+      if (processedContent.signatureExperiences?.images) {
         for (
           let i = 0;
           i < processedContent.signatureExperiences.images.length;
@@ -157,6 +157,7 @@ export class ContentService {
         }
 
         if (
+          processedContent.signatureExperiences.badge &&
           this.isBase64Image(processedContent.signatureExperiences.badge.src)
         ) {
           const result = await this.uploadBase64Image(
@@ -171,7 +172,7 @@ export class ContentService {
       }
 
       // Process gallery images
-      if (processedContent.gallery) {
+      if (processedContent.gallery?.images) {
         for (let i = 0; i < processedContent.gallery.images.length; i++) {
           if (this.isBase64Image(processedContent.gallery.images[i].src)) {
             const result = await this.uploadBase64Image(
@@ -216,7 +217,7 @@ export class ContentService {
       }
 
       // Process restaurant images
-      if (processedContent.restaurant) {
+      if (processedContent.restaurant?.images) {
         for (let i = 0; i < processedContent.restaurant.images.length; i++) {
           if (this.isBase64Image(processedContent.restaurant.images[i].src)) {
             const result = await this.uploadBase64Image(
@@ -230,7 +231,10 @@ export class ContentService {
           }
         }
 
-        if (this.isBase64Image(processedContent.restaurant.badge.src)) {
+        if (
+          processedContent.restaurant.badge &&
+          this.isBase64Image(processedContent.restaurant.badge.src)
+        ) {
           const result = await this.uploadBase64Image(
             r2Bucket,
             processedContent.restaurant.badge.src,

@@ -24,8 +24,6 @@ import {
   useFieldArray,
 } from "react-hook-form";
 
-import type { HomePageContent } from "../types";
-
 import type { UploadFile } from "antd";
 
 const { TextArea } = Input;

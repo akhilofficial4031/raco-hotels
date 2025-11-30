@@ -1,19 +1,7 @@
 import { UploadOutlined } from "@ant-design/icons";
-import {
-  Button,
-  Card,
-  Col,
-  Form,
-  Image,
-  Input,
-  Row,
-  Upload,
-  message,
-} from "antd";
+import { Card, Col, Form, Image, Input, Row, Upload, message } from "antd";
 import { useState } from "react";
 import { Controller, type Control, type FieldErrors } from "react-hook-form";
-
-import type { HomePageContent } from "../types";
 
 import type { UploadFile } from "antd";
 
