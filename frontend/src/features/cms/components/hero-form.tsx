@@ -18,6 +18,7 @@ function HeroForm({ control, errors }: HeroFormProps) {
   const [previewVisible, setPreviewVisible] = useState(false);
 
   const heroErrors = errors.hero as any;
+  const imageBaseUrl = import.meta.env.VITE_BUCKET_URL;
 
   const beforeUpload = (file: File) => {
     const isJpgOrPng =
@@ -177,7 +178,7 @@ function HeroForm({ control, errors }: HeroFormProps) {
                         Current image:
                       </p>
                       <Image
-                        src={field.value}
+                        src={`${imageBaseUrl}/${field.value.replace("r2://", "")}`}
                         alt="Current hero"
                         className="max-w-xs rounded-lg"
                       />

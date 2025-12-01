@@ -66,6 +66,7 @@ const GalleryImageUpload = ({
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewImage, setPreviewImage] = useState("");
   const [previewVisible, setPreviewVisible] = useState(false);
+  const imageBaseUrl = import.meta.env.VITE_BUCKET_URL;
 
   // Sync fileList with value (ImageConfig[]) on mount or when value changes externally
   // We check if fileList is empty to avoid overwriting ongoing uploads or local state
@@ -79,7 +80,8 @@ const GalleryImageUpload = ({
           uid: `-${index}`,
           name: img.alt || `image-${index + 1}`,
           status: "done" as const,
-          url: img.src,
+          url: `${imageBaseUrl}/${img.src.replace("r2://", "")}`,
+          preview: `${imageBaseUrl}/${img.src.replace("r2://", "")}`,
         }));
         setFileList(initialFileList);
       }
@@ -90,7 +92,7 @@ const GalleryImageUpload = ({
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj as File);
     }
-    setPreviewImage(file.url || (file.preview as string));
+    setPreviewImage(file.preview || (file.url as string));
     setPreviewVisible(true);
   };
 

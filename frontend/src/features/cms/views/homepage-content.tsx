@@ -13,7 +13,7 @@ import {
   HeroForm,
   SeoForm,
   SimpleSectionsForm,
-  TopBannerForm,
+  // TopBannerForm,
 } from "../components";
 
 import type { HomePageContent } from "../types";
@@ -488,18 +488,18 @@ function HomepageContent() {
             activeKey={activeTab}
             onChange={setActiveTab}
             items={[
-              {
-                label: "Top Banner",
-                key: "1",
-                children: (
-                  <div className="p-4">
-                    <TopBannerForm control={control} errors={errors} />
-                  </div>
-                ),
-              },
+              // {
+              //   label: "Top Banner",
+              //   key: "1",
+              //   children: (
+              //     <div className="p-4">
+              //       <TopBannerForm control={control} errors={errors} />
+              //     </div>
+              //   ),
+              // },
               {
                 label: "Hero Section",
-                key: "2",
+                key: "1",
                 children: (
                   <div className="p-4">
                     <HeroForm control={control} errors={errors} />
