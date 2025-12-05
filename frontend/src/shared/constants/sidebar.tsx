@@ -19,17 +19,6 @@ export const SIDEBAR_ITEMS = [
     path: "/dashboard",
   },
   {
-    label: "Hotels",
-    icon: <BankOutlined />,
-    path: "/hotels",
-  },
-  {
-    label: "Rooms",
-    icon: <ShopOutlined />,
-    path: "/rooms",
-  },
-
-  {
     label: "Bookings",
     icon: <BookOutlined />,
     path: "/bookings",
@@ -44,21 +33,30 @@ export const SIDEBAR_ITEMS = [
     icon: <CreditCardOutlined />,
     path: "/payments",
   },
-  {
-    label: "Reviews",
-    icon: <BookOutlined />,
-    path: "/reviews",
-  },
-
+  // {
+  //   label: "Reviews",
+  //   icon: <BookOutlined />,
+  //   path: "/reviews",
+  // },
   {
     label: "Configurations",
     icon: <SettingOutlined />,
     path: "/configurations",
     children: [
       {
-        label: "Users",
-        icon: <UserOutlined />,
-        path: "/users",
+        label: "Hotels",
+        icon: <BankOutlined />,
+        path: "/hotels",
+      },
+      {
+        label: "Room Types",
+        icon: <ShopOutlined />,
+        path: "/room-types",
+      },
+      {
+        label: "Rooms",
+        icon: <ShopOutlined />,
+        path: "/rooms",
       },
       {
         label: "Features",
@@ -71,11 +69,6 @@ export const SIDEBAR_ITEMS = [
         path: "/amenities",
       },
       {
-        label: "Room Types",
-        icon: <ShopOutlined />,
-        path: "/room-types",
-      },
-      {
         label: "Addons",
         icon: <PlusCircleOutlined />,
         path: "/addons",
@@ -84,6 +77,11 @@ export const SIDEBAR_ITEMS = [
         label: "Promo Codes",
         icon: <TagOutlined />,
         path: "/promo-codes",
+      },
+      {
+        label: "Users",
+        icon: <UserOutlined />,
+        path: "/users",
       },
       {
         label: "Cms",

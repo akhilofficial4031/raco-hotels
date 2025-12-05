@@ -1,4 +1,4 @@
-import { and, eq, gte, lte, like, or, asc, desc, sql } from "drizzle-orm";
+import { and, eq, gte, lte, or, asc, desc, sql } from "drizzle-orm";
 
 import {
   booking as bookingTable,
@@ -151,16 +151,11 @@ export class BookingRepository {
       conditions.push(lte(bookingTable.createdAt, filters.createdAtEnd));
     }
     if (filters.query) {
+      const query = `%${filters.query.toLowerCase()}%`;
       conditions.push(
         or(
-          like(
-            sql`lower(${bookingTable.referenceCode})`,
-            `%${filters.query.toLowerCase()}%`,
-          ),
-          like(
-            sql`lower(${customerTable.fullName})`,
-            `%${filters.query.toLowerCase()}%`,
-          ),
+          sql`lower(${bookingTable.referenceCode}) like ${query}`,
+          sql`lower(${customerTable.fullName}) like ${query}`,
         ),
       );
     }

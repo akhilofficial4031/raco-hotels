@@ -1,6 +1,4 @@
 import {
-  DoubleLeftOutlined,
-  DoubleRightOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   UserOutlined,

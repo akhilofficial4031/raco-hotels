@@ -19,6 +19,7 @@ function AboutUsForm({ control, errors }: AboutUsFormProps) {
   const [previewVisible, setPreviewVisible] = useState(false);
 
   const aboutUsErrors = errors.aboutUs as any;
+  const imageBaseUrl = import.meta.env.VITE_BUCKET_URL;
 
   const beforeUpload = (file: File) => {
     const isJpgOrPng =
@@ -154,7 +155,7 @@ function AboutUsForm({ control, errors }: AboutUsFormProps) {
                         Current badge:
                       </p>
                       <Image
-                        src={field.value}
+                        src={`${imageBaseUrl}/${field.value.replace("r2://", "")}`}
                         alt="Current badge"
                         className="max-w-[100px] rounded-lg"
                       />
@@ -245,7 +246,7 @@ function AboutUsForm({ control, errors }: AboutUsFormProps) {
                         Current image:
                       </p>
                       <Image
-                        src={field.value}
+                        src={`${imageBaseUrl}/${field.value.replace("r2://", "")}`}
                         alt="Current image"
                         className="max-w-sm rounded-lg"
                       />
