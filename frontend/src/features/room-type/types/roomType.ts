@@ -34,6 +34,9 @@ export interface RoomType {
   baseOccupancy: number;
   maxOccupancy: number;
   basePriceCents: number;
+  offerPrice?: number | null;
+  offerStartDate?: string | null;
+  offerEndDate?: string | null;
   currencyCode: string;
   sizeSqft: number | null;
   bedType: string | null;
@@ -84,6 +87,9 @@ export interface CreateRoomTypePayload {
   baseOccupancy?: number;
   maxOccupancy?: number;
   basePriceCents?: number;
+  offerPrice?: number | null;
+  offerStartDate?: string | null;
+  offerEndDate?: string | null;
   currencyCode?: string;
   sizeSqft?: number;
   bedType?: string;
@@ -121,6 +127,9 @@ export interface RoomTypeFormData {
   baseOccupancy: number;
   maxOccupancy: number;
   basePriceCents: number;
+  offerPrice?: number | null;
+  offerStartDate?: string | null;
+  offerEndDate?: string | null;
   currencyCode?: string;
   sizeSqft?: number;
   bedType?: string;

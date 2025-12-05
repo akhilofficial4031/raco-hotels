@@ -40,6 +40,22 @@ export const RoomTypeSchema = z
     baseOccupancy: z.number().int().openapi({ example: 2 }),
     maxOccupancy: z.number().int().openapi({ example: 3 }),
     basePriceCents: z.number().int().openapi({ example: 15999 }),
+    offerPrice: z
+      .number()
+      .int()
+      .nullable()
+      .optional()
+      .openapi({ example: 12999 }),
+    offerStartDate: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "2024-06-01" }),
+    offerEndDate: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "2024-06-30" }),
     currencyCode: z.string().openapi({ example: "INR" }),
     sizeSqft: z.number().int().nullable().openapi({ example: 350 }),
     bedType: z.string().nullable().openapi({ example: "King" }),
@@ -88,6 +104,9 @@ export const CreateRoomTypeRequestSchema = z
     baseOccupancy: z.number().int().optional().openapi({ example: 2 }),
     maxOccupancy: z.number().int().optional().openapi({ example: 3 }),
     basePriceCents: z.number().int().optional().openapi({ example: 15999 }),
+    offerPrice: z.number().int().optional().openapi({ example: 12999 }),
+    offerStartDate: z.string().optional().openapi({ example: "2024-06-01" }),
+    offerEndDate: z.string().optional().openapi({ example: "2024-06-30" }),
     currencyCode: z.string().optional().openapi({ example: "USD" }),
     sizeSqft: z.number().int().optional().openapi({ example: 350 }),
     bedType: z.string().optional().openapi({ example: "King" }),
@@ -190,11 +209,52 @@ export const RoomTypesListResponseSchema = z
   })
   .openapi("RoomTypesListResponse");
 
+// Public Room Type Schema (without offer dates, only offerRate)
+export const PublicRoomTypeSchema = RoomTypeSchema.omit({
+  offerStartDate: true,
+  offerEndDate: true,
+  offerPrice: true,
+})
+  .extend({
+    offerRate: z.number().int().nullable().optional().openapi({
+      example: 12999,
+      description:
+        "Active offer price if offer is currently valid, null otherwise",
+    }),
+  })
+  .openapi("PublicRoomType");
+
+export const PublicRoomTypeWithRelationsSchema = PublicRoomTypeSchema.extend({
+  images: z
+    .array(RoomTypeImageSchema)
+    .openapi({ description: "Room type images" }),
+  amenities: z
+    .array(
+      z.object({
+        amenityId: z.number().int().positive(),
+        roomTypeId: z.number().int().positive(),
+        createdAt: z.string(),
+      }),
+    )
+    .openapi({ description: "Room type amenities" }),
+  rooms: z
+    .array(RoomUnitSchema)
+    .openapi({ description: "Individual room units of this room type" }),
+  hotel: z
+    .object({
+      id: z.number().int().positive().openapi({ example: 1 }),
+      name: z.string().openapi({ example: "Grand Plaza Hotel" }),
+      slug: z.string().nullable().openapi({ example: "grand-plaza-hotel" }),
+    })
+    .optional()
+    .openapi({ description: "Hotel information" }),
+}).openapi("PublicRoomTypeWithRelations");
+
 export const PublicRoomTypesListResponseSchema = z
   .object({
     success: z.boolean(),
     data: z.object({
-      roomTypes: z.array(RoomTypeWithRelationsSchema),
+      roomTypes: z.array(PublicRoomTypeWithRelationsSchema),
       message: z.string().optional(),
     }),
   })

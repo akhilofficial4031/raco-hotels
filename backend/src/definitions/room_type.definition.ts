@@ -40,7 +40,7 @@ export const RoomTypeRouteDefinitions = {
     path: "/room-types",
     summary: "Create room type",
     description:
-      "Create a new room type with optional amenities and images. Slug is auto-generated from the room type name within the hotel scope.",
+      "Create a new room type with optional amenities, images, and promotional offers (offerPrice, offerStartDate, offerEndDate). Slug is auto-generated from the room type name within the hotel scope.",
     tags: [ApiTags.ROOMS],
     successSchema: RoomTypeResponseSchema,
     successDescription: "Room type created successfully",
@@ -53,7 +53,7 @@ export const RoomTypeRouteDefinitions = {
     path: "/room-types/{id}",
     summary: "Update room type",
     description:
-      "Update a room type. Slug is auto-generated when name changes. If amenityIds/images arrays are provided they replace existing ones.",
+      "Update a room type, including offer details. Slug is auto-generated when name changes. If amenityIds/images arrays are provided they replace existing ones.",
     tags: [ApiTags.ROOMS],
     successSchema: RoomTypeResponseSchema,
     successDescription: "Room type updated successfully",
@@ -217,7 +217,8 @@ export const RoomTypeRouteDefinitions = {
     method: "get",
     path: "/room-types/hotel/{hotelId}",
     summary: "Get all room types for a hotel (public)",
-    description: "Retrieve a list of all room types for a specific hotel.",
+    description:
+      "Retrieve a list of all room types for a specific hotel. Offer dates are not exposed. The offerRate field will contain the offer price only if the current date is within the offer validity period, otherwise null.",
     tags: [ApiTags.ROOMS],
     successSchema: PublicRoomTypesListResponseSchema,
     successDescription: "Room types retrieved successfully",

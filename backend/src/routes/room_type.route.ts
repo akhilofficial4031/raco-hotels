@@ -73,9 +73,4 @@ roomTypeRoutes.openapi(
   ),
 );
 
-roomTypeRoutes.openapi(
-  RoomTypeRouteDefinitions.getPublicRoomTypesByHotelId,
-  (c) => RoomTypeController.getPublicRoomTypesByHotelId(c as AppContext),
-);
-
 export default roomTypeRoutes;

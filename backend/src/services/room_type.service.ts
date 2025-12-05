@@ -88,6 +88,7 @@ export class RoomTypeService {
     // No need to validate images here as the frontend handles this in two steps:
     // 1. Create room type
     // 2. Upload images via separate endpoint
+    // Note: offerPrice, offerStartDate, and offerEndDate are included in data
 
     // Auto-generate slug from room type name
     const baseSlug = this.nameToSlug(data.name);
@@ -207,6 +208,37 @@ export class RoomTypeService {
     return roomType;
   }
 
+  /**
+   * Transform room type data for public API
+   * - Remove offerStartDate and offerEndDate
+   * - Set offerRate based on current date validation
+   */
+  private static transformToPublicRoomType(roomType: any): any {
+    const now = new Date();
+    const { offerPrice, offerStartDate, offerEndDate, ...rest } = roomType;
+
+    // Check if offer is currently valid
+    let offerRate = null;
+    if (offerPrice && offerStartDate && offerEndDate) {
+      const startDate = new Date(offerStartDate);
+      const endDate = new Date(offerEndDate);
+
+      // Set time to start of day for fair comparison
+      now.setHours(0, 0, 0, 0);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      if (now >= startDate && now <= endDate) {
+        offerRate = offerPrice;
+      }
+    }
+
+    return {
+      ...rest,
+      offerRate,
+    };
+  }
+
   static async getRoomTypesByHotelId(db: D1Database, hotelId: number) {
     const roomTypes = await RoomTypeRepository.findAllByHotelId(db, hotelId);
 
@@ -222,6 +254,30 @@ export class RoomTypeService {
       }),
     );
 
+    return roomTypesWithRelations;
+  }
+
+  /**
+   * Get public room types by hotel ID with offer validation
+   * This method is specifically for the public API endpoint
+   */
+  static async getPublicRoomTypesByHotelId(db: D1Database, hotelId: number) {
+    const roomTypes = await RoomTypeRepository.findAllByHotelId(db, hotelId);
+
+    // Fetch all related data for each room type and transform for public API
+    const roomTypesWithRelations = await Promise.all(
+      roomTypes.map(async (roomType) => {
+        const [amenities, rooms, addons] = await Promise.all([
+          RoomTypeRepository.getAmenities(db, roomType.id),
+          RoomRepository.findByRoomTypeId(db, roomType.id),
+          RoomTypeRepository.getAddons(db, roomType.id),
+        ]);
+        const roomTypeWithRelations = { ...roomType, amenities, rooms, addons };
+
+        // Transform to public format (remove offer dates, add offerRate)
+        return this.transformToPublicRoomType(roomTypeWithRelations);
+      }),
+    );
     return roomTypesWithRelations;
   }
 

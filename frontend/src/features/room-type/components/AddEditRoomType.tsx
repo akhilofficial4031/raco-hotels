@@ -19,7 +19,9 @@ import {
   Image,
   message,
   Modal,
+  DatePicker,
 } from "antd";
+import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import useSWR from "swr";
@@ -48,6 +50,7 @@ import type { UploadFile, UploadProps } from "antd";
 
 const { Option } = Select;
 const { TextArea } = Input;
+const { RangePicker } = DatePicker;
 const { confirm } = Modal;
 
 const roomTypeSchema = z
@@ -64,6 +67,13 @@ const roomTypeSchema = z
     basePriceCents: z
       .number()
       .min(0, { message: "Base price must be non-negative" }),
+    offerPrice: z
+      .number()
+      .min(0, { message: "Offer price must be non-negative" })
+      .optional()
+      .nullable(),
+    offerStartDate: z.string().optional().nullable(),
+    offerEndDate: z.string().optional().nullable(),
     currencyCode: z.string().default("INR"),
     sizeSqft: z.number().min(0).optional(),
     bedType: z.string().optional(),
@@ -115,6 +125,9 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
 }) => {
   const isEditMode = !!roomType;
   const [priceInRupees, setPriceInRupees] = useState<number>(0);
+  const [offerPriceInRupees, setOfferPriceInRupees] = useState<
+    number | undefined
+  >(undefined);
 
   // Image upload state
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
@@ -133,6 +146,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     reset,
     setValue,
     formState: { errors },
+    watch,
   } = useForm<RoomTypeFormData>({
     resolver: zodResolver(roomTypeSchema),
     defaultValues: {
@@ -142,6 +156,9 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       baseOccupancy: 1,
       maxOccupancy: 2,
       basePriceCents: 0,
+      offerPrice: undefined,
+      offerStartDate: undefined,
+      offerEndDate: undefined,
       currencyCode: undefined,
       sizeSqft: undefined,
       bedType: undefined,
@@ -157,6 +174,9 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     control,
     name: "addons",
   });
+
+  // Watch offer end date for RangePicker
+  const offerEndDate = watch("offerEndDate");
 
   // Fetch hotels - SWR will cache this data automatically
   const { data: hotelsResponse } = useSWR(
@@ -201,6 +221,17 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     setPriceInRupees(value || 0);
   };
 
+  const handleOfferPriceChange = (value: number | null) => {
+    if (value === null || value === undefined) {
+      setValue("offerPrice", undefined);
+      setOfferPriceInRupees(undefined);
+    } else {
+      const priceInCents = Math.round(value * 100);
+      setValue("offerPrice", priceInCents);
+      setOfferPriceInRupees(value);
+    }
+  };
+
   // Validate images function
   const validateImages = (): boolean => {
     const hasUploadedImages = uploadedImages.length > 0;
@@ -243,6 +274,10 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
           priceCents: a.priceCents,
         })) || [];
       const priceInRupees = roomType.basePriceCents / 100;
+      const offerPriceInRupees =
+        roomType.offerPrice && typeof roomType.offerPrice === "number"
+          ? roomType.offerPrice / 100
+          : undefined;
 
       // Set existing images if room type has images
       if (roomType.images) {
@@ -262,6 +297,9 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         baseOccupancy: roomType.baseOccupancy,
         maxOccupancy: roomType.maxOccupancy,
         basePriceCents: roomType.basePriceCents,
+        offerPrice: roomType.offerPrice || undefined,
+        offerStartDate: roomType.offerStartDate || undefined,
+        offerEndDate: roomType.offerEndDate || undefined,
         currencyCode: roomType.currencyCode,
         sizeSqft: roomType.sizeSqft || undefined,
         bedType: roomType.bedType || undefined,
@@ -272,6 +310,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         addons,
       });
       setPriceInRupees(priceInRupees);
+      setOfferPriceInRupees(offerPriceInRupees);
       // Clear validation error when room type data is loaded
       setImageValidationError("");
     } else {
@@ -289,6 +328,9 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         baseOccupancy: 1,
         maxOccupancy: 2,
         basePriceCents: 0,
+        offerPrice: undefined,
+        offerStartDate: undefined,
+        offerEndDate: undefined,
         currencyCode: undefined,
         sizeSqft: undefined,
         bedType: undefined,
@@ -299,6 +341,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         addons: [],
       });
       setPriceInRupees(0);
+      setOfferPriceInRupees(undefined);
     }
   }, [roomType, reset]);
 
@@ -347,6 +390,9 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       baseOccupancy: data.baseOccupancy,
       maxOccupancy: data.maxOccupancy,
       basePriceCents: data.basePriceCents,
+      offerPrice: data.offerPrice,
+      offerStartDate: data.offerStartDate,
+      offerEndDate: data.offerEndDate,
       currencyCode: data.currencyCode,
       sizeSqft: data.sizeSqft || undefined,
       bedType: data.bedType || undefined,
@@ -605,6 +651,75 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
             addonBefore="₹"
           />
         </Form.Item>
+
+        <div className="grid grid-cols-2 gap-4">
+          <Form.Item
+            label="Offer Price (INR)"
+            validateStatus={errors.offerPrice ? "error" : ""}
+            help={errors.offerPrice?.message}
+          >
+            <InputNumber
+              value={
+                offerPriceInRupees !== null && offerPriceInRupees !== undefined
+                  ? offerPriceInRupees
+                  : undefined
+              }
+              onChange={handleOfferPriceChange}
+              min={0}
+              precision={2}
+              className="w-full"
+              placeholder="1200.00"
+              addonBefore="₹"
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Offer Validity"
+            validateStatus={
+              errors.offerStartDate || errors.offerEndDate ? "error" : ""
+            }
+            help={
+              errors.offerStartDate?.message || errors.offerEndDate?.message
+            }
+          >
+            <Controller
+              name="offerStartDate"
+              control={control}
+              render={({ field }) => {
+                // Validate dates before passing to dayjs
+                const isStartDateValid =
+                  field.value &&
+                  typeof field.value === "string" &&
+                  dayjs(field.value).isValid();
+                const isEndDateValid =
+                  offerEndDate &&
+                  typeof offerEndDate === "string" &&
+                  dayjs(offerEndDate).isValid();
+                const hasValidDates = isStartDateValid && isEndDateValid;
+
+                return (
+                  <RangePicker
+                    className="w-full"
+                    value={
+                      hasValidDates
+                        ? [dayjs(field.value), dayjs(offerEndDate)]
+                        : null
+                    }
+                    onChange={(dates) => {
+                      if (dates && dates[0] && dates[1]) {
+                        field.onChange(dates[0].toISOString());
+                        setValue("offerEndDate", dates[1].toISOString());
+                      } else {
+                        field.onChange(undefined);
+                        setValue("offerEndDate", undefined);
+                      }
+                    }}
+                  />
+                );
+              }}
+            />
+          </Form.Item>
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <Form.Item

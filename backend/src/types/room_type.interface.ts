@@ -15,6 +15,9 @@ export interface DatabaseRoomType extends HotelScopedEntity {
   baseOccupancy: number | null;
   maxOccupancy: number | null;
   basePriceCents: number | null;
+  offerPrice: number | null;
+  offerStartDate: string | null;
+  offerEndDate: string | null;
   currencyCode: string | null;
   sizeSqft: number | null;
   bedType: string | null;
@@ -91,6 +94,9 @@ export interface CreateRoomTypeData {
   baseOccupancy?: number | null;
   maxOccupancy?: number | null;
   basePriceCents?: number | null;
+  offerPrice?: number | null;
+  offerStartDate?: string | null;
+  offerEndDate?: string | null;
   currencyCode?: string | null;
   sizeSqft?: number | null;
   bedType?: string | null;

@@ -18,7 +18,7 @@ import {
 } from "antd";
 import { type ColumnsType } from "antd/es/table";
 import { useMemo, useState } from "react";
-import { Navigate, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import useSWR, { mutate } from "swr";
 
 import TableHeader from "@shared/components/TableHeader";
@@ -75,7 +75,7 @@ const RoomType = () => {
   });
 
   // Fetch hotels for filter dropdown - SWR will cache this data automatically
-  const { data: hotelsResponse } = useSWR(
+  const { data: _hotelsResponse } = useSWR(
     openFiltersPanel || openAddRoomTypePanel ? "/hotels?limit=100" : null,
     fetcher<{ data: { hotels: Hotel[] } }>,
     {
@@ -238,6 +238,48 @@ const RoomType = () => {
           {formatPrice(record.basePriceCents, record.currencyCode)}
         </Text>
       ),
+    },
+    {
+      title: "Offer Price",
+      key: "offerPrice",
+      render: (_: unknown, record: RoomTypeWithRelations) => {
+        if (
+          record.offerPrice === null ||
+          record.offerPrice === undefined ||
+          typeof record.offerPrice !== "number"
+        ) {
+          return <Text>-</Text>;
+        }
+        return (
+          <Text type="success">
+            {formatPrice(record.offerPrice, record.currencyCode)}
+          </Text>
+        );
+      },
+    },
+    {
+      title: "Offer Validity",
+      key: "offerValidity",
+      render: (_: unknown, record: RoomTypeWithRelations) => {
+        if (
+          !record.offerStartDate ||
+          !record.offerEndDate ||
+          record.offerStartDate === null ||
+          record.offerEndDate === null
+        ) {
+          return <Text>-</Text>;
+        }
+        const startDate = new Date(record.offerStartDate);
+        const endDate = new Date(record.offerEndDate);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          return <Text>-</Text>;
+        }
+        return (
+          <Text className="text-xs">
+            {startDate.toLocaleDateString()} - {endDate.toLocaleDateString()}
+          </Text>
+        );
+      },
     },
     {
       title: "Size",

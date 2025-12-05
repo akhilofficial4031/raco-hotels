@@ -48,6 +48,7 @@ export class RoomTypeController {
       c,
       async () => {
         const payload = await c.req.json();
+        // Payload includes offer fields (offerPrice, offerStartDate, offerEndDate)
         try {
           const created = await RoomTypeService.createRoomType(
             c.env.DB,
@@ -172,7 +173,10 @@ export class RoomTypeController {
               e.message.includes("At least one image") ||
               e.message.includes("Cannot replace all images")
             ) {
-              return ApiResponse.badRequest(c, "roomType.cannotReplaceAllImages");
+              return ApiResponse.badRequest(
+                c,
+                "roomType.cannotReplaceAllImages",
+              );
             }
           }
           throw e;
@@ -193,7 +197,8 @@ export class RoomTypeController {
             c.env.R2_BUCKET,
             imageId,
           );
-          if (!deleted) return ApiResponse.notFound(c, "roomType.imageNotFound");
+          if (!deleted)
+            return ApiResponse.notFound(c, "roomType.imageNotFound");
           return ApiResponse.success(c, {});
         } catch (e) {
           if (e instanceof Error) {
@@ -201,7 +206,10 @@ export class RoomTypeController {
               return ApiResponse.notFound(c, "roomType.imageNotFound");
             }
             if (e.message.includes("Cannot delete the last image")) {
-              return ApiResponse.badRequest(c, "roomType.cannotDeleteLastImage");
+              return ApiResponse.badRequest(
+                c,
+                "roomType.cannotDeleteLastImage",
+              );
             }
           }
           throw e;
@@ -245,7 +253,7 @@ export class RoomTypeController {
       c,
       async () => {
         const hotelId = parseInt(c.req.param("hotelId"), 10);
-        const items = await RoomTypeService.getRoomTypesByHotelId(
+        const items = await RoomTypeService.getPublicRoomTypesByHotelId(
           c.env.DB,
           hotelId,
         );
