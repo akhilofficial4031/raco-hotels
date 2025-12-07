@@ -107,8 +107,13 @@ export class UserRepository {
     db: D1Database,
     email: string,
     status: UserStatus = UserStatus.ACTIVE,
+    checkStatus: boolean = true,
   ): Promise<DatabaseUser | null> {
     const database = getDb(db);
+    const conditions = [eq(user.email, email)];
+    if (checkStatus) {
+      conditions.push(eq(user.status, status));
+    }
     const result = await database
       .select({
         id: user.id,
@@ -123,7 +128,7 @@ export class UserRepository {
         updatedAt: user.updatedAt,
       })
       .from(user)
-      .where(and(eq(user.email, email), eq(user.status, status)))
+      .where(and(...conditions))
       .limit(1);
 
     return (result[0] as DatabaseUser) || null;

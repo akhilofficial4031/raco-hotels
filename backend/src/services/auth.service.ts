@@ -1,3 +1,5 @@
+/* eslint-disable no-empty */
+/* eslint-disable no-unused-vars */
 import { scrypt } from "@noble/hashes/scrypt";
 import { sha256 } from "@noble/hashes/sha256";
 import { randomBytes } from "@noble/hashes/utils";
@@ -575,7 +577,12 @@ export class AuthService {
     userEmail: string,
     tokenExpiryDays: number,
   ) {
-    const user = await UserRepository.findByEmail(db, userEmail);
+    const user = await UserRepository.findByEmail(
+      db,
+      userEmail,
+      undefined,
+      false,
+    );
     if (!user) {
       return;
     }
@@ -604,8 +611,6 @@ export class AuthService {
     const frontendUrl = c.env.FRONTEND_URL || "http://localhost:5173";
     const resetUrl = `${frontendUrl}/set-password/${tokenHash}`;
 
-    console.log("Password reset URL constructed:", resetUrl);
-
     // Send password reset email
     await sendPasswordResetEmail(
       c,
@@ -630,7 +635,6 @@ export class AuthService {
       userEmail,
       UserStatus.PENDING_ACTIVATION,
     );
-    console.log("User found:", user);
     if (!user) {
       return;
     }
@@ -658,8 +662,6 @@ export class AuthService {
     // Prepare set password URL with token hash as query param
     const frontendUrl = c.env.FRONTEND_URL || "http://localhost:5173";
     const setPasswordUrl = `${frontendUrl}/set-password/${tokenHash}`;
-
-    console.log("Set password URL constructed:", setPasswordUrl);
 
     // Send welcome email with set password link
     await sendWelcomePasswordEmail(c, userEmail, userName, setPasswordUrl);

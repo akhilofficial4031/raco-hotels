@@ -182,6 +182,13 @@ export async function sendPasswordResetEmail(
   resetUrl: string,
   tokenExpiryDays: number = EMAIL_CONFIG.PASSWORD_RESET_TOKEN_EXPIRY_DAYS,
 ) {
+  console.log(
+    "sendPasswordResetEmail",
+    to,
+    userName,
+    resetUrl,
+    tokenExpiryDays,
+  );
   return sendEmailWithTemplate(c, {
     userEmail: to,
     userId: to,

@@ -206,6 +206,7 @@ export class UserController {
 
         // Get the user to send password reset to
         const user = await UserService.getUserById(c.env.DB, userId);
+        console.log("user", user);
 
         if (!user) {
           return UserResponse.userNotFound(c);
