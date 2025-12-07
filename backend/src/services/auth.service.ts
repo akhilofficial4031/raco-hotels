@@ -3,7 +3,6 @@ import { sha256 } from "@noble/hashes/sha256";
 import { randomBytes } from "@noble/hashes/utils";
 
 import { UserStatus } from "../../../shared/types/user";
-import { getMessage, DEFAULT_LOCALE } from "../config/messages";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -11,6 +10,7 @@ import {
   verifyToken,
   type JWTPayload,
 } from "../config/jwt";
+import { getMessage, DEFAULT_LOCALE } from "../config/messages";
 import { AuthRepository } from "../repositories/auth.repository";
 import { UserRepository } from "../repositories/user.repository";
 import {
@@ -601,10 +601,19 @@ export class AuthService {
     );
 
     // Prepare reset URL with token and userId as query params
-    const resetUrl = `${process.env.FRONTEND_URL}/set-password/${tokenHash}`;
+    const frontendUrl = c.env.FRONTEND_URL || "http://localhost:5173";
+    const resetUrl = `${frontendUrl}/set-password/${tokenHash}`;
+
+    console.log("Password reset URL constructed:", resetUrl);
 
     // Send password reset email
-    await sendPasswordResetEmail(c, userEmail, resetUrl, tokenExpiryDays);
+    await sendPasswordResetEmail(
+      c,
+      userEmail,
+      user.fullName || "User",
+      resetUrl,
+      tokenExpiryDays,
+    );
 
     return resetToken;
   }
@@ -616,7 +625,12 @@ export class AuthService {
     userName: string,
     tokenExpiryDays: number = 7,
   ) {
-    const user = await UserRepository.findByEmail(db, userEmail);
+    const user = await UserRepository.findByEmail(
+      db,
+      userEmail,
+      UserStatus.PENDING_ACTIVATION,
+    );
+    console.log("User found:", user);
     if (!user) {
       return;
     }
@@ -642,7 +656,10 @@ export class AuthService {
     );
 
     // Prepare set password URL with token hash as query param
-    const setPasswordUrl = `${process.env.FRONTEND_URL}/set-password/${tokenHash}`;
+    const frontendUrl = c.env.FRONTEND_URL || "http://localhost:5173";
+    const setPasswordUrl = `${frontendUrl}/set-password/${tokenHash}`;
+
+    console.log("Set password URL constructed:", setPasswordUrl);
 
     // Send welcome email with set password link
     await sendWelcomePasswordEmail(c, userEmail, userName, setPasswordUrl);

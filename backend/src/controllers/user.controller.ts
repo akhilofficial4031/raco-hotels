@@ -1,6 +1,8 @@
 // Removed authentication imports as they are now in auth.controller.ts
 import { UserResponse, handleAsyncRoute } from "../lib/responses";
+import { AuthService } from "../services/auth.service";
 import { UserService } from "../services/user.service";
+import { getLocalizedMessage } from "../utils/i18n";
 
 import type { AppContext } from "../types";
 
@@ -192,6 +194,45 @@ export class UserController {
         return UserResponse.usersList(c, users);
       },
       "operation.searchUsersFailed",
+    );
+  }
+
+  // POST /users/:id/send-password-reset - Admin send password reset email to user
+  static async sendPasswordResetEmail(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const userId = parseInt(c.req.param("id"), 10);
+
+        // Get the user to send password reset to
+        const user = await UserService.getUserById(c.env.DB, userId);
+
+        if (!user) {
+          return UserResponse.userNotFound(c);
+        }
+
+        const TOKEN_EXPIRY_DAYS = parseInt(
+          c.env.PASSWORD_RESET_TOKEN_EXPIRY_DAYS || "7",
+        );
+
+        // Use the existing password reset token creation logic
+        await AuthService.createPasswordResetToken(
+          c,
+          c.env.DB,
+          user.email,
+          TOKEN_EXPIRY_DAYS,
+        );
+
+        return c.json({
+          success: true,
+          message: getLocalizedMessage(c, "auth.passwordResetEmailSent"),
+          data: {
+            userEmail: user.email,
+            userName: user.fullName,
+          },
+        });
+      },
+      "operation.sendPasswordResetFailed",
     );
   }
 

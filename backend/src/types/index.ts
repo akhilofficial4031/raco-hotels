@@ -12,6 +12,8 @@ export interface AppBindings {
   R2_PUBLIC_BASE_URL?: string;
   NOTIFICATIONAPI_CLIENT_ID?: string;
   NOTIFICATIONAPI_CLIENT_SECRET?: string;
+  FRONTEND_URL?: string;
+  PASSWORD_RESET_TOKEN_EXPIRY_DAYS?: string;
   ENVIRONMENT?: "development" | "production";
   CRON_SECRET?: string;
 }

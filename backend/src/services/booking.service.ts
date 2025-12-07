@@ -10,10 +10,15 @@ import {
   booking as bookingTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
+import { AddonRepository } from "../repositories/addon.repository";
 import { BookingRepository } from "../repositories/booking.repository";
+import { HotelRepository } from "../repositories/hotel.repository";
 import { PromoCodeRepository } from "../repositories/promo_code.repository";
+import { RoomTypeRepository } from "../repositories/room_type.repository";
+import { sendBookingConfirmationEmail } from "../utils/mail";
 
 import type { BookingsQuerySchema, CreateBookingRequest } from "../schemas";
+import type { AppContext } from "../types";
 import type { z } from "zod";
 
 function generateReferenceCode(): string {
@@ -54,7 +59,12 @@ export class BookingService {
     return booking;
   }
 
-  static async updateBooking(db: D1Database, id: number, data: any) {
+  static async updateBooking(
+    db: D1Database,
+    id: number,
+    data: any,
+    context?: AppContext,
+  ) {
     const database = getDb(db);
 
     // First get the existing booking to find the customer
@@ -171,7 +181,103 @@ export class BookingService {
         }
       }
     }
-    return await BookingRepository.findById(db, id);
+
+    const updatedBooking = await BookingRepository.findById(db, id);
+
+    // Send updated booking confirmation email
+    if (context && updatedBooking && data.customerData?.email) {
+      try {
+        // Fetch hotel and room type details for email
+        const hotel = await HotelRepository.findById(
+          db,
+          updatedBooking.hotelId,
+        );
+        const roomType =
+          updatedBooking.items && updatedBooking.items.length > 0
+            ? await RoomTypeRepository.findById(
+                db,
+                updatedBooking.items[0].booking_item.roomTypeId,
+              )
+            : null;
+
+        if (hotel && roomType) {
+          // Calculate number of nights
+          const nights = dayjs(updatedBooking.checkOutDate).diff(
+            dayjs(updatedBooking.checkInDate),
+            "day",
+          );
+
+          // Format currency function
+          const formatCurrency = (cents: number) => {
+            const symbol =
+              updatedBooking.currencyCode === "INR"
+                ? "₹"
+                : updatedBooking.currencyCode;
+            return `${symbol}${(cents / 100).toFixed(2)}`;
+          };
+
+          // Prepare addon details from the booking
+          const addonDetails =
+            updatedBooking.addons?.map((addon: any) => {
+              const name = addon.addon?.name || `Addon #${addon.addonId}`;
+              const price = formatCurrency(addon.priceCents);
+              return `${name}: ${price}`;
+            }) || [];
+
+          // Calculate room rent
+          const addonsTotal =
+            updatedBooking.addons?.reduce(
+              (sum: number, addon: any) => sum + (addon.priceCents || 0),
+              0,
+            ) || 0;
+          const subtotal =
+            updatedBooking.totalAmountCents -
+            updatedBooking.taxAmountCents +
+            updatedBooking.discountAmountCents;
+          const roomRent = subtotal - addonsTotal;
+
+          await sendBookingConfirmationEmail(context, {
+            customerEmail: data.customerData.email,
+            customerName:
+              data.customerData.fullName ||
+              updatedBooking.customer?.fullName ||
+              "Guest",
+            bookingReference: updatedBooking.referenceCode,
+            hotelName: hotel.name,
+            roomType: roomType.name,
+            checkInDate: updatedBooking.checkInDate,
+            checkOutDate: updatedBooking.checkOutDate,
+            numNights: nights,
+            numAdults: updatedBooking.numAdults,
+            numChildren: updatedBooking.numChildren,
+            roomRent: formatCurrency(roomRent),
+            addonsList:
+              addonDetails.length > 0 ? addonDetails.join(", ") : "None",
+            subtotal: formatCurrency(subtotal),
+            discount: formatCurrency(updatedBooking.discountAmountCents),
+            taxAmount: formatCurrency(updatedBooking.taxAmountCents),
+            totalAmount: formatCurrency(updatedBooking.totalAmountCents),
+            amountPaid: formatCurrency(updatedBooking.amountPaidCents),
+            balanceDue: formatCurrency(updatedBooking.balanceDueCents),
+            currencySymbol:
+              updatedBooking.currencyCode === "INR"
+                ? "₹"
+                : updatedBooking.currencyCode,
+          });
+        }
+      } catch (emailError) {
+        // Log email error but don't fail the booking update
+        console.error(
+          "Failed to send updated booking confirmation email:",
+          emailError,
+        );
+        console.error(
+          "Booking was updated successfully, but email notification failed",
+        );
+      }
+    }
+
+    return updatedBooking;
   }
 
   static async checkinBooking(db: D1Database, bookingId: number) {
@@ -189,6 +295,7 @@ export class BookingService {
   static async createBooking(
     db: D1Database,
     bookingRequest: CreateBookingRequest & { amountPaidCents?: number },
+    context?: AppContext,
   ) {
     const database = getDb(db);
     const {
@@ -384,6 +491,77 @@ export class BookingService {
             updatedAt: currentTime,
           })),
         );
+      }
+
+      // Send booking confirmation email
+      if (context) {
+        try {
+          // Fetch hotel and room type details for email
+          const hotel = await HotelRepository.findById(db, hotelId);
+          const roomType = await RoomTypeRepository.findById(
+            db,
+            roomTypeDetails.id,
+          );
+
+          if (hotel && roomType) {
+            // Format currency function
+            const formatCurrency = (cents: number) => {
+              const symbol =
+                newBooking.currencyCode === "INR"
+                  ? "₹"
+                  : newBooking.currencyCode;
+              return `${symbol}${(cents / 100).toFixed(2)}`;
+            };
+
+            // Prepare addon details for email
+            const addonDetails = selectedAddons
+              ? await Promise.all(
+                  selectedAddons.map(async (addon) => {
+                    const addonInfo = await AddonRepository.findById(
+                      db,
+                      addon.id,
+                    );
+                    return `${addonInfo?.name || `Addon #${addon.id}`}: ${formatCurrency(addon.priceCents)}`;
+                  }),
+                )
+              : [];
+
+            await sendBookingConfirmationEmail(context, {
+              customerEmail: customerData.email,
+              customerName: customerData.fullName,
+              bookingReference: newBooking.referenceCode,
+              hotelName: hotel.name,
+              roomType: roomType.name,
+              checkInDate: bookingDetails.checkInDate,
+              checkOutDate: bookingDetails.checkOutDate,
+              numNights: nights,
+              numAdults: bookingDetails.numAdults,
+              numChildren: bookingDetails.numChildren,
+              roomRent: formatCurrency(roomTotal),
+              addonsList:
+                addonDetails.length > 0 ? addonDetails.join(", ") : "None",
+              subtotal: formatCurrency(subtotal),
+              discount: formatCurrency(discountAmountCents),
+              taxAmount: formatCurrency(taxAmountCents),
+              totalAmount: formatCurrency(totalAmountCents),
+              amountPaid: formatCurrency(amountPaidCents),
+              balanceDue: formatCurrency(balanceDueCents),
+              currencySymbol:
+                newBooking.currencyCode === "INR"
+                  ? "₹"
+                  : newBooking.currencyCode,
+            });
+          }
+        } catch (emailError) {
+          // Log email error but don't fail the booking
+          console.error(
+            "Failed to send booking confirmation email:",
+            emailError,
+          );
+          console.error(
+            "Booking was created successfully, but email notification failed",
+          );
+        }
       }
 
       return newBooking;

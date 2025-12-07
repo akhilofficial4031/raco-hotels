@@ -3,10 +3,9 @@ import {
   EditOutlined,
   ExclamationCircleOutlined,
   EyeOutlined,
+  MailOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
-import { convertJsonToQueryParams } from "@utils/queryParams";
-import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 import {
   Button,
   Dropdown,
@@ -23,6 +22,8 @@ import useSWR, { mutate } from "swr";
 
 import TableHeader from "@shared/components/TableHeader";
 import { APP_LOCALE } from "@shared/constants/app";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 
 import {
   USER_STATUS_COLORS,
@@ -150,6 +151,26 @@ const Users = () => {
     }
   };
 
+  const handleSendPasswordReset = (user: User) => {
+    confirm({
+      title: "Send Password Reset Email",
+      icon: <MailOutlined />,
+      content: `Send a password reset email to ${user.fullName} (${user.email})? This will remove any existing reset tokens and send a new email.`,
+      onOk: async () => {
+        try {
+          await mutationFetcher(`/users/${user.id}/send-password-reset`, {
+            arg: { method: "POST" },
+          });
+          message.success("Password reset email sent successfully");
+        } catch (error) {
+          if (error) {
+            message.error("Failed to send password reset email");
+          }
+        }
+      },
+    });
+  };
+
   const columns: ColumnsType<User> = [
     {
       title: "Name",
@@ -216,6 +237,12 @@ const Users = () => {
                     ? "Deactivate"
                     : "Activate",
                 onClick: () => handleActivateUser(record),
+              },
+              {
+                key: "send-password-reset",
+                icon: <MailOutlined />,
+                label: "Send Password Reset Email",
+                onClick: () => handleSendPasswordReset(record),
               },
               {
                 key: "edit",

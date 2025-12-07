@@ -1,4 +1,5 @@
 import { createRoute, ApiTags } from "../lib/route-wrapper";
+import { z } from "zod";
 import {
   UserResponseSchema,
   UsersListResponseSchema,
@@ -97,6 +98,27 @@ export const UserRouteDefinitions = {
     tags: [ApiTags.USERS],
     successSchema: UpdateUserResponseSchema,
     successDescription: "User status updated successfully",
+    paramsSchema: UserPathParamsSchema,
+    includeNotFound: true,
+  }),
+
+  // POST /users/{id}/send-password-reset - Send password reset email (Admin only)
+  sendPasswordResetEmail: createRoute({
+    method: "post",
+    path: "/users/{id}/send-password-reset",
+    summary: "Send password reset email",
+    description:
+      "Admin sends a password reset email to a user. This removes any existing reset tokens and sends a new email.",
+    tags: [ApiTags.USERS],
+    successSchema: z.object({
+      success: z.boolean(),
+      message: z.string(),
+      data: z.object({
+        userEmail: z.string(),
+        userName: z.string(),
+      }),
+    }),
+    successDescription: "Password reset email sent successfully",
     paramsSchema: UserPathParamsSchema,
     includeNotFound: true,
   }),

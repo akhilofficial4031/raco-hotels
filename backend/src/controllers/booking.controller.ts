@@ -83,6 +83,7 @@ export class BookingController {
           c.env.DB,
           bookingId,
           body,
+          c,
         );
 
         return ApiResponse.success(c, {
@@ -146,6 +147,7 @@ export class BookingController {
       const booking = await BookingService.createBooking(
         c.env.DB,
         bookingRequest,
+        c,
       );
       return c.json({ success: true, data: { booking } });
     } catch (error) {

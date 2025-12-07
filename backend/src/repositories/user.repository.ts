@@ -106,6 +106,7 @@ export class UserRepository {
   static async findByEmail(
     db: D1Database,
     email: string,
+    status: UserStatus = UserStatus.ACTIVE,
   ): Promise<DatabaseUser | null> {
     const database = getDb(db);
     const result = await database
@@ -122,7 +123,7 @@ export class UserRepository {
         updatedAt: user.updatedAt,
       })
       .from(user)
-      .where(eq(user.email, email && eq(user.status, UserStatus.ACTIVE)))
+      .where(and(eq(user.email, email), eq(user.status, status)))
       .limit(1);
 
     return (result[0] as DatabaseUser) || null;

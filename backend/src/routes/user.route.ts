@@ -82,4 +82,11 @@ userRoutes.openapi(
   ),
 );
 
+userRoutes.openapi(
+  UserRouteDefinitions.sendPasswordResetEmail,
+  smartPermissionHandler(PERMISSIONS.USERS_UPDATE, (c) =>
+    UserController.sendPasswordResetEmail(c as AppContext),
+  ),
+);
+
 export default userRoutes;
