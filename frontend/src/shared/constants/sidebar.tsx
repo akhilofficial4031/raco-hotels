@@ -74,6 +74,11 @@ export const SIDEBAR_ITEMS = [
         path: "/addons",
       },
       {
+        label: "Attractions",
+        icon: <BankOutlined />,
+        path: "/attractions",
+      },
+      {
         label: "Promo Codes",
         icon: <TagOutlined />,
         path: "/promo-codes",

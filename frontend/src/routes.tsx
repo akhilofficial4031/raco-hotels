@@ -24,6 +24,9 @@ const Users = lazy(() => import("./features/users/pages/Users"));
 
 // Hotel & Room management - related features grouped
 const Hotels = lazy(() => import("./features/hotels/pages/Hotels"));
+const Attractions = lazy(
+  () => import("./features/attractions/pages/Attractions"),
+);
 const RoomType = lazy(() => import("./features/room-type/pages/RoomType"));
 const Rooms = lazy(() => import("./features/rooms/pages/Rooms"));
 const AddRoomPage = lazy(() => import("./features/rooms/pages/AddRoomPage"));
@@ -238,6 +241,41 @@ const router = createBrowserRouter([
                   crumb: () => ({
                     label: "Edit Hotel",
                     href: "/hotels",
+                  }),
+                },
+              },
+            ],
+          },
+          {
+            path: "attractions",
+            handle: {
+              crumb: () => ({
+                label: "Attractions",
+                href: "/attractions",
+              }),
+            },
+            children: [
+              {
+                index: true,
+                Component: withSuspense(Attractions),
+              },
+              {
+                path: "add",
+                Component: withSuspense(Attractions),
+                handle: {
+                  crumb: () => ({
+                    label: "Add Attraction",
+                    href: "/attractions/add",
+                  }),
+                },
+              },
+              {
+                path: "edit/:id",
+                Component: withSuspense(Attractions),
+                handle: {
+                  crumb: () => ({
+                    label: "Edit Attraction",
+                    href: "/attractions",
                   }),
                 },
               },

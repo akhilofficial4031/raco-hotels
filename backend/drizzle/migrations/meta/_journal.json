@@ -43,6 +43,13 @@
       "when": 1764914480664,
       "tag": "0005_cold_banshee",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1765128189991,
+      "tag": "0006_supreme_betty_ross",
+      "breakpoints": true
     }
   ]
 }

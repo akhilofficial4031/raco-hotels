@@ -3,3 +3,4 @@ export * from "./system.definition";
 export * from "./user.definition";
 export * from "./hotel.definition";
 export * from "./addon.definition";
+export * from "./attraction.definition";

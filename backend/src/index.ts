@@ -10,6 +10,7 @@ import { configureOpenAPI } from "./lib/openapi-config";
 import { securityHeadersMiddleware, rateLimitMiddleware } from "./middleware";
 import addonRoutes from "./routes/addon.route";
 import amenityRoutes from "./routes/amenity.route";
+import attractionRoutes from "./routes/attraction.route";
 import authRoutes from "./routes/auth.route";
 import availabilityRoutes from "./routes/availability.route";
 import bookingRoutes from "./routes/booking.route";
@@ -90,6 +91,7 @@ app.use("*", i18nMiddleware());
 app.route("/api", amenityRoutes);
 app.route("/api", featureRoutes);
 app.route("/api", hotelRoutes);
+app.route("/api", attractionRoutes);
 app.route("/api", roomTypeRoutes);
 app.route("/api", availabilityRoutes); // Move availability routes BEFORE room routes to avoid path conflicts
 app.route("/api", roomRoutes);
