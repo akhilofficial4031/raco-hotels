@@ -1,4 +1,5 @@
 import type { DatabaseAmenity } from "./amenity.interface";
+import type { Attraction } from "./attraction.interface";
 import type {
   BaseEntity,
   AddressInfo,
@@ -107,4 +108,5 @@ export interface DatabaseHotelWithRelations extends DatabaseHotel {
   images: DatabaseHotelImage[];
   features: DatabaseFeature[];
   amenities: DatabaseAmenity[];
+  attractions: Attraction[];
 }

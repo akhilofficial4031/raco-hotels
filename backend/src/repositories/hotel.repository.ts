@@ -9,6 +9,7 @@ import {
   amenity as amenityTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
+import { AttractionRepository } from "./attraction.repository";
 
 import type {
   DatabaseHotel,
@@ -310,10 +311,11 @@ export class HotelRepository {
     const hotel = await this.findById(db, id);
     if (!hotel) return null;
 
-    const [images, features, amenities] = await Promise.all([
+    const [images, features, amenities, attractions] = await Promise.all([
       this.findImagesByHotelId(db, id),
       this.findFeaturesByHotelId(db, id),
       this.findAmenitiesByHotelId(db, id),
+      AttractionRepository.findAll(db, { hotelId: id }),
     ]);
 
     return {
@@ -321,6 +323,7 @@ export class HotelRepository {
       images,
       features,
       amenities,
+      attractions,
     };
   }
 
@@ -331,10 +334,11 @@ export class HotelRepository {
     const hotel = await this.findBySlug(db, slug);
     if (!hotel) return null;
 
-    const [images, features, amenities] = await Promise.all([
+    const [images, features, amenities, attractions] = await Promise.all([
       this.findImagesByHotelId(db, hotel.id),
       this.findFeaturesByHotelId(db, hotel.id),
       this.findAmenitiesByHotelId(db, hotel.id),
+      AttractionRepository.findAll(db, { hotelId: hotel.id }),
     ]);
 
     return {
@@ -342,6 +346,7 @@ export class HotelRepository {
       images,
       features,
       amenities,
+      attractions,
     };
   }
 
@@ -352,13 +357,14 @@ export class HotelRepository {
   ): Promise<{ hotels: DatabaseHotelWithRelations[]; total: number }> {
     const { hotels, total } = await this.findAll(db, filters, pagination);
 
-    // For list view, we can get images, features, and amenities for all hotels
+    // For list view, we can get images, features, amenities and attractions for all hotels
     const hotelsWithRelations: DatabaseHotelWithRelations[] = await Promise.all(
       hotels.map(async (hotel) => {
-        const [images, features, amenities] = await Promise.all([
+        const [images, features, amenities, attractions] = await Promise.all([
           this.findImagesByHotelId(db, hotel.id),
           this.findFeaturesByHotelId(db, hotel.id),
           this.findAmenitiesByHotelId(db, hotel.id),
+          AttractionRepository.findAll(db, { hotelId: hotel.id }),
         ]);
 
         return {
@@ -366,6 +372,7 @@ export class HotelRepository {
           images,
           features,
           amenities,
+          attractions,
         };
       }),
     );
