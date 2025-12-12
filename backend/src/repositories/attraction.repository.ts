@@ -40,6 +40,7 @@ export class AttractionRepository {
         name: attractionTable.name,
         slug: attractionTable.slug,
         content: attractionTable.content,
+        layout: attractionTable.layout,
         createdAt: attractionTable.createdAt,
         updatedAt: attractionTable.updatedAt,
         hotelName: hotelTable.name,
@@ -68,6 +69,7 @@ export class AttractionRepository {
         name: attractionTable.name,
         slug: attractionTable.slug,
         content: attractionTable.content,
+        layout: attractionTable.layout,
         createdAt: attractionTable.createdAt,
         updatedAt: attractionTable.updatedAt,
         hotelName: hotelTable.name,
@@ -98,6 +100,7 @@ export class AttractionRepository {
         name: attractionTable.name,
         slug: attractionTable.slug,
         content: attractionTable.content,
+        layout: attractionTable.layout,
         createdAt: attractionTable.createdAt,
         updatedAt: attractionTable.updatedAt,
         hotelName: hotelTable.name,
@@ -129,6 +132,7 @@ export class AttractionRepository {
         name: data.name,
         slug: data.slug,
         content: JSON.stringify(data.content),
+        layout: data.layout,
         createdAt: nowIso,
         updatedAt: nowIso,
       } as any)
@@ -153,6 +157,7 @@ export class AttractionRepository {
     if (data.slug !== undefined) payload.slug = data.slug;
     if (data.content !== undefined)
       payload.content = JSON.stringify(data.content);
+    if (data.layout !== undefined) payload.layout = data.layout;
 
     const rows = await database
       .update(attractionTable)

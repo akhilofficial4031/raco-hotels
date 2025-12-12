@@ -16,6 +16,7 @@ export const attraction = sqliteTable(
     name: text("name").notNull(),
     slug: text("slug").notNull(),
     content: text("content", { mode: "json" }).notNull(), // JSON string of attraction content structure
+    layout: text("layout").notNull().default("layout_1"), // Layout type: layout_1, layout_2, layout_3
     createdAt: text("created_at")
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),

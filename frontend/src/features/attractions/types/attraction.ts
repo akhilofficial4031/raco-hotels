@@ -69,6 +69,7 @@ export interface Attraction {
   name: string;
   slug: string;
   content: AttractionContent;
+  layout: "layout_1" | "layout_2" | "layout_3"; // Layout type: layout_1, layout_2, layout_3
   createdAt: string;
   updatedAt: string;
   hotelName?: string; // Optional, for display purposes
@@ -99,6 +100,7 @@ export interface CreateAttractionPayload {
   name: string;
   slug: string;
   content: AttractionContent;
+  layout: "layout_1" | "layout_2" | "layout_3"; // Layout type: layout_1, layout_2, layout_3
 }
 
 export type UpdateAttractionPayload = Partial<CreateAttractionPayload>;

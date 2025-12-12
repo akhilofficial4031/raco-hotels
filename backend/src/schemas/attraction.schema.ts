@@ -58,6 +58,9 @@ export const AttractionSchema = z
     name: z.string().openapi({ example: "Historic Downtown" }),
     slug: z.string().openapi({ example: "historic-downtown" }),
     content: z.any().openapi({ example: {} }),
+    layout: z
+      .enum(["layout_1", "layout_2", "layout_3"])
+      .openapi({ example: "layout_1" }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     updatedAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     hotelName: z.string().optional().openapi({ example: "Grand Hotel" }),
@@ -70,6 +73,10 @@ export const CreateAttractionRequestSchema = z
     name: z.string().min(1).openapi({ example: "Historic Downtown" }),
     slug: z.string().min(1).openapi({ example: "historic-downtown" }),
     content: AttractionContentSchema,
+    layout: z
+      .enum(["layout_1", "layout_2", "layout_3"])
+      .default("layout_1")
+      .openapi({ example: "layout_1" }),
   })
   .openapi("CreateAttractionRequest");
 

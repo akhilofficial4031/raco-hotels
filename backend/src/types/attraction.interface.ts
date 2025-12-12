@@ -8,6 +8,7 @@ export interface DatabaseAttraction extends BaseEntity {
   name: string;
   slug: string;
   content: string; // JSON string
+  layout: string; // Layout type: layout_1, layout_2, layout_3
 }
 
 /**
@@ -15,6 +16,7 @@ export interface DatabaseAttraction extends BaseEntity {
  */
 export interface Attraction extends Omit<DatabaseAttraction, "content"> {
   content: AttractionContent;
+  layout: string; // Layout type: layout_1, layout_2, layout_3
   hotelName?: string; // Optional for joined queries
 }
 
@@ -87,6 +89,7 @@ export interface CreateAttractionData {
   name: string;
   slug: string;
   content: AttractionContent;
+  layout: string; // Layout type: layout_1, layout_2, layout_3
 }
 
 /**

@@ -72,6 +72,9 @@ export const PUBLIC_ROUTE_PATTERNS: RegExp[] = [
 
   //Public roomtypes routes by id
   /^\/room-types\/[^/]+$/,
+
+  //Public attraction routes by slug
+  /^\/attractions\/slug\/[a-zA-Z0-9_-]+$/,
 ];
 
 /**

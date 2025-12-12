@@ -37,6 +37,9 @@ const attractionSchema = z.object({
   hotelId: z.number().min(1, "Hotel is required"),
   name: z.string().min(1, "Name is required"),
   slug: z.string().min(1, "Slug is required"),
+  layout: z.enum(["layout_1", "layout_2", "layout_3"], {
+    message: "Layout is required",
+  }),
   content: z.object({
     hero: z.object({
       title: z.string().min(1, "Hero title is required"),
@@ -108,6 +111,7 @@ const AddEditAttraction = ({
       hotelId: 0,
       name: "",
       slug: "",
+      layout: "layout_1",
       content: {
         hero: {
           title: "",
@@ -162,6 +166,7 @@ const AddEditAttraction = ({
         hotelId: attraction.hotelId,
         name: attraction.name,
         slug: attraction.slug,
+        layout: attraction.layout,
         content: attraction.content,
       });
     }
@@ -240,7 +245,7 @@ const AddEditAttraction = ({
                     />
                   </Form.Item>
                 </Col>
-                <Col span={24}>
+                <Col span={12}>
                   <Form.Item
                     label="Slug"
                     validateStatus={errors.slug ? "error" : ""}
@@ -252,6 +257,31 @@ const AddEditAttraction = ({
                       control={control}
                       render={({ field }) => (
                         <Input size="large" {...field} disabled />
+                      )}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item
+                    label="Layout"
+                    validateStatus={errors.layout ? "error" : ""}
+                    help={errors.layout?.message}
+                    required
+                  >
+                    <Controller
+                      name="layout"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          size="large"
+                          {...field}
+                          placeholder="Select a layout"
+                          options={[
+                            { label: "Layout 1", value: "layout_1" },
+                            { label: "Layout 2", value: "layout_2" },
+                            { label: "Layout 3", value: "layout_3" },
+                          ]}
+                        />
                       )}
                     />
                   </Form.Item>
