@@ -6,6 +6,7 @@ import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   LoginOutlined,
+  UserDeleteOutlined,
 } from "@ant-design/icons";
 import {
   Button,
@@ -138,6 +139,27 @@ const Bookings = () => {
     });
   };
 
+  const handleNoShowBooking = (record: Booking) => {
+    confirm({
+      title: "Are you sure you want to mark this booking as no show?",
+      icon: <ExclamationCircleOutlined />,
+      content: `This action will mark booking #${record.referenceCode} as no show.`,
+      async onOk() {
+        try {
+          await mutationFetcher(`/bookings/${record.id}/noshow`, {
+            arg: { method: "PATCH" },
+          });
+          message.success("Booking marked as no show successfully");
+          mutateBookings();
+        } catch (error) {
+          if (error) {
+            message.error("Failed to mark booking as no show");
+          }
+        }
+      },
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "confirmed":
@@ -152,6 +174,8 @@ const Bookings = () => {
         return "blue";
       case "checkedout":
         return "purple";
+      case "noshow":
+        return "volcano";
       default:
         return "default";
     }
@@ -214,7 +238,7 @@ const Bookings = () => {
             label: "View Details",
             onClick: () => navigate(`/bookings/${record.id}`),
           },
-          {
+          record.status !== "checkedout" && {
             key: "edit",
             icon: <EditOutlined />,
             label: "Edit",
@@ -231,6 +255,12 @@ const Bookings = () => {
             icon: <CheckCircleOutlined />,
             label: "Checkout",
             onClick: () => handleCheckoutBooking(record),
+          },
+          (record.status === "confirmed" || record.status === "checkedin") && {
+            key: "noshow",
+            icon: <UserDeleteOutlined />,
+            label: "Mark as No Show",
+            onClick: () => handleNoShowBooking(record),
           },
           (record.status === "confirmed" || record.status === "checkedin") && {
             key: "cancel",

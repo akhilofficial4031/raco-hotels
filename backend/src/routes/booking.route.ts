@@ -46,6 +46,13 @@ bookingRoutes.openapi(
   ),
 );
 
+bookingRoutes.openapi(
+  BookingRouteDefinitions.noshowBooking,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
+    BookingController.noshowBooking(c as AppContext),
+  ),
+);
+
 // Create a new booking
 // bookingRoutes.openapi(
 //   BookingRouteDefinitions.createDraft,

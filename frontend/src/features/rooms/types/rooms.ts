@@ -82,6 +82,7 @@ export interface BookingRoomTypeRooms {
   roomId: number;
   roomNumber: string;
   status: RoomStatus;
+  id?: number;
 }
 
 export interface RoomImage {

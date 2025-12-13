@@ -105,14 +105,14 @@ const ReviewAndSubmit = ({
 
   const bookingStatus = calculateBookingStatus();
 
-  // Calculate pricing for create mode
+  // Calculate pricing for both create and edit modes
   const roomTotal =
-    mode === "create" && roomTypeDetails && selectedRooms
+    (mode === "create" || mode === "edit") && roomTypeDetails && selectedRooms
       ? (roomTypeDetails.basePriceCents ?? 0) * nights * selectedRooms.length
       : 0;
 
   const addOnsTotal =
-    mode === "create" && selectedAddons && roomTypeDetails
+    (mode === "create" || mode === "edit") && selectedAddons && roomTypeDetails
       ? (selectedAddons || []).reduce((total, addon) => {
           const roomTypeAddon = roomTypeDetails.addons?.find(
             (a: any) => a.addonId === addon.id,
@@ -122,7 +122,6 @@ const ReviewAndSubmit = ({
       : 0;
 
   const subtotal = roomTotal + addOnsTotal;
-  const taxes = subtotal * 0.18; // Example tax rate
 
   const [discount, setDiscount] = useState(0);
   useEffect(() => {
@@ -139,16 +138,21 @@ const ReviewAndSubmit = ({
           calculatedDiscount = appliedPromoCode.maxDiscountCents;
         }
       }
+      // Ensure discount doesn't exceed subtotal
+      calculatedDiscount = Math.min(calculatedDiscount, subtotal);
       setDiscount(Math.round(calculatedDiscount));
     } else {
       setDiscount(0);
     }
   }, [appliedPromoCode, subtotal]);
 
+  // Apply discount to subtotal first, then calculate tax on the discounted amount
+  const subtotalAfterDiscount = Math.max(0, subtotal - discount);
+  const taxes = subtotalAfterDiscount * 0.18; // 18% tax rate applied after discount
+  const total = subtotalAfterDiscount + taxes;
+
   const [promoCodeInput, setPromoCodeInput] = useState("");
   const [isApplying, setIsApplying] = useState(false);
-
-  const total = subtotal + taxes - discount;
 
   const [amountPaid, setAmountPaid] = useState(0);
 
@@ -156,9 +160,10 @@ const ReviewAndSubmit = ({
     if (mode === "create") {
       setAmountPaid(total / 100);
     } else if (mode === "edit" && bookingDetails?.amountPaidCents) {
+      // For edit mode, keep the existing amount paid initially
       setAmountPaid(bookingDetails.amountPaidCents / 100);
     }
-  }, [total, mode, bookingDetails]);
+  }, [mode, bookingDetails]); // Removed total dependency for edit mode to prevent auto-updating amount paid
 
   const handleAmountPaidChange = (value: number | null) => {
     setAmountPaid(value || 0);
@@ -196,8 +201,8 @@ const ReviewAndSubmit = ({
     onPromoCodeChange(null);
   };
 
-  if (mode === "edit" || mode === "checkin") {
-    // Simplified view for edit and checkin mode
+  if (mode === "checkin") {
+    // Simplified view for checkin mode
     return (
       <Card>
         <Title level={4}>
@@ -287,13 +292,19 @@ const ReviewAndSubmit = ({
     );
   }
 
-  // Full view for create mode
+  // Full view for create and edit modes
   if (!selectedRooms || !customerData || !roomTypeDetails) {
     return <div>Loading...</div>;
   }
 
   return (
-    <Card title="Review and Submit Booking">
+    <Card
+      title={
+        mode === "edit"
+          ? "Review and Update Booking"
+          : "Review and Submit Booking"
+      }
+    >
       <Row gutter={32}>
         <Col span={14}>
           <Title level={4}>Booking Summary</Title>
@@ -376,17 +387,22 @@ const ReviewAndSubmit = ({
               <Descriptions.Item label="Subtotal">
                 <Text strong>{`₹${(subtotal / 100).toLocaleString()}`}</Text>
               </Descriptions.Item>
-              <Descriptions.Item label="Taxes & Fees (18%)">
-                <Text>{`₹${(taxes / 100).toLocaleString()}`}</Text>
-              </Descriptions.Item>
               {appliedPromoCode && (
-                <Descriptions.Item label="Discount">
+                <Descriptions.Item label="Discount (Promo Code)">
                   <Text
                     strong
                     style={{ color: "green" }}
                   >{`-₹${(discount / 100).toLocaleString()}`}</Text>
                 </Descriptions.Item>
               )}
+              <Descriptions.Item label="Subtotal After Discount">
+                <Text
+                  strong
+                >{`₹${(subtotalAfterDiscount / 100).toLocaleString()}`}</Text>
+              </Descriptions.Item>
+              <Descriptions.Item label="Taxes & Fees (18%)">
+                <Text>{`₹${(taxes / 100).toLocaleString()}`}</Text>
+              </Descriptions.Item>
               <Descriptions.Item label="Total Amount">
                 <Title level={3}>{`₹${(total / 100).toLocaleString()}`}</Title>
               </Descriptions.Item>
@@ -472,7 +488,7 @@ const ReviewAndSubmit = ({
                     isSubmitting || amountPaid > total / 100 || amountPaid < 0
                   }
                 >
-                  Complete Booking
+                  {mode === "edit" ? "Update Booking" : "Complete Booking"}
                 </Button>
               </Space>
             </Row>

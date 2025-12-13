@@ -73,6 +73,105 @@ export class BookingService {
       throw new Error("Booking not found");
     }
 
+    const roomTypeId =
+      data.bookingDetails?.roomTypeId ??
+      booking.items?.[0]?.booking_item?.roomTypeId;
+
+    // SERVER-SIDE CALCULATION FOR SECURITY
+    // Never trust prices from frontend - always recalculate from database
+    // Fetch actual prices: room type base price, addon prices
+    // Apply promo code discount to subtotal, then calculate tax on discounted amount
+    let totalAmountCents = booking.totalAmountCents;
+    let taxAmountCents = booking.taxAmountCents;
+    let discountAmountCents = booking.discountAmountCents || 0;
+
+    if (roomTypeId && data.selectedRooms) {
+      // Get room type details to get base price
+      const roomType = await RoomTypeRepository.findById(db, roomTypeId);
+      if (!roomType) {
+        throw new Error("Room type not found");
+      }
+
+      // Calculate number of nights
+      const checkInDate = data.bookingDetails.checkInDate;
+      const checkOutDate = data.bookingDetails.checkOutDate;
+      const nights = dayjs(checkOutDate).diff(dayjs(checkInDate), "day");
+
+      // Calculate room total based on actual room type price
+      const roomTotal =
+        (roomType.basePriceCents ?? 0) * nights * data.selectedRooms.length;
+
+      // Calculate addons total from database prices
+      let addOnsTotal = 0;
+      if (data.selectedAddons && data.selectedAddons.length > 0) {
+        const addonIds = data.selectedAddons.map((a: { id: number }) => a.id);
+        const addonPrices = await database
+          .select()
+          .from(roomTypeAddon)
+          .where(
+            and(
+              eq(roomTypeAddon.roomTypeId, roomTypeId),
+              inArray(roomTypeAddon.addonId, addonIds),
+            ),
+          );
+
+        addOnsTotal = addonPrices.reduce(
+          (sum, addon) => sum + (addon.priceCents ?? 0),
+          0,
+        );
+      }
+
+      // Calculate subtotal
+      const subtotal = roomTotal + addOnsTotal;
+
+      // Apply promo code discount if exists
+      // Check if booking has a promo code applied (existing promo code preserved)
+      const bookingPromotions = await database
+        .select()
+        .from(bookingPromotion)
+        .where(eq(bookingPromotion.bookingId, id));
+
+      let existingPromoCodeId: number | null = null;
+      if (bookingPromotions.length > 0) {
+        existingPromoCodeId = bookingPromotions[0].promoCodeId;
+        const promoCode = await PromoCodeRepository.findById(
+          db,
+          existingPromoCodeId,
+        );
+
+        if (promoCode && promoCode.isActive) {
+          // Recalculate discount with new subtotal
+          if (promoCode.type === "fixed") {
+            discountAmountCents = promoCode.value;
+          } else if (promoCode.type === "percent") {
+            discountAmountCents = Math.round(
+              (subtotal * promoCode.value) / 100,
+            );
+            if (
+              promoCode.maxDiscountCents &&
+              discountAmountCents > promoCode.maxDiscountCents
+            ) {
+              discountAmountCents = promoCode.maxDiscountCents;
+            }
+          }
+          // Ensure discount doesn't exceed subtotal
+          discountAmountCents = Math.min(discountAmountCents, subtotal);
+        } else {
+          // Promo code is no longer active, remove it
+          discountAmountCents = 0;
+          await database
+            .delete(bookingPromotion)
+            .where(eq(bookingPromotion.bookingId, id));
+          existingPromoCodeId = null;
+        }
+      }
+
+      // Calculate tax on discounted subtotal (new logic)
+      const subtotalAfterDiscount = Math.max(0, subtotal - discountAmountCents);
+      taxAmountCents = Math.round(subtotalAfterDiscount * 0.18); // 18% tax rate
+      totalAmountCents = subtotalAfterDiscount + taxAmountCents;
+    }
+
     // Update booking data
     const bookingData: any = {
       checkInDate: data.bookingDetails.checkInDate,
@@ -80,15 +179,16 @@ export class BookingService {
       numAdults: data.bookingDetails.numAdults,
       numChildren: data.bookingDetails.numChildren,
       status: data.bookingDetails.status,
+      totalAmountCents,
+      taxAmountCents,
+      discountAmountCents,
       updatedAt: new Date().toISOString(),
     };
 
     // Include amountPaidCents if provided
     if (data.amountPaidCents !== undefined) {
       bookingData.amountPaidCents = data.amountPaidCents;
-      // Recalculate balance due
-      bookingData.balanceDueCents =
-        booking.totalAmountCents - data.amountPaidCents;
+      bookingData.balanceDueCents = totalAmountCents - data.amountPaidCents;
 
       // Update payment status
       if (data.amountPaidCents <= 0) {
@@ -98,6 +198,10 @@ export class BookingService {
       } else {
         bookingData.paymentStatus = "partial";
       }
+    } else {
+      // Recalculate balance due if amount paid wasn't updated
+      bookingData.balanceDueCents =
+        totalAmountCents - (booking.amountPaidCents ?? 0);
     }
 
     // Update customer data if provided
@@ -124,9 +228,6 @@ export class BookingService {
 
     await BookingRepository.update(db, id, bookingData);
 
-    const roomTypeId =
-      data.bookingDetails?.roomTypeId ??
-      booking.items?.[0]?.booking_item?.roomTypeId;
     if (roomTypeId) {
       // Update rooms
       if (data.selectedRooms) {
@@ -224,16 +325,17 @@ export class BookingService {
               return `${name}: ${price}`;
             }) || [];
 
-          // Calculate room rent
+          // Calculate room rent based on new logic: discount applied before tax
           const addonsTotal =
             updatedBooking.addons?.reduce(
-              (sum: number, addon: any) => sum + (addon.priceCents || 0),
+              (sum: number, addon: any) =>
+                sum + (addon.booking_addon?.priceCents || 0),
               0,
             ) || 0;
+          const subtotalAfterDiscount =
+            updatedBooking.totalAmountCents - updatedBooking.taxAmountCents;
           const subtotal =
-            updatedBooking.totalAmountCents -
-            updatedBooking.taxAmountCents +
-            updatedBooking.discountAmountCents;
+            subtotalAfterDiscount + updatedBooking.discountAmountCents;
           const roomRent = subtotal - addonsTotal;
 
           await sendBookingConfirmationEmail(context, {
@@ -292,6 +394,10 @@ export class BookingService {
     await BookingRepository.updateStatus(db, bookingId, "checkedout");
   }
 
+  static async noshowBooking(db: D1Database, bookingId: number) {
+    await BookingRepository.updateStatus(db, bookingId, "noshow");
+  }
+
   static async createBooking(
     db: D1Database,
     bookingRequest: CreateBookingRequest & { amountPaidCents?: number },
@@ -308,17 +414,37 @@ export class BookingService {
       promoCode,
     } = bookingRequest;
 
-    // Simplified total calculation
+    // SERVER-SIDE CALCULATION FOR SECURITY
+    // Never trust prices from frontend - always fetch from database
     const nights = dayjs(bookingDetails.checkOutDate).diff(
       dayjs(bookingDetails.checkInDate),
       "day",
     );
     const roomTotal =
       (roomTypeDetails.basePriceCents ?? 0) * nights * selectedRooms.length;
-    const addOnsTotal = (selectedAddons || []).reduce(
-      (total, addon) => total + (addon.priceCents ?? 0),
-      0,
-    );
+
+    // Fetch addon prices from database, not from frontend request
+    let addOnsTotal = 0;
+    const addonPriceMap = new Map<number, number>();
+    if (selectedAddons && selectedAddons.length > 0) {
+      const addonIds = selectedAddons.map((a: { id: number }) => a.id);
+      const addonPrices = await database
+        .select()
+        .from(roomTypeAddon)
+        .where(
+          and(
+            eq(roomTypeAddon.roomTypeId, roomTypeDetails.id),
+            inArray(roomTypeAddon.addonId, addonIds),
+          ),
+        );
+
+      addonPrices.forEach((addon) => {
+        const price = addon.priceCents ?? 0;
+        addonPriceMap.set(addon.addonId, price);
+        addOnsTotal += price;
+      });
+    }
+
     const subtotal = roomTotal + addOnsTotal;
 
     let discountAmountCents = 0;
@@ -357,16 +483,17 @@ export class BookingService {
             }
           }
           discountAmountCents = Math.round(discountAmountCents);
+          // Ensure discount doesn't exceed subtotal
+          discountAmountCents = Math.min(discountAmountCents, subtotal);
         }
       }
     }
 
-    // Use provided tax and total amounts from frontend, or calculate as fallback
-    const taxAmountCents =
-      bookingRequest.taxAmountCents ?? Math.round(subtotal * 0.18);
-    const totalAmountCents =
-      bookingRequest.totalAmountCents ??
-      subtotal + taxAmountCents - discountAmountCents;
+    // Always calculate tax and total on server-side for security (never trust frontend)
+    // New logic: apply discount to subtotal first, then calculate tax on discounted amount
+    const subtotalAfterDiscount = Math.max(0, subtotal - discountAmountCents);
+    const taxAmountCents = Math.round(subtotalAfterDiscount * 0.18); // 18% tax rate
+    const totalAmountCents = subtotalAfterDiscount + taxAmountCents;
     const amountPaidCents = bookingRequest.amountPaidCents || 0;
     const balanceDueCents = totalAmountCents - amountPaidCents;
 
@@ -485,7 +612,7 @@ export class BookingService {
             bookingId: newBooking.id,
             roomTypeId: roomTypeDetails.id,
             addonId: a.id,
-            priceCents: a.priceCents,
+            priceCents: addonPriceMap.get(a.id) ?? 0, // Use price from database, not frontend
             quantity: 1,
             createdAt: currentTime,
             updatedAt: currentTime,
@@ -513,7 +640,7 @@ export class BookingService {
               return `${symbol}${(cents / 100).toFixed(2)}`;
             };
 
-            // Prepare addon details for email
+            // Prepare addon details for email using database prices
             const addonDetails = selectedAddons
               ? await Promise.all(
                   selectedAddons.map(async (addon) => {
@@ -521,7 +648,8 @@ export class BookingService {
                       db,
                       addon.id,
                     );
-                    return `${addonInfo?.name || `Addon #${addon.id}`}: ${formatCurrency(addon.priceCents)}`;
+                    const price = addonPriceMap.get(addon.id) ?? 0;
+                    return `${addonInfo?.name || `Addon #${addon.id}`}: ${formatCurrency(price)}`;
                   }),
                 )
               : [];

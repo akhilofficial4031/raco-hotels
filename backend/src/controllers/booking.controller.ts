@@ -140,6 +140,21 @@ export class BookingController {
     );
   }
 
+  static async noshowBooking(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const { id } = c.req.param();
+        const bookingId = parseInt(id, 10);
+        await BookingService.noshowBooking(c.env.DB, bookingId);
+        return ApiResponse.success(c, {
+          booking: { id: bookingId, status: "noshow" },
+        });
+      },
+      "operation.noshowBookingFailed",
+    );
+  }
+
   static async createBooking(c: AppContext) {
     try {
       const body = await c.req.json();

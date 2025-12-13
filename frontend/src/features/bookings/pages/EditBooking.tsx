@@ -1,4 +1,5 @@
-import { Steps, Card, Typography, message } from "antd";
+import { ArrowLeftOutlined } from "@ant-design/icons";
+import { Steps, Card, Typography, message, Button } from "antd";
 import dayjs from "dayjs";
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
@@ -11,6 +12,7 @@ import { fetcher } from "@utils/swrFetcher";
 import { type Booking } from "src/features/bookings/types/bookings";
 
 import { type AddonInBooking } from "../../addon/types/addon";
+import { type PromoCode } from "../../promo-code/types/promoCode";
 import { type RoomTypeWithRelations } from "../../room-type/types/roomType";
 import { type BookingRoomTypeRooms } from "../../rooms/types/rooms";
 import BookingDetailsForm from "../components/BookingDetailsForm";
@@ -35,6 +37,9 @@ function EditBooking() {
   const [currentStep, setCurrentStep] = useState(0);
   const [bookingData, setBookingData] = useState<BookingData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [appliedPromoCode, setAppliedPromoCode] = useState<PromoCode | null>(
+    null,
+  );
 
   const {
     data: response,
@@ -78,9 +83,32 @@ function EditBooking() {
           emergencyContactPhone: booking.customer?.emergencyContactPhone ?? "",
           notes: booking.customer?.notes ?? "",
         },
-        selectedRooms: booking.items?.map((item: any) => item.room),
+        selectedRooms:
+          booking.items
+            ?.map((item: any) => {
+              const room = item.room;
+              if (!room) return null;
+              return {
+                roomId: room.id,
+                roomNumber: room.roomNumber,
+                floor: room.floor,
+                roomDescription: room.description,
+                status: room.status,
+              };
+            })
+            .filter(
+              (room): room is NonNullable<typeof room> => room !== null,
+            ) || [],
         selectedAddons: booking.addons?.map((a: any) => a.addon) || [],
       });
+
+      // Set applied promo code if exists
+      if (booking.promotions && booking.promotions.length > 0) {
+        const promoCodeData = booking.promotions[0].promo_code;
+        if (promoCodeData) {
+          setAppliedPromoCode(promoCodeData);
+        }
+      }
     }
   }, [booking]);
 
@@ -106,6 +134,7 @@ function EditBooking() {
       ...prev,
       selectedRooms: values.selectedRooms,
       selectedAddons: values.selectedAddons,
+      roomTypeDetails: values.roomTypeDetails,
     }));
     setCurrentStep(2);
   };
@@ -119,12 +148,23 @@ function EditBooking() {
     setCurrentStep((prev) => prev - 1);
   };
 
+  const handlePromoCodeChange = (promoCode: PromoCode | null) => {
+    setAppliedPromoCode(promoCode);
+  };
+
   const handleSubmit = async (paymentDetails: {
     amountPaidCents: number;
-    taxAmountCents?: number;
-    totalAmountCents?: number;
+    taxAmountCents: number;
+    totalAmountCents: number;
   }) => {
     if (!id) return;
+
+    // Validate we have selected rooms
+    if (!bookingData.selectedRooms || bookingData.selectedRooms.length === 0) {
+      message.error("Please select at least one room for this booking.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     const payload = {
@@ -152,14 +192,40 @@ function EditBooking() {
         emergencyContactPhone: bookingData.customerData?.emergencyContactPhone,
         notes: bookingData.customerData?.notes,
       },
-      selectedRooms: bookingData.selectedRooms?.map((room) => ({
-        id: room.roomId,
-      })),
-      selectedAddons: bookingData.selectedAddons?.map((addon) => ({
-        id: addon.id,
-      })),
+      selectedRooms:
+        bookingData.selectedRooms
+          ?.filter((room) => room && (room.roomId || room.id))
+          .map((room) => ({
+            id: room.roomId || room.id,
+          })) || [],
+      selectedAddons:
+        bookingData.selectedAddons
+          ?.filter((addon) => addon && addon.id)
+          .map((addon) => ({
+            id: addon.id,
+          })) || [],
       amountPaidCents: paymentDetails.amountPaidCents,
+      taxAmountCents: paymentDetails.taxAmountCents,
+      totalAmountCents: paymentDetails.totalAmountCents,
     };
+
+    // Final validation - ensure all room IDs are valid
+    if (!payload.selectedRooms || payload.selectedRooms.length === 0) {
+      message.error(
+        "Unable to process booking rooms. Please try re-selecting the rooms.",
+      );
+      setIsSubmitting(false);
+      return;
+    }
+
+    const hasInvalidRoomIds = payload.selectedRooms.some((room) => !room.id);
+    if (hasInvalidRoomIds) {
+      message.error(
+        "Some rooms have invalid IDs. Please try re-selecting the rooms.",
+      );
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       const apiResponse = await updateBooking(id, payload);
@@ -230,7 +296,8 @@ function EditBooking() {
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           mode="edit"
-          onPromoCodeChange={() => {}}
+          appliedPromoCode={appliedPromoCode}
+          onPromoCodeChange={handlePromoCodeChange}
         />
       ),
     },
@@ -255,7 +322,11 @@ function EditBooking() {
   return (
     <div>
       <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-2 border border-gray-200">
-        <div>
+        <div className="flex items-center gap-2">
+          <Button
+            icon={<ArrowLeftOutlined />}
+            onClick={() => navigate("/bookings")}
+          />
           <Title level={4} className="!m-0">
             Edit Booking #{booking?.referenceCode}
           </Title>

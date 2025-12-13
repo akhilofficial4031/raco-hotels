@@ -71,10 +71,7 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
     },
   );
 
-  const availabilityQuery =
-    mode === "create" || mode === "checkin"
-      ? `/rooms/availability?hotelId=${hotelId}&roomTypeId=${roomTypeId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`
-      : `/rooms/availability?hotelId=${hotelId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`;
+  const availabilityQuery = `/rooms/availability?hotelId=${hotelId}&roomTypeId=${roomTypeId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}`;
 
   const { data: availabilityData, isLoading: isLoadingAvailability } = useSWR<
     ApiResponse<IRoomAvailability>
@@ -85,16 +82,26 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
 
   // Remove separate addon API call since addons are included in room type data
 
-  const availableRooms = availabilityData?.data.roomTypes[0].rooms || [];
+  const availableRooms = availabilityData?.data?.roomTypes?.[0]?.rooms || [];
 
   const allRoomsToDisplay = useMemo(() => {
     const roomMap = new Map<number, BookingRoomTypeRooms>();
+
     // Add available rooms
     availableRooms.forEach((room) => roomMap.set(room.roomId, room));
+
     // Add/overwrite with initial selected rooms to ensure they are present
-    initialSelectedRooms.forEach((room) => roomMap.set(room.roomId, room));
-    return Array.from(roomMap.values());
-  }, [availableRooms, initialSelectedRooms]);
+    // For edit mode, these rooms should be available even if the API says they're booked
+    initialSelectedRooms.forEach((room) => {
+      roomMap.set(room.roomId, {
+        ...room,
+        status: mode === "edit" ? RoomStatus.Available : room.status,
+      });
+    });
+
+    const finalRooms = Array.from(roomMap.values());
+    return finalRooms;
+  }, [availableRooms, initialSelectedRooms, mode]);
 
   const roomTypeDetails = useMemo(() => {
     return roomTypesData?.data.roomTypes.find(
@@ -125,7 +132,6 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
         sensitivity: "base",
       });
     });
-    console.log("sortedRooms", sortedRooms);
 
     return sortedRooms.reduce(
       (acc: { [key: string]: BookingRoomTypeRooms[] }, room) => {
@@ -200,11 +206,19 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
                   (r) => r.roomId === room.roomId,
                 );
                 const isAvailable = room.status === RoomStatus.Available;
-                const isSelectable = isAvailable || isSelected;
+                const isInitiallySelected =
+                  mode === "edit" &&
+                  initialSelectedRooms.some((r) => r.roomId === room.roomId);
+                const isSelectable =
+                  isAvailable || isSelected || isInitiallySelected;
                 return (
                   <Popover
                     key={room.roomId}
-                    content={`Status: ${room.status}`}
+                    content={
+                      isInitiallySelected
+                        ? `Currently booked in this booking (${room.status})`
+                        : `Status: ${room.status}`
+                    }
                     title="Room Details"
                   >
                     <div
@@ -212,10 +226,12 @@ const RoomSelection: React.FC<RoomSelectionProps> = ({
                         isSelectable ? "cursor-pointer" : "cursor-not-allowed"
                       } ${
                         isSelected
-                          ? "border-2 border-blue-500"
-                          : isAvailable
-                            ? "border border-green-500"
-                            : "border border-gray-300 bg-gray-300"
+                          ? "border-2 border-green-800 text-green-800 bg-green-100"
+                          : isInitiallySelected
+                            ? "border-2 border-yellow-500 bg-yellow-50" // Show initially selected rooms
+                            : isAvailable
+                              ? "border border-green-500"
+                              : "border border-gray-300 bg-gray-300"
                       }`}
                       onClick={() => {
                         if (isSelectable) {

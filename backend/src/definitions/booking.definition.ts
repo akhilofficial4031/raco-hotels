@@ -502,6 +502,18 @@ export const BookingRouteDefinitions = {
     includeBadRequest: true,
   }),
 
+  noshowBooking: createRoute({
+    method: "patch",
+    path: "/bookings/{id}/noshow",
+    summary: "Mark a booking as no show",
+    description: "Mark a specific booking as no show by its ID.",
+    tags: [ApiTags.BOOKINGS],
+    successSchema: BookingResponseSchema,
+    successDescription: "Booking marked as no show successfully.",
+    paramsSchema: BookingPathParamsSchema,
+    includeBadRequest: true,
+  }),
+
   getBookingById: createRoute({
     method: "get",
     path: "/bookings/{id}",

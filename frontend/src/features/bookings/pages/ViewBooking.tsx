@@ -5,6 +5,8 @@ import {
   LoginOutlined,
   ExclamationCircleOutlined,
   CheckCircleOutlined,
+  UserDeleteOutlined,
+  ArrowLeftOutlined,
 } from "@ant-design/icons";
 import {
   Card,
@@ -48,6 +50,29 @@ function ViewBooking() {
 
   const booking = response?.data?.booking;
 
+  const handleCheckIn = () => {
+    if (!booking) return;
+
+    confirm({
+      title: "Are you sure you want to check in this booking?",
+      icon: <ExclamationCircleOutlined />,
+      content: `This action will check in booking #${booking.referenceCode}.`,
+      onOk: async () => {
+        try {
+          await mutationFetcher(`/bookings/${booking.id}/checkin`, {
+            arg: { method: "PATCH" },
+          });
+          message.success("Booking checked in successfully!");
+          mutate(`/bookings/${id}`);
+        } catch (err) {
+          if (err) {
+            message.error("Failed to check in booking.");
+          }
+        }
+      },
+    });
+  };
+
   const handleCheckoutBooking = () => {
     if (!booking) return;
 
@@ -90,6 +115,29 @@ function ViewBooking() {
     });
   };
 
+  const handleNoShowBooking = () => {
+    if (!booking) return;
+
+    confirm({
+      title: "Are you sure you want to mark this booking as no show?",
+      icon: <ExclamationCircleOutlined />,
+      content: `This action will mark booking #${booking.referenceCode} as no show.`,
+      onOk: async () => {
+        try {
+          await mutationFetcher(`/bookings/${booking.id}/noshow`, {
+            arg: { method: "PATCH" },
+          });
+          message.success("Booking marked as no show successfully");
+          mutate(`/bookings/${id}`);
+        } catch (err) {
+          if (err) {
+            message.error("Failed to mark booking as no show");
+          }
+        }
+      },
+    });
+  };
+
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "confirmed":
@@ -100,6 +148,8 @@ function ViewBooking() {
         return "purple";
       case "cancelled":
         return "red";
+      case "noshow":
+        return "volcano";
       default:
         return "default";
     }
@@ -116,13 +166,20 @@ function ViewBooking() {
       key: "checkin",
       icon: <LoginOutlined />,
       label: "Check In",
-      onClick: () => navigate(`/bookings/${id}/checkin`),
+      onClick: handleCheckIn,
     },
     booking?.status?.toLowerCase() === "checkedin" && {
       key: "checkout",
       icon: <CheckCircleOutlined />,
       label: "Check out",
       onClick: handleCheckoutBooking,
+    },
+    (booking?.status?.toLowerCase() === "confirmed" ||
+      booking?.status?.toLowerCase() === "checkedin") && {
+      key: "noshow",
+      icon: <UserDeleteOutlined />,
+      label: "Mark as No Show",
+      onClick: handleNoShowBooking,
     },
     {
       key: "cancel",
@@ -156,28 +213,35 @@ function ViewBooking() {
   const remainingAmount = booking.balanceDueCents ?? totalAmount - paidAmount;
   const discountAmount = booking.discountAmountCents ?? 0;
   const taxAmount = booking.taxAmountCents ?? 0;
-  const feeAmount = booking.feeAmountCents ?? 0;
   const addonsTotal =
     booking.addons?.reduce(
       (acc, item) => acc + (item.booking_addon.priceCents || 0),
       0,
     ) ?? 0;
-  const roomPrice =
-    totalAmount - addonsTotal - taxAmount - feeAmount + discountAmount;
+  // Calculate based on new logic: discount applied to subtotal, then tax calculated
+  const roomPrice = totalAmount - addonsTotal + discountAmount - taxAmount;
+  const subtotal = roomPrice + addonsTotal;
+  const subtotalAfterDiscount = subtotal - discountAmount;
 
   return (
     <div>
       <div className="flex justify-between items-center bg-white p-4 rounded-lg mb-2 border border-gray-200">
-        <div>
+        <div className="flex items-center gap-2">
+          <Button
+            icon={<ArrowLeftOutlined />}
+            onClick={() => navigate("/bookings")}
+          />
           <Title level={4} className="!m-0">
             Booking #{booking.referenceCode}
           </Title>
         </div>
-        <div className="flex items-center gap-2">
-          <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
-            <Button icon={<MoreOutlined />} />
-          </Dropdown>
-        </div>
+        {booking.status !== "checkedout" && (
+          <div className="flex items-center gap-2">
+            <Dropdown menu={{ items: menuItems }} trigger={["click"]}>
+              <Button icon={<MoreOutlined />} />
+            </Dropdown>
+          </div>
+        )}
       </div>
       <Card>
         <Row gutter={[16, 16]}>
@@ -239,6 +303,22 @@ function ViewBooking() {
                 )}
               />
             </Card>
+            {booking.customer?.notes && (
+              <Card title="Additional Notes" className="!mt-4">
+                <div
+                  style={{
+                    padding: "12px",
+                    background: "#fafafa",
+                    border: "1px solid #f0f0f0",
+                    borderRadius: "6px",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  <Text>{booking.customer.notes}</Text>
+                </div>
+              </Card>
+            )}
           </Col>
           <Col xs={24} md={8}>
             <Card title="Customer Details" className="!mb-4">
@@ -268,19 +348,43 @@ function ViewBooking() {
                     currency: booking.currencyCode,
                   }).format(addonsTotal / 100)}
                 </Descriptions.Item>
-                <Descriptions.Item label="Taxes">
+                <Descriptions.Item label="Subtotal">
+                  {new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: booking.currencyCode,
+                  }).format(subtotal / 100)}
+                </Descriptions.Item>
+                {discountAmount > 0 && (
+                  <>
+                    <Descriptions.Item label="Discount (Promo Code)">
+                      <span>
+                        -
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: booking.currencyCode,
+                        }).format(discountAmount / 100)}
+                        {booking.promotions &&
+                          booking.promotions.length > 0 &&
+                          booking.promotions[0].promo_code && (
+                            <Tag color="green" style={{ marginLeft: 8 }}>
+                              {booking.promotions[0].promo_code.code}
+                            </Tag>
+                          )}
+                      </span>
+                    </Descriptions.Item>
+                    <Descriptions.Item label="Subtotal After Discount">
+                      {new Intl.NumberFormat("en-US", {
+                        style: "currency",
+                        currency: booking.currencyCode,
+                      }).format(subtotalAfterDiscount / 100)}
+                    </Descriptions.Item>
+                  </>
+                )}
+                <Descriptions.Item label="Taxes & Fees (18%)">
                   {new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency: booking.currencyCode,
                   }).format(taxAmount / 100)}
-                </Descriptions.Item>
-
-                <Descriptions.Item label="Discount">
-                  -
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: booking.currencyCode,
-                  }).format(discountAmount / 100)}
                 </Descriptions.Item>
                 <Descriptions.Item label="Total Amount">
                   {new Intl.NumberFormat("en-US", {

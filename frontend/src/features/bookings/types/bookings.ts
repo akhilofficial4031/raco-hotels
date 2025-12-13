@@ -38,6 +38,7 @@ export interface Booking {
   } | null;
   items?: any[];
   addons?: any[];
+  promotions?: any[];
 }
 
 export interface BookingListResponse {

@@ -4,7 +4,6 @@ import {
   CarryOutOutlined,
 } from "@ant-design/icons";
 import React, { useMemo } from "react";
-import { Link } from "react-router";
 import {
   LineChart,
   Line,
@@ -142,7 +141,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+        {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
           <div className="lg:col-span-3 bg-white rounded-xl shadow-md p-6">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
               Quick Actions
@@ -166,7 +165,7 @@ const Dashboard: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
