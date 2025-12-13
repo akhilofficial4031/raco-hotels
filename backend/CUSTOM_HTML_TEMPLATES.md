@@ -14,11 +14,13 @@ Your Code → mail-templates.ts → NotificationAPI API → Email Sent
 ```
 
 Instead of:
+
 1. ❌ Creating templates in NotificationAPI dashboard
-2. ❌ Managing templates via web interface  
+2. ❌ Managing templates via web interface
 3. ❌ Using `notificationId` to reference dashboard templates
 
 We now:
+
 1. ✅ Define HTML templates in `backend/src/utils/mail-templates.ts`
 2. ✅ Send custom HTML directly via NotificationAPI's `email.html` parameter
 3. ✅ Update templates by editing code (like before with Resend)
@@ -36,15 +38,13 @@ backend/src/utils/
 This file contains all email templates as TypeScript functions that return `{ subject, html }`:
 
 ```typescript
-export function renderWelcomeEmail(data: {
-  userName: string;
-  loginUrl?: string;
-}): { subject: string; html: string } {
+export function renderWelcomeEmail(data: { userName: string; loginUrl?: string }): { subject: string; html: string } {
   // Returns HTML email with your custom design
 }
 ```
 
 **Available Templates:**
+
 - `renderWelcomeEmail()` - Welcome email for new users
 - `renderWelcomePasswordEmail()` - Welcome + password setup
 - `renderBookingConfirmationEmail()` - Booking confirmation
@@ -56,13 +56,9 @@ export function renderWelcomeEmail(data: {
 Uses the templates and sends via NotificationAPI:
 
 ```typescript
-export async function sendWelcomeEmail(
-  c: AppContext,
-  to: string,
-  userName: string,
-) {
+export async function sendWelcomeEmail(c: AppContext, to: string, userName: string) {
   const { subject, html } = renderWelcomeEmail({ userName });
-  
+
   return sendEmailWithCustomHTML(c, {
     userEmail: to,
     userId: to,
@@ -79,10 +75,7 @@ export async function sendWelcomeEmail(
 Open `backend/src/utils/mail-templates.ts` and modify any template:
 
 ```typescript
-export function renderWelcomeEmail(data: {
-  userName: string;
-  loginUrl?: string;
-}): { subject: string; html: string } {
+export function renderWelcomeEmail(data: { userName: string; loginUrl?: string }): { subject: string; html: string } {
   const bodyContent = `
     <h2 style="color: #1a365d;">
       Hello ${data.userName}! 🎉
@@ -101,10 +94,10 @@ export function renderWelcomeEmail(data: {
   return {
     subject: "Your Custom Subject",
     html: baseEmailTemplate(
-      "#1a365d",        // Header color
-      "Title",           // Header title
-      "Subtitle",        // Header subtitle
-      bodyContent        // Main content
+      "#1a365d", // Header color
+      "Title", // Header title
+      "Subtitle", // Header subtitle
+      bodyContent, // Main content
     ),
   };
 }
@@ -116,13 +109,13 @@ All templates use these consistent colors:
 
 ```typescript
 const styles = {
-  primary: "#1a365d",      // Dark blue
-  secondary: "#2d3748",    // Dark gray
-  accent: "#3182ce",       // Blue
-  success: "#38a169",      // Green
-  warning: "#d69e2e",      // Yellow
-  danger: "#e53e3e",       // Red
-  background: "#f7fafc",   // Light gray
+  primary: "#1a365d", // Dark blue
+  secondary: "#2d3748", // Dark gray
+  accent: "#3182ce", // Blue
+  success: "#38a169", // Green
+  warning: "#d69e2e", // Yellow
+  danger: "#e53e3e", // Red
+  background: "#f7fafc", // Light gray
   white: "#ffffff",
   gray: "#718096",
   lightGray: "#e2e8f0",
@@ -132,18 +125,14 @@ const styles = {
 ### 3. Base Template Wrapper
 
 All emails use `baseEmailTemplate()` which provides:
+
 - Consistent header/footer
 - Responsive design
 - Brand styling
 - Mobile-friendly layout
 
 ```typescript
-function baseEmailTemplate(
-  headerColor: string,
-  headerTitle: string,
-  headerSubtitle: string,
-  bodyContent: string,
-): string {
+function baseEmailTemplate(headerColor: string, headerTitle: string, headerSubtitle: string, bodyContent: string): string {
   // Returns complete HTML email structure
 }
 ```
@@ -155,10 +144,7 @@ function baseEmailTemplate(
 Add to `mail-templates.ts`:
 
 ```typescript
-export function renderMyCustomEmail(data: {
-  recipientName: string;
-  customField: string;
-}): { subject: string; html: string } {
+export function renderMyCustomEmail(data: { recipientName: string; customField: string }): { subject: string; html: string } {
   const bodyContent = `
     <h2 style="color: ${styles.primary};">
       Hi ${data.recipientName}!
@@ -169,12 +155,7 @@ export function renderMyCustomEmail(data: {
 
   return {
     subject: "My Custom Email",
-    html: baseEmailTemplate(
-      styles.accent,
-      "Custom Email",
-      "Custom Subtitle",
-      bodyContent,
-    ),
+    html: baseEmailTemplate(styles.accent, "Custom Email", "Custom Subtitle", bodyContent),
   };
 }
 ```
@@ -186,12 +167,7 @@ Add to `mail.ts`:
 ```typescript
 import { renderMyCustomEmail } from "./mail-templates";
 
-export async function sendMyCustomEmail(
-  c: AppContext,
-  to: string,
-  recipientName: string,
-  customField: string,
-) {
+export async function sendMyCustomEmail(c: AppContext, to: string, recipientName: string, customField: string) {
   const { subject, html } = renderMyCustomEmail({
     recipientName,
     customField,
@@ -209,14 +185,9 @@ export async function sendMyCustomEmail(
 ### Step 3: Use It
 
 ```typescript
-import { sendMyCustomEmail } from './utils/mail';
+import { sendMyCustomEmail } from "./utils/mail";
 
-await sendMyCustomEmail(
-  c,
-  'user@example.com',
-  'John Doe',
-  'Custom value here'
-);
+await sendMyCustomEmail(c, "user@example.com", "John Doe", "Custom value here");
 ```
 
 ## Advanced Customization
@@ -224,8 +195,8 @@ await sendMyCustomEmail(
 ### Adding Images
 
 ```typescript
-<img src="https://your-cdn.com/logo.png" 
-     alt="Logo" 
+<img src="https://your-cdn.com/logo.png"
+     alt="Logo"
      style="max-width: 200px;">
 ```
 
@@ -252,14 +223,14 @@ ${data.showButton ? `
 
 ```typescript
 <div style="text-align: center; margin: 30px 0;">
-  <a href="${data.primaryUrl}" 
-     style="background-color: ${styles.primary}; color: white; 
+  <a href="${data.primaryUrl}"
+     style="background-color: ${styles.primary}; color: white;
             padding: 14px 30px; margin-right: 10px;">
     Primary Action
   </a>
-  
-  <a href="${data.secondaryUrl}" 
-     style="background-color: white; color: ${styles.primary}; 
+
+  <a href="${data.secondaryUrl}"
+     style="background-color: white; color: ${styles.primary};
             padding: 14px 30px; border: 2px solid ${styles.primary};">
     Secondary Action
   </a>
@@ -290,6 +261,7 @@ The email will arrive with your custom HTML styling!
 ## Benefits of This Approach
 
 ### vs Dashboard Templates:
+
 - ✅ **Version Control**: Templates in git, track changes
 - ✅ **Code Review**: Review template changes in PRs
 - ✅ **IDE Support**: Syntax highlighting, autocomplete
@@ -299,6 +271,7 @@ The email will arrive with your custom HTML styling!
 - ✅ **Team Collaboration**: No bottleneck on dashboard access
 
 ### vs React/TSX (Old Resend Approach):
+
 - ✅ **No React Dependency**: Lighter bundle
 - ✅ **Simpler**: Plain HTML/CSS strings
 - ✅ **Faster Build**: No JSX compilation
@@ -307,6 +280,7 @@ The email will arrive with your custom HTML styling!
 ## Email Best Practices
 
 ### 1. Use Inline Styles
+
 ```typescript
 // ✅ Good
 <p style="color: #333; font-size: 16px;">Text</p>
@@ -316,18 +290,21 @@ The email will arrive with your custom HTML styling!
 ```
 
 ### 2. Test Across Email Clients
+
 - Gmail (Desktop & Mobile)
 - Outlook
 - Apple Mail
 - Yahoo Mail
 
 ### 3. Keep It Simple
+
 - Avoid complex layouts
 - Use tables for structure
 - Limit width to 600px
 - Use web-safe fonts
 
 ### 4. Mobile First
+
 ```typescript
 <p style="font-size: 16px; line-height: 1.6;">
   Readable text on mobile
@@ -335,21 +312,22 @@ The email will arrive with your custom HTML styling!
 ```
 
 ### 5. Clear Call-to-Action
+
 ```typescript
-<a href="${url}" 
-   style="display: inline-block; 
-          background-color: #3182ce; 
-          color: white; 
-          padding: 14px 30px; 
-          text-decoration: none; 
-          border-radius: 6px; 
-          font-size: 16px; 
+<a href="${url}"
+   style="display: inline-block;
+          background-color: #3182ce;
+          color: white;
+          padding: 14px 30px;
+          text-decoration: none;
+          border-radius: 6px;
+          font-size: 16px;
           font-weight: bold;">
   Clear Action Text
 </a>
 ```
 
-## No Dashboard Setup Required! 
+## No Dashboard Setup Required!
 
 You can start sending emails immediately:
 
@@ -363,6 +341,7 @@ You can start sending emails immediately:
 ## Migration from Dashboard Templates (If You Created Them)
 
 If you already created templates in the dashboard, you can safely:
+
 - Delete them (we're not using `notificationId` anymore)
 - Keep your account with just API credentials
 
@@ -382,7 +361,6 @@ The code now sends emails with inline HTML, completely bypassing dashboard templ
 ✅ **No dashboard setup**  
 ✅ **Version controlled**  
 ✅ **TypeScript type safety**  
-✅ **Instant deployment** (just git push)  
+✅ **Instant deployment** (just git push)
 
 **Edit templates like any other code file - it's that simple!** 🚀
-

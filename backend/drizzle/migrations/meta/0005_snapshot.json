@@ -168,37 +168,27 @@
       "indexes": {
         "idx_hotel_name": {
           "name": "idx_hotel_name",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": false
         },
         "uq_hotel_slug": {
           "name": "uq_hotel_slug",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": true
         },
         "idx_hotel_city": {
           "name": "idx_hotel_city",
-          "columns": [
-            "city"
-          ],
+          "columns": ["city"],
           "isUnique": false
         },
         "idx_hotel_country": {
           "name": "idx_hotel_country",
-          "columns": [
-            "country_code"
-          ],
+          "columns": ["country_code"],
           "isUnique": false
         },
         "idx_hotel_active": {
           "name": "idx_hotel_active",
-          "columns": [
-            "is_active"
-          ],
+          "columns": ["is_active"],
           "isUnique": false
         }
       },
@@ -257,9 +247,7 @@
       "indexes": {
         "idx_hotel_image_hotel": {
           "name": "idx_hotel_image_hotel",
-          "columns": [
-            "hotel_id"
-          ],
+          "columns": ["hotel_id"],
           "isUnique": false
         }
       },
@@ -268,12 +256,8 @@
           "name": "hotel_image_hotel_id_hotel_id_fk",
           "tableFrom": "hotel_image",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -391,30 +375,22 @@
       "indexes": {
         "uq_user_email": {
           "name": "uq_user_email",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         },
         "idx_user_email": {
           "name": "idx_user_email",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": false
         },
         "idx_user_role": {
           "name": "idx_user_role",
-          "columns": [
-            "role"
-          ],
+          "columns": ["role"],
           "isUnique": false
         },
         "idx_user_last_login": {
           "name": "idx_user_last_login",
-          "columns": [
-            "last_login_at"
-          ],
+          "columns": ["last_login_at"],
           "isUnique": false
         }
       },
@@ -691,88 +667,62 @@
       "indexes": {
         "idx_customer_email": {
           "name": "idx_customer_email",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": false
         },
         "idx_customer_phone": {
           "name": "idx_customer_phone",
-          "columns": [
-            "phone"
-          ],
+          "columns": ["phone"],
           "isUnique": false
         },
         "idx_customer_alternate_phone": {
           "name": "idx_customer_alternate_phone",
-          "columns": [
-            "alternate_phone"
-          ],
+          "columns": ["alternate_phone"],
           "isUnique": false
         },
         "idx_customer_name": {
           "name": "idx_customer_name",
-          "columns": [
-            "full_name"
-          ],
+          "columns": ["full_name"],
           "isUnique": false
         },
         "idx_customer_status": {
           "name": "idx_customer_status",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         },
         "idx_customer_first_booking_source": {
           "name": "idx_customer_first_booking_source",
-          "columns": [
-            "first_booking_source"
-          ],
+          "columns": ["first_booking_source"],
           "isUnique": false
         },
         "idx_customer_last_booking": {
           "name": "idx_customer_last_booking",
-          "columns": [
-            "last_booking_at"
-          ],
+          "columns": ["last_booking_at"],
           "isUnique": false
         },
         "idx_customer_vip_status": {
           "name": "idx_customer_vip_status",
-          "columns": [
-            "vip_status"
-          ],
+          "columns": ["vip_status"],
           "isUnique": false
         },
         "idx_customer_total_bookings": {
           "name": "idx_customer_total_bookings",
-          "columns": [
-            "total_bookings"
-          ],
+          "columns": ["total_bookings"],
           "isUnique": false
         },
         "idx_customer_total_spent": {
           "name": "idx_customer_total_spent",
-          "columns": [
-            "total_spent_cents"
-          ],
+          "columns": ["total_spent_cents"],
           "isUnique": false
         },
         "idx_customer_email_phone": {
           "name": "idx_customer_email_phone",
-          "columns": [
-            "email",
-            "phone"
-          ],
+          "columns": ["email", "phone"],
           "isUnique": false
         },
         "idx_customer_status_first_booking_source": {
           "name": "idx_customer_status_first_booking_source",
-          "columns": [
-            "status",
-            "first_booking_source"
-          ],
+          "columns": ["status", "first_booking_source"],
           "isUnique": false
         }
       },
@@ -831,16 +781,12 @@
       "indexes": {
         "uq_amenity_code": {
           "name": "uq_amenity_code",
-          "columns": [
-            "code"
-          ],
+          "columns": ["code"],
           "isUnique": true
         },
         "idx_amenity_name": {
           "name": "idx_amenity_name",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": false
         }
       },
@@ -880,12 +826,8 @@
           "name": "hotel_amenity_hotel_id_hotel_id_fk",
           "tableFrom": "hotel_amenity",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -893,22 +835,15 @@
           "name": "hotel_amenity_amenity_id_amenity_id_fk",
           "tableFrom": "hotel_amenity",
           "tableTo": "amenity",
-          "columnsFrom": [
-            "amenity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["amenity_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {
         "hotel_amenity_hotel_id_amenity_id_pk": {
-          "columns": [
-            "hotel_id",
-            "amenity_id"
-          ],
+          "columns": ["hotel_id", "amenity_id"],
           "name": "hotel_amenity_hotel_id_amenity_id_pk"
         }
       },
@@ -1063,31 +998,22 @@
       "indexes": {
         "idx_room_type_hotel": {
           "name": "idx_room_type_hotel",
-          "columns": [
-            "hotel_id"
-          ],
+          "columns": ["hotel_id"],
           "isUnique": false
         },
         "uq_room_type_slug": {
           "name": "uq_room_type_slug",
-          "columns": [
-            "hotel_id",
-            "slug"
-          ],
+          "columns": ["hotel_id", "slug"],
           "isUnique": true
         },
         "idx_room_type_price": {
           "name": "idx_room_type_price",
-          "columns": [
-            "base_price_cents"
-          ],
+          "columns": ["base_price_cents"],
           "isUnique": false
         },
         "idx_room_type_active": {
           "name": "idx_room_type_active",
-          "columns": [
-            "is_active"
-          ],
+          "columns": ["is_active"],
           "isUnique": false
         }
       },
@@ -1096,12 +1022,8 @@
           "name": "room_type_hotel_id_hotel_id_fk",
           "tableFrom": "room_type",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -1141,12 +1063,8 @@
           "name": "room_type_amenity_room_type_id_room_type_id_fk",
           "tableFrom": "room_type_amenity",
           "tableTo": "room_type",
-          "columnsFrom": [
-            "room_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -1154,22 +1072,15 @@
           "name": "room_type_amenity_amenity_id_amenity_id_fk",
           "tableFrom": "room_type_amenity",
           "tableTo": "amenity",
-          "columnsFrom": [
-            "amenity_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["amenity_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {
         "room_type_amenity_room_type_id_amenity_id_pk": {
-          "columns": [
-            "room_type_id",
-            "amenity_id"
-          ],
+          "columns": ["room_type_id", "amenity_id"],
           "name": "room_type_amenity_room_type_id_amenity_id_pk"
         }
       },
@@ -1226,9 +1137,7 @@
       "indexes": {
         "idx_room_image_room": {
           "name": "idx_room_image_room",
-          "columns": [
-            "room_type_id"
-          ],
+          "columns": ["room_type_id"],
           "isUnique": false
         }
       },
@@ -1237,12 +1146,8 @@
           "name": "room_type_image_room_type_id_room_type_id_fk",
           "tableFrom": "room_type_image",
           "tableTo": "room_type",
-          "columnsFrom": [
-            "room_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -1331,31 +1236,22 @@
       "indexes": {
         "idx_room_hotel": {
           "name": "idx_room_hotel",
-          "columns": [
-            "hotel_id"
-          ],
+          "columns": ["hotel_id"],
           "isUnique": false
         },
         "idx_room_type": {
           "name": "idx_room_type",
-          "columns": [
-            "room_type_id"
-          ],
+          "columns": ["room_type_id"],
           "isUnique": false
         },
         "idx_room_status": {
           "name": "idx_room_status",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         },
         "uq_room_hotel_number": {
           "name": "uq_room_hotel_number",
-          "columns": [
-            "hotel_id",
-            "room_number"
-          ],
+          "columns": ["hotel_id", "room_number"],
           "isUnique": true
         }
       },
@@ -1364,12 +1260,8 @@
           "name": "room_hotel_id_hotel_id_fk",
           "tableFrom": "room",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -1377,12 +1269,8 @@
           "name": "room_room_type_id_room_type_id_fk",
           "tableFrom": "room",
           "tableTo": "room_type",
-          "columnsFrom": [
-            "room_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         }
@@ -1472,9 +1360,7 @@
       "indexes": {
         "idx_tax_fee_hotel": {
           "name": "idx_tax_fee_hotel",
-          "columns": [
-            "hotel_id"
-          ],
+          "columns": ["hotel_id"],
           "isUnique": false
         }
       },
@@ -1483,12 +1369,8 @@
           "name": "tax_fee_hotel_id_hotel_id_fk",
           "tableFrom": "tax_fee",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -1706,59 +1588,42 @@
       "indexes": {
         "uq_booking_reference_code": {
           "name": "uq_booking_reference_code",
-          "columns": [
-            "reference_code"
-          ],
+          "columns": ["reference_code"],
           "isUnique": true
         },
         "idx_booking_hotel": {
           "name": "idx_booking_hotel",
-          "columns": [
-            "hotel_id"
-          ],
+          "columns": ["hotel_id"],
           "isUnique": false
         },
         "idx_booking_user": {
           "name": "idx_booking_user",
-          "columns": [
-            "user_id"
-          ],
+          "columns": ["user_id"],
           "isUnique": false
         },
         "idx_booking_customer": {
           "name": "idx_booking_customer",
-          "columns": [
-            "customer_id"
-          ],
+          "columns": ["customer_id"],
           "isUnique": false
         },
         "idx_booking_admin": {
           "name": "idx_booking_admin",
-          "columns": [
-            "admin_id"
-          ],
+          "columns": ["admin_id"],
           "isUnique": false
         },
         "idx_booking_status": {
           "name": "idx_booking_status",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         },
         "idx_booking_dates": {
           "name": "idx_booking_dates",
-          "columns": [
-            "check_in_date",
-            "check_out_date"
-          ],
+          "columns": ["check_in_date", "check_out_date"],
           "isUnique": false
         },
         "idx_booking_total_amount": {
           "name": "idx_booking_total_amount",
-          "columns": [
-            "total_amount_cents"
-          ],
+          "columns": ["total_amount_cents"],
           "isUnique": false
         }
       },
@@ -1767,12 +1632,8 @@
           "name": "booking_hotel_id_hotel_id_fk",
           "tableFrom": "booking",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         },
@@ -1780,12 +1641,8 @@
           "name": "booking_user_id_user_id_fk",
           "tableFrom": "booking",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "cascade"
         },
@@ -1793,12 +1650,8 @@
           "name": "booking_customer_id_customer_id_fk",
           "tableFrom": "booking",
           "tableTo": "customer",
-          "columnsFrom": [
-            "customer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["customer_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "cascade"
         },
@@ -1806,12 +1659,8 @@
           "name": "booking_admin_id_user_id_fk",
           "tableFrom": "booking",
           "tableTo": "user",
-          "columnsFrom": [
-            "admin_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["admin_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "cascade"
         }
@@ -1898,23 +1747,17 @@
       "indexes": {
         "idx_review_hotel": {
           "name": "idx_review_hotel",
-          "columns": [
-            "hotel_id"
-          ],
+          "columns": ["hotel_id"],
           "isUnique": false
         },
         "idx_review_status": {
           "name": "idx_review_status",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         },
         "idx_review_rating": {
           "name": "idx_review_rating",
-          "columns": [
-            "rating"
-          ],
+          "columns": ["rating"],
           "isUnique": false
         }
       },
@@ -1923,12 +1766,8 @@
           "name": "review_hotel_id_hotel_id_fk",
           "tableFrom": "review",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -1936,12 +1775,8 @@
           "name": "review_user_id_user_id_fk",
           "tableFrom": "review",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "cascade"
         },
@@ -1949,12 +1784,8 @@
           "name": "review_booking_id_booking_id_fk",
           "tableFrom": "review",
           "tableTo": "booking",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "cascade"
         }
@@ -2026,24 +1857,17 @@
       "indexes": {
         "idx_audit_entity": {
           "name": "idx_audit_entity",
-          "columns": [
-            "entity_type",
-            "entity_id"
-          ],
+          "columns": ["entity_type", "entity_id"],
           "isUnique": false
         },
         "idx_audit_actor": {
           "name": "idx_audit_actor",
-          "columns": [
-            "actor_user_id"
-          ],
+          "columns": ["actor_user_id"],
           "isUnique": false
         },
         "idx_audit_action": {
           "name": "idx_audit_action",
-          "columns": [
-            "action"
-          ],
+          "columns": ["action"],
           "isUnique": false
         }
       },
@@ -2052,12 +1876,8 @@
           "name": "audit_log_actor_user_id_user_id_fk",
           "tableFrom": "audit_log",
           "tableTo": "user",
-          "columnsFrom": [
-            "actor_user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "cascade"
         }
@@ -2153,23 +1973,17 @@
       "indexes": {
         "idx_content_page": {
           "name": "idx_content_page",
-          "columns": [
-            "page"
-          ],
+          "columns": ["page"],
           "isUnique": false
         },
         "idx_content_section": {
           "name": "idx_content_section",
-          "columns": [
-            "section"
-          ],
+          "columns": ["section"],
           "isUnique": false
         },
         "idx_content_hotel": {
           "name": "idx_content_hotel",
-          "columns": [
-            "hotel_id"
-          ],
+          "columns": ["hotel_id"],
           "isUnique": false
         }
       },
@@ -2178,12 +1992,8 @@
           "name": "content_block_hotel_id_hotel_id_fk",
           "tableFrom": "content_block",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "cascade"
         }
@@ -2244,9 +2054,7 @@
       "indexes": {
         "idx_homepage_published": {
           "name": "idx_homepage_published",
-          "columns": [
-            "is_published"
-          ],
+          "columns": ["is_published"],
           "isUnique": false
         }
       },
@@ -2321,23 +2129,17 @@
       "indexes": {
         "uq_feature_code": {
           "name": "uq_feature_code",
-          "columns": [
-            "code"
-          ],
+          "columns": ["code"],
           "isUnique": true
         },
         "idx_feature_name": {
           "name": "idx_feature_name",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": false
         },
         "idx_feature_visible": {
           "name": "idx_feature_visible",
-          "columns": [
-            "is_visible"
-          ],
+          "columns": ["is_visible"],
           "isUnique": false
         }
       },
@@ -2377,12 +2179,8 @@
           "name": "hotel_feature_hotel_id_hotel_id_fk",
           "tableFrom": "hotel_feature",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -2390,22 +2188,15 @@
           "name": "hotel_feature_feature_id_feature_id_fk",
           "tableFrom": "hotel_feature",
           "tableTo": "feature",
-          "columnsFrom": [
-            "feature_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["feature_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
       },
       "compositePrimaryKeys": {
         "hotel_feature_hotel_id_feature_id_pk": {
-          "columns": [
-            "hotel_id",
-            "feature_id"
-          ],
+          "columns": ["hotel_id", "feature_id"],
           "name": "hotel_feature_hotel_id_feature_id_pk"
         }
       },
@@ -2439,16 +2230,12 @@
       "indexes": {
         "uq_permission_key": {
           "name": "uq_permission_key",
-          "columns": [
-            "key"
-          ],
+          "columns": ["key"],
           "isUnique": true
         },
         "idx_permission_key": {
           "name": "idx_permission_key",
-          "columns": [
-            "key"
-          ],
+          "columns": ["key"],
           "isUnique": false
         }
       },
@@ -2484,16 +2271,12 @@
       "indexes": {
         "uq_role_name": {
           "name": "uq_role_name",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": true
         },
         "idx_role_name": {
           "name": "idx_role_name",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": false
         }
       },
@@ -2522,10 +2305,7 @@
       "indexes": {
         "uq_role_permission": {
           "name": "uq_role_permission",
-          "columns": [
-            "role_id",
-            "permission_id"
-          ],
+          "columns": ["role_id", "permission_id"],
           "isUnique": true
         }
       },
@@ -2650,25 +2430,17 @@
       "indexes": {
         "uq_promo_code": {
           "name": "uq_promo_code",
-          "columns": [
-            "hotel_id",
-            "code"
-          ],
+          "columns": ["hotel_id", "code"],
           "isUnique": true
         },
         "idx_promo_active": {
           "name": "idx_promo_active",
-          "columns": [
-            "is_active"
-          ],
+          "columns": ["is_active"],
           "isUnique": false
         },
         "idx_promo_date": {
           "name": "idx_promo_date",
-          "columns": [
-            "start_date",
-            "end_date"
-          ],
+          "columns": ["start_date", "end_date"],
           "isUnique": false
         }
       },
@@ -2677,12 +2449,8 @@
           "name": "promo_code_hotel_id_hotel_id_fk",
           "tableFrom": "promo_code",
           "tableTo": "hotel",
-          "columnsFrom": [
-            "hotel_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["hotel_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -2733,16 +2501,12 @@
       "indexes": {
         "idx_booking_item_booking": {
           "name": "idx_booking_item_booking",
-          "columns": [
-            "booking_id"
-          ],
+          "columns": ["booking_id"],
           "isUnique": false
         },
         "idx_booking_item_room": {
           "name": "idx_booking_item_room",
-          "columns": [
-            "room_id"
-          ],
+          "columns": ["room_id"],
           "isUnique": false
         }
       },
@@ -2751,12 +2515,8 @@
           "name": "booking_item_booking_id_booking_id_fk",
           "tableFrom": "booking_item",
           "tableTo": "booking",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -2764,12 +2524,8 @@
           "name": "booking_item_room_type_id_room_type_id_fk",
           "tableFrom": "booking_item",
           "tableTo": "room_type",
-          "columnsFrom": [
-            "room_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         },
@@ -2777,12 +2533,8 @@
           "name": "booking_item_room_id_room_id_fk",
           "tableFrom": "booking_item",
           "tableTo": "room",
-          "columnsFrom": [
-            "room_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         }
@@ -2830,12 +2582,8 @@
           "name": "booking_promotion_booking_id_booking_id_fk",
           "tableFrom": "booking_promotion",
           "tableTo": "booking",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -2843,12 +2591,8 @@
           "name": "booking_promotion_promo_code_id_promo_code_id_fk",
           "tableFrom": "booking_promotion",
           "tableTo": "promo_code",
-          "columnsFrom": [
-            "promo_code_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["promo_code_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         }
@@ -2940,24 +2684,17 @@
       "indexes": {
         "idx_payment_booking": {
           "name": "idx_payment_booking",
-          "columns": [
-            "booking_id"
-          ],
+          "columns": ["booking_id"],
           "isUnique": false
         },
         "idx_payment_status": {
           "name": "idx_payment_status",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         },
         "uq_payment_processor_id": {
           "name": "uq_payment_processor_id",
-          "columns": [
-            "processor",
-            "processor_payment_id"
-          ],
+          "columns": ["processor", "processor_payment_id"],
           "isUnique": true
         }
       },
@@ -2966,12 +2703,8 @@
           "name": "payment_booking_id_booking_id_fk",
           "tableFrom": "payment",
           "tableTo": "booking",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -3031,16 +2764,12 @@
       "indexes": {
         "idx_refund_payment": {
           "name": "idx_refund_payment",
-          "columns": [
-            "payment_id"
-          ],
+          "columns": ["payment_id"],
           "isUnique": false
         },
         "uq_refund_processor_id": {
           "name": "uq_refund_processor_id",
-          "columns": [
-            "processor_refund_id"
-          ],
+          "columns": ["processor_refund_id"],
           "isUnique": true
         }
       },
@@ -3049,12 +2778,8 @@
           "name": "refund_payment_id_payment_id_fk",
           "tableFrom": "refund",
           "tableTo": "payment",
-          "columnsFrom": [
-            "payment_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["payment_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -3137,23 +2862,17 @@
       "indexes": {
         "idx_addon_active": {
           "name": "idx_addon_active",
-          "columns": [
-            "is_active"
-          ],
+          "columns": ["is_active"],
           "isUnique": false
         },
         "idx_addon_category": {
           "name": "idx_addon_category",
-          "columns": [
-            "category"
-          ],
+          "columns": ["category"],
           "isUnique": false
         },
         "idx_addon_sort": {
           "name": "idx_addon_sort",
-          "columns": [
-            "sort_order"
-          ],
+          "columns": ["sort_order"],
           "isUnique": false
         }
       },
@@ -3251,38 +2970,27 @@
       "indexes": {
         "uq_room_type_addon": {
           "name": "uq_room_type_addon",
-          "columns": [
-            "room_type_id",
-            "addon_id"
-          ],
+          "columns": ["room_type_id", "addon_id"],
           "isUnique": true
         },
         "idx_room_type_addon_room": {
           "name": "idx_room_type_addon_room",
-          "columns": [
-            "room_type_id"
-          ],
+          "columns": ["room_type_id"],
           "isUnique": false
         },
         "idx_room_type_addon_addon": {
           "name": "idx_room_type_addon_addon",
-          "columns": [
-            "addon_id"
-          ],
+          "columns": ["addon_id"],
           "isUnique": false
         },
         "idx_room_type_addon_available": {
           "name": "idx_room_type_addon_available",
-          "columns": [
-            "is_available"
-          ],
+          "columns": ["is_available"],
           "isUnique": false
         },
         "idx_room_type_addon_price": {
           "name": "idx_room_type_addon_price",
-          "columns": [
-            "price_cents"
-          ],
+          "columns": ["price_cents"],
           "isUnique": false
         }
       },
@@ -3291,12 +2999,8 @@
           "name": "room_type_addon_room_type_id_room_type_id_fk",
           "tableFrom": "room_type_addon",
           "tableTo": "room_type",
-          "columnsFrom": [
-            "room_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -3304,12 +3008,8 @@
           "name": "room_type_addon_addon_id_addon_id_fk",
           "tableFrom": "room_type_addon",
           "tableTo": "addon",
-          "columnsFrom": [
-            "addon_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["addon_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -3391,32 +3091,22 @@
       "indexes": {
         "uq_booking_addon": {
           "name": "uq_booking_addon",
-          "columns": [
-            "booking_id",
-            "room_type_id",
-            "addon_id"
-          ],
+          "columns": ["booking_id", "room_type_id", "addon_id"],
           "isUnique": true
         },
         "idx_booking_addon_booking": {
           "name": "idx_booking_addon_booking",
-          "columns": [
-            "booking_id"
-          ],
+          "columns": ["booking_id"],
           "isUnique": false
         },
         "idx_booking_addon_room_type": {
           "name": "idx_booking_addon_room_type",
-          "columns": [
-            "room_type_id"
-          ],
+          "columns": ["room_type_id"],
           "isUnique": false
         },
         "idx_booking_addon_addon": {
           "name": "idx_booking_addon_addon",
-          "columns": [
-            "addon_id"
-          ],
+          "columns": ["addon_id"],
           "isUnique": false
         }
       },
@@ -3425,12 +3115,8 @@
           "name": "booking_addon_booking_id_booking_id_fk",
           "tableFrom": "booking_addon",
           "tableTo": "booking",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -3438,12 +3124,8 @@
           "name": "booking_addon_room_type_id_room_type_id_fk",
           "tableFrom": "booking_addon",
           "tableTo": "room_type",
-          "columnsFrom": [
-            "room_type_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["room_type_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         },
@@ -3451,12 +3133,8 @@
           "name": "booking_addon_addon_id_addon_id_fk",
           "tableFrom": "booking_addon",
           "tableTo": "addon",
-          "columnsFrom": [
-            "addon_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["addon_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         }
@@ -3517,12 +3195,8 @@
           "name": "password_reset_tokens_user_id_user_id_fk",
           "tableFrom": "password_reset_tokens",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "cascade"
         }

@@ -10,6 +10,7 @@ import {
   UserOutlined,
   WalletOutlined,
   AuditOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 
 export const SIDEBAR_ITEMS = [
@@ -27,6 +28,11 @@ export const SIDEBAR_ITEMS = [
     label: "Customers",
     icon: <UserOutlined />,
     path: "/customers",
+  },
+  {
+    label: "Inquiries",
+    icon: <MessageOutlined />,
+    path: "/inquiries",
   },
   {
     label: "Payments",

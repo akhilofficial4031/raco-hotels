@@ -33,24 +33,30 @@
 - [ ] Open `backend/wrangler.toml`
 - [ ] Find the `[vars]` section
 - [ ] Update these lines:
+
 ```toml
 NOTIFICATIONAPI_CLIENT_ID = "paste_your_client_id_here"
 NOTIFICATIONAPI_CLIENT_SECRET = "paste_your_client_secret_here"
 ```
+
 - [ ] Save the file
 
 ### Production
 
 - [ ] Open terminal in `backend/` directory
 - [ ] Run for Client ID:
+
 ```bash
 wrangler secret put NOTIFICATIONAPI_CLIENT_ID --env production
 ```
+
 - [ ] Paste your Client ID when prompted, press Enter
 - [ ] Run for Client Secret:
+
 ```bash
 wrangler secret put NOTIFICATIONAPI_CLIENT_SECRET --env production
 ```
+
 - [ ] Paste your Client Secret when prompted, press Enter
 
 **Time Required:** ~2 minutes
@@ -90,6 +96,7 @@ wrangler secret put NOTIFICATIONAPI_CLIENT_SECRET --env production
 **You'll need access to your domain's DNS settings (GoDaddy, Cloudflare, Namecheap, etc.)**
 
 **SPF Record:**
+
 - [ ] Open your DNS provider's dashboard
 - [ ] Add new **TXT** record:
   - **Type:** TXT
@@ -99,6 +106,7 @@ wrangler secret put NOTIFICATIONAPI_CLIENT_SECRET --env production
 - [ ] Save the record
 
 **DKIM Record:**
+
 - [ ] Add new **TXT** record:
   - **Type:** TXT
   - **Name:** `notificationapi._domainkey`
@@ -121,7 +129,8 @@ wrangler secret put NOTIFICATIONAPI_CLIENT_SECRET --env production
 
 ---
 
-**👉 I chose:** 
+**👉 I chose:**
+
 - [ ] Option A (No domain yet - testing)
 - [ ] Option B (Have domain - production ready)
 
@@ -131,13 +140,17 @@ wrangler secret put NOTIFICATIONAPI_CLIENT_SECRET --env production
 
 - [ ] Open terminal
 - [ ] Navigate to backend directory:
+
 ```bash
 cd backend
 ```
+
 - [ ] Install dependencies:
+
 ```bash
 yarn install
 ```
+
 - [ ] Wait for installation to complete
 
 **Time Required:** ~2 minutes
@@ -149,9 +162,11 @@ yarn install
 ### Start Server
 
 - [ ] In backend directory, run:
+
 ```bash
 yarn dev
 ```
+
 - [ ] Wait for "Ready on http://localhost:8787" message
 - [ ] Keep this terminal window open
 
@@ -159,11 +174,13 @@ yarn dev
 
 - [ ] Open a **new terminal window**
 - [ ] Run test command:
+
 ```bash
 curl -X POST http://localhost:8787/api/auth/forgot-password \
   -H "Content-Type: application/json" \
   -d '{"email": "your-actual-email@example.com"}'
 ```
+
 - [ ] Replace `your-actual-email@example.com` with your real email
 - [ ] Press Enter
 
@@ -194,20 +211,24 @@ curl -X POST http://localhost:8787/api/auth/forgot-password \
 - [ ] Stop development server (Ctrl+C in terminal)
 - [ ] Ensure production secrets are set (from Step 3)
 - [ ] Deploy:
+
 ```bash
 yarn deploy
 ```
+
 - [ ] Wait for deployment to complete
 - [ ] Note the production URL shown
 
 ### Test Production
 
 - [ ] Send test email to production URL:
+
 ```bash
 curl -X POST https://your-production-url/api/auth/forgot-password \
   -H "Content-Type: application/json" \
   -d '{"email": "your-email@example.com"}'
 ```
+
 - [ ] Check your email inbox
 - [ ] Verify email received successfully
 
@@ -279,17 +300,18 @@ You're **100% complete** when all these are true:
 
 ## 📊 Time Summary
 
-| Step | Time Required | Can Skip? |
-|------|---------------|-----------|
-| 1. Create Account | 2 min | ❌ No |
-| 2. Get Credentials | 1 min | ❌ No |
-| 3. Configure Env | 2 min | ❌ No |
-| 4. Domain Setup | 0-60 min | ⚠️ Recommended (can skip for testing) |
-| 5. Install Deps | 2 min | ❌ No |
-| 6. Test | 5 min | ❌ No |
-| 7. Deploy | 5 min | ❌ No |
+| Step               | Time Required | Can Skip?                             |
+| ------------------ | ------------- | ------------------------------------- |
+| 1. Create Account  | 2 min         | ❌ No                                 |
+| 2. Get Credentials | 1 min         | ❌ No                                 |
+| 3. Configure Env   | 2 min         | ❌ No                                 |
+| 4. Domain Setup    | 0-60 min      | ⚠️ Recommended (can skip for testing) |
+| 5. Install Deps    | 2 min         | ❌ No                                 |
+| 6. Test            | 5 min         | ❌ No                                 |
+| 7. Deploy          | 5 min         | ❌ No                                 |
 
-**Total Time:** 
+**Total Time:**
+
 - **Without domain:** ~17 minutes
 - **With domain:** ~47-77 minutes (mostly waiting for DNS)
 
@@ -300,32 +322,38 @@ You're **100% complete** when all these are true:
 Use this space to write down important information:
 
 **Client ID:**
+
 ```
 _________________________________
 ```
 
 **Client Secret:**
+
 ```
 _________________________________
 ```
 
 **Domain (if configured):**
+
 ```
 _________________________________
 ```
 
 **Sender Email:**
+
 ```
 _________________________________
 (or using NotificationAPI default)
 ```
 
 **Production URL:**
+
 ```
 _________________________________
 ```
 
 **Date Completed:**
+
 ```
 _________________________________
 ```
@@ -337,6 +365,7 @@ _________________________________
 Once all items are checked, your email system is fully operational!
 
 **What You Can Do Now:**
+
 - ✅ Send welcome emails to new users
 - ✅ Send password reset emails
 - ✅ Send booking confirmations
@@ -344,6 +373,7 @@ Once all items are checked, your email system is fully operational!
 - ✅ Customize email templates by editing `mail-templates.ts`
 
 **Need Help?**
+
 - Documentation: `backend/CUSTOM_HTML_TEMPLATES.md`
 - NotificationAPI Docs: [https://docs.notificationapi.com/](https://docs.notificationapi.com/)
 - Dashboard: [https://app.notificationapi.com/](https://app.notificationapi.com/)
@@ -351,4 +381,3 @@ Once all items are checked, your email system is fully operational!
 ---
 
 **Remember:** Templates are managed in code (`mail-templates.ts`), not in the dashboard! 🚀
-

@@ -50,6 +50,20 @@
       "when": 1765128189991,
       "tag": "0006_supreme_betty_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1765599779883,
+      "tag": "0007_silent_logan",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1765604400529,
+      "tag": "0008_sticky_jocasta",
+      "breakpoints": true
     }
   ]
 }

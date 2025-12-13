@@ -29,3 +29,4 @@ export * from "./password_reset_token";
 export * from "./relations";
 export * from "./room_type_addon";
 export * from "./attraction";
+export * from "./inquiry";

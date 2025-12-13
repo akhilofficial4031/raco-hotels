@@ -54,10 +54,11 @@ const EditCustomer = lazy(
   () => import("./features/customer/pages/EditCustomer"),
 );
 
-// Business operations - reviews, payments, promo codes
+// Business operations - reviews, payments, promo codes, inquiries
 const Reviews = lazy(() => import("./features/reviews/pages/Reviews"));
 const Payment = lazy(() => import("./features/payments/pages/Payment"));
 const PromoCode = lazy(() => import("./features/promo-code/pages/PromoCode"));
+const Inquiry = lazy(() => import("./features/inquiry/pages/Inquiry"));
 
 // Content Management System
 const CmsPage = lazy(() => import("./features/cms/pages/cms-page"));
@@ -308,6 +309,16 @@ const router = createBrowserRouter([
               crumb: () => ({
                 label: "Promo Codes",
                 href: "/promo-codes",
+              }),
+            },
+          },
+          {
+            path: "inquiries",
+            Component: withSuspense(Inquiry),
+            handle: {
+              crumb: () => ({
+                label: "Inquiries",
+                href: "/inquiries",
               }),
             },
           },

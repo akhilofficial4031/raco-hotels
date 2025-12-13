@@ -218,3 +218,15 @@ export type {
   AvailabilityFilters,
   AvailabilitySearchParams,
 } from "./availability.interface";
+
+// Inquiry-related types
+export type {
+  DatabaseInquiry,
+  CreateInquiryData,
+  UpdateInquiryData,
+  InquiryFilters,
+  InquiryQueryParams,
+  PaginationParams,
+  PaginationResult,
+  InquiryListResult,
+} from "./inquiry.types";

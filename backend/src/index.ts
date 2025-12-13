@@ -20,6 +20,7 @@ import customerRoutes from "./routes/customer.route";
 import dashboardRoutes from "./routes/dashboard.route";
 import featureRoutes from "./routes/feature.route";
 import hotelRoutes from "./routes/hotel.route";
+import { inquiryRoutes } from "./routes/inquiry.route";
 import jobRoutes from "./routes/job.route";
 import promoCodeRoutes from "./routes/promo_code.route";
 import reviewRoutes from "./routes/review.route";
@@ -109,6 +110,7 @@ app.route("/api", systemRoutes);
 app.route("/api", addonRoutes);
 app.route("/api", jobRoutes);
 app.route("/api", dashboardRoutes);
+app.route("/api", inquiryRoutes);
 
 // Legacy hotel routes removed in favor of /api/hotels router
 
