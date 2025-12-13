@@ -55,3 +55,8 @@ body,
   font-weight: 600;
   letter-spacing: -0.025em;
 }
+
+.ant-menu-sub{
+  max-height: calc(100vh - 350px);
+  overflow-y:auto;
+}
