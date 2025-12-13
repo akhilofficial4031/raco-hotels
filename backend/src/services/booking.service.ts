@@ -26,6 +26,48 @@ function generateReferenceCode(): string {
   return `BK-${Date.now().toString().slice(-6)}-${rand}`;
 }
 
+function getEffectiveRoomPrice(roomType: any): number {
+  // Check if offer price is available and current date is within offer period
+  if (
+    roomType &&
+    roomType.offerPrice &&
+    roomType.offerPrice > 0 &&
+    roomType.offerStartDate &&
+    roomType.offerEndDate
+  ) {
+    try {
+      // Use date-only comparison (ignore time component)
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+
+      const offerStart = new Date(roomType.offerStartDate);
+      offerStart.setHours(0, 0, 0, 0);
+
+      const offerEnd = new Date(roomType.offerEndDate);
+      offerEnd.setHours(23, 59, 59, 999);
+
+      // Validate dates
+      if (!isNaN(offerStart.getTime()) && !isNaN(offerEnd.getTime())) {
+        // Check if current date is within offer period (inclusive)
+        if (currentDate >= offerStart && currentDate <= offerEnd) {
+          console.log(
+            `✅ Using offer price ${roomType.offerPrice} for room type ${roomType.id}`,
+          );
+          return roomType.offerPrice;
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing offer dates:", error);
+    }
+  }
+
+  // Fall back to base price
+  console.log(
+    `Using base price ${roomType?.basePriceCents} for room type ${roomType?.id}`,
+  );
+  return roomType?.basePriceCents ?? 0;
+}
+
 export class BookingService {
   static async listBookings(
     db: D1Database,
@@ -84,6 +126,7 @@ export class BookingService {
     let totalAmountCents = booking.totalAmountCents;
     let taxAmountCents = booking.taxAmountCents;
     let discountAmountCents = booking.discountAmountCents || 0;
+    let effectiveRoomPrice = booking.roomPriceCents || 0;
 
     if (roomTypeId && data.selectedRooms) {
       // Get room type details to get base price
@@ -97,9 +140,9 @@ export class BookingService {
       const checkOutDate = data.bookingDetails.checkOutDate;
       const nights = dayjs(checkOutDate).diff(dayjs(checkInDate), "day");
 
-      // Calculate room total based on actual room type price
-      const roomTotal =
-        (roomType.basePriceCents ?? 0) * nights * data.selectedRooms.length;
+      // Calculate room total using effective price (offer price if available and valid)
+      effectiveRoomPrice = getEffectiveRoomPrice(roomType);
+      const roomTotal = effectiveRoomPrice * nights * data.selectedRooms.length;
 
       // Calculate addons total from database prices
       let addOnsTotal = 0;
@@ -182,6 +225,7 @@ export class BookingService {
       totalAmountCents,
       taxAmountCents,
       discountAmountCents,
+      roomPriceCents: effectiveRoomPrice,
       updatedAt: new Date().toISOString(),
     };
 
@@ -416,12 +460,22 @@ export class BookingService {
 
     // SERVER-SIDE CALCULATION FOR SECURITY
     // Never trust prices from frontend - always fetch from database
+    // Fetch the actual room type from database to get real prices and offer details
+    const roomTypeFromDb = await RoomTypeRepository.findById(
+      db,
+      roomTypeDetails.id,
+    );
+    if (!roomTypeFromDb) {
+      throw new Error("Room type not found");
+    }
+
     const nights = dayjs(bookingDetails.checkOutDate).diff(
       dayjs(bookingDetails.checkInDate),
       "day",
     );
-    const roomTotal =
-      (roomTypeDetails.basePriceCents ?? 0) * nights * selectedRooms.length;
+    // Use effective room price (offer price if available and valid) from DATABASE
+    const effectiveRoomPrice = getEffectiveRoomPrice(roomTypeFromDb);
+    const roomTotal = effectiveRoomPrice * nights * selectedRooms.length;
 
     // Fetch addon prices from database, not from frontend request
     let addOnsTotal = 0;
@@ -433,7 +487,7 @@ export class BookingService {
         .from(roomTypeAddon)
         .where(
           and(
-            eq(roomTypeAddon.roomTypeId, roomTypeDetails.id),
+            eq(roomTypeAddon.roomTypeId, roomTypeFromDb.id),
             inArray(roomTypeAddon.addonId, addonIds),
           ),
         );
@@ -573,6 +627,7 @@ export class BookingService {
           source: "web",
           totalAmountCents,
           currencyCode: "INR",
+          roomPriceCents: effectiveRoomPrice,
           taxAmountCents,
           feeAmountCents: 0,
           discountAmountCents,
@@ -601,7 +656,7 @@ export class BookingService {
       await database.insert(bookingItems).values(
         selectedRooms.map((r) => ({
           bookingId: newBooking.id,
-          roomTypeId: roomTypeDetails.id,
+          roomTypeId: roomTypeFromDb.id,
           roomId: r.id,
         })),
       );
@@ -610,7 +665,7 @@ export class BookingService {
         await database.insert(bookingAddon).values(
           selectedAddons.map((a) => ({
             bookingId: newBooking.id,
-            roomTypeId: roomTypeDetails.id,
+            roomTypeId: roomTypeFromDb.id,
             addonId: a.id,
             priceCents: addonPriceMap.get(a.id) ?? 0, // Use price from database, not frontend
             quantity: 1,
@@ -623,14 +678,10 @@ export class BookingService {
       // Send booking confirmation email
       if (context) {
         try {
-          // Fetch hotel and room type details for email
+          // Fetch hotel details for email (room type already fetched from database)
           const hotel = await HotelRepository.findById(db, hotelId);
-          const roomType = await RoomTypeRepository.findById(
-            db,
-            roomTypeDetails.id,
-          );
 
-          if (hotel && roomType) {
+          if (hotel && roomTypeFromDb) {
             // Format currency function
             const formatCurrency = (cents: number) => {
               const symbol =
@@ -659,7 +710,7 @@ export class BookingService {
               customerName: customerData.fullName,
               bookingReference: newBooking.referenceCode,
               hotelName: hotel.name,
-              roomType: roomType.name,
+              roomType: roomTypeFromDb.name,
               checkInDate: bookingDetails.checkInDate,
               checkOutDate: bookingDetails.checkOutDate,
               numNights: nights,

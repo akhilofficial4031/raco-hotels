@@ -22,6 +22,7 @@ import {
   Modal,
   message,
 } from "antd";
+import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router";
 import useSWR, { mutate } from "swr";
 
@@ -218,8 +219,18 @@ function ViewBooking() {
       (acc, item) => acc + (item.booking_addon.priceCents || 0),
       0,
     ) ?? 0;
-  // Calculate based on new logic: discount applied to subtotal, then tax calculated
-  const roomPrice = totalAmount - addonsTotal + discountAmount - taxAmount;
+  // Use stored room price from booking (calculated at booking time with correct offer price)
+  const nights =
+    dayjs(booking.checkOutDate).diff(dayjs(booking.checkInDate), "day") || 1;
+  const numRooms = booking.items?.length || 1;
+
+  // Calculate room price total using stored per-night price or fallback to reverse calculation
+  // Note: roomPriceCents will be 0 for existing bookings created before this field was added
+  const roomPrice =
+    booking.roomPriceCents && booking.roomPriceCents > 0
+      ? booking.roomPriceCents * nights * numRooms
+      : totalAmount - addonsTotal + discountAmount - taxAmount;
+
   const subtotal = roomPrice + addonsTotal;
   const subtotalAfterDiscount = subtotal - discountAmount;
 

@@ -46,6 +46,7 @@ export const booking = sqliteTable(
     numChildren: integer("num_children").notNull().default(0),
     totalAmountCents: integer("total_amount_cents").notNull().default(0),
     currencyCode: text("currency_code").notNull().default("INR"),
+    roomPriceCents: integer("room_price_cents").notNull().default(0),
     taxAmountCents: integer("tax_amount_cents").notNull().default(0),
     feeAmountCents: integer("fee_amount_cents").notNull().default(0),
     discountAmountCents: integer("discount_amount_cents").notNull().default(0),

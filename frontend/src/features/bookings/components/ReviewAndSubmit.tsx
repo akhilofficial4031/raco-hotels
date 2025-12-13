@@ -30,6 +30,41 @@ import { type CustomerData } from "../types/schemas";
 
 const { Title, Text } = Typography;
 
+// Utility function to get effective room price (offer price if valid, otherwise base price)
+const getEffectiveRoomPrice = (roomTypeDetails: any): number => {
+  if (
+    roomTypeDetails &&
+    roomTypeDetails.offerPrice &&
+    roomTypeDetails.offerPrice > 0 &&
+    roomTypeDetails.offerStartDate &&
+    roomTypeDetails.offerEndDate
+  ) {
+    try {
+      // Use date-only comparison (ignore time component)
+      const currentDate = new Date();
+      currentDate.setHours(0, 0, 0, 0);
+
+      const offerStart = new Date(roomTypeDetails.offerStartDate);
+      offerStart.setHours(0, 0, 0, 0);
+
+      const offerEnd = new Date(roomTypeDetails.offerEndDate);
+      offerEnd.setHours(23, 59, 59, 999);
+
+      // Validate dates and check if current date is within offer period (inclusive)
+      if (!isNaN(offerStart.getTime()) && !isNaN(offerEnd.getTime())) {
+        if (currentDate >= offerStart && currentDate <= offerEnd) {
+          return roomTypeDetails.offerPrice;
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing offer dates:", error);
+    }
+  }
+
+  // Fall back to base price
+  return roomTypeDetails?.basePriceCents ?? 0;
+};
+
 interface BookingData {
   bookingDetails?: {
     hotelId?: number;
@@ -105,10 +140,15 @@ const ReviewAndSubmit = ({
 
   const bookingStatus = calculateBookingStatus();
 
-  // Calculate pricing for both create and edit modes
+  // Calculate pricing for both create and edit modes using effective price
+  const effectivePrice =
+    (mode === "create" || mode === "edit") && roomTypeDetails
+      ? getEffectiveRoomPrice(roomTypeDetails)
+      : 0;
+
   const roomTotal =
     (mode === "create" || mode === "edit") && roomTypeDetails && selectedRooms
-      ? (roomTypeDetails.basePriceCents ?? 0) * nights * selectedRooms.length
+      ? effectivePrice * nights * selectedRooms.length
       : 0;
 
   const addOnsTotal =
@@ -317,7 +357,42 @@ const ReviewAndSubmit = ({
               {selectedRooms.map((room) => room.roomNumber).join(", ")}
             </Descriptions.Item>
             <Descriptions.Item label="Room Price">
-              {`₹${((roomTypeDetails.basePriceCents ?? 0) / 100).toLocaleString()} / night`}
+              {(() => {
+                const effectivePrice = getEffectiveRoomPrice(roomTypeDetails);
+                const isOfferPrice =
+                  effectivePrice !== (roomTypeDetails.basePriceCents ?? 0);
+                return (
+                  <span>
+                    {isOfferPrice && (
+                      <span
+                        style={{
+                          textDecoration: "line-through",
+                          marginRight: 8,
+                          color: "#999",
+                        }}
+                      >
+                        ₹
+                        {(
+                          (roomTypeDetails.basePriceCents ?? 0) / 100
+                        ).toLocaleString()}
+                      </span>
+                    )}
+                    <span
+                      style={{
+                        color: isOfferPrice ? "#52c41a" : "inherit",
+                        fontWeight: isOfferPrice ? "bold" : "normal",
+                      }}
+                    >
+                      ₹{(effectivePrice / 100).toLocaleString()} / night
+                    </span>
+                    {isOfferPrice && (
+                      <Tag color="green" style={{ marginLeft: 8 }}>
+                        OFFER
+                      </Tag>
+                    )}
+                  </span>
+                );
+              })()}
             </Descriptions.Item>
             <Descriptions.Item label="Adults">
               {bookingDetails?.numAdults}

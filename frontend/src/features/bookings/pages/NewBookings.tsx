@@ -129,6 +129,7 @@ const NewBookings = () => {
         roomTypeDetails: {
           id: bookingData.roomTypeDetails?.id,
           basePriceCents: bookingData.roomTypeDetails?.basePriceCents,
+          // Note: Backend will fetch offer prices from database for security
         },
         amountPaidCents: paymentDetails.amountPaidCents,
         taxAmountCents: paymentDetails.taxAmountCents,

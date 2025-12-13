@@ -79,6 +79,9 @@ export class BookingRepository {
       numChildren: number;
       status: BookingStatus;
       totalAmountCents: number;
+      roomPriceCents: number;
+      taxAmountCents: number;
+      discountAmountCents: number;
       amountPaidCents: number;
       balanceDueCents: number;
       paymentStatus: string;
@@ -183,7 +186,9 @@ export class BookingRepository {
         status: bookingTable.status,
         totalAmountCents: bookingTable.totalAmountCents,
         amountPaidCents: bookingTable.amountPaidCents,
+        roomPriceCents: bookingTable.roomPriceCents,
         taxAmountCents: bookingTable.taxAmountCents,
+        discountAmountCents: bookingTable.discountAmountCents,
         currencyCode: bookingTable.currencyCode,
         createdAt: bookingTable.createdAt,
       })

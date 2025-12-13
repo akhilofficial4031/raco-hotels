@@ -11,6 +11,7 @@ export interface Booking {
   status: string;
   totalAmountCents: number;
   amountPaidCents?: number;
+  roomPriceCents?: number;
   taxAmountCents?: number;
   feeAmountCents?: number;
   discountAmountCents?: number;
