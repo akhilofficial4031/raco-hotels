@@ -186,4 +186,27 @@ export class BookingController {
       );
     }
   }
+
+  static async updatePaymentStatus(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const { id } = c.req.param();
+        const bookingId = parseInt(id, 10);
+        const body = await c.req.json();
+
+        const updatedBooking = await BookingService.updatePaymentStatus(
+          c.env.DB,
+          bookingId,
+          body,
+        );
+
+        return ApiResponse.success(c, {
+          booking: updatedBooking,
+          message: "booking.paymentUpdated",
+        });
+      },
+      "operation.updatePaymentFailed",
+    );
+  }
 }

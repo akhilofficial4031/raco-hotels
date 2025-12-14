@@ -17,6 +17,7 @@ import {
   CreateBookingRequestSchema,
   BookingDetailsResponseSchema,
   UpdateBookingRequestSchema,
+  UpdatePaymentStatusSchema,
 } from "../schemas";
 
 export const BookingRouteDefinitions = {
@@ -538,5 +539,60 @@ export const BookingRouteDefinitions = {
     paramsSchema: BookingPathParamsSchema,
     includeNotFound: true,
     includeBadRequest: true,
+  }),
+
+  updatePaymentStatus: createRoute({
+    method: "patch",
+    path: "/bookings/{id}/payment",
+    summary: "Update booking payment status",
+    description: `Update payment status and transaction details for a booking after payment completion.
+
+**User Types:** Staff, Admin Only (Authentication Required)
+
+**Authentication:** Required - User must be logged in with appropriate permissions
+
+**Permission Required:** bookings.update
+
+**Use Cases:**
+- Webhook updates from payment gateways (Stripe, Razorpay) after customer completes payment
+- Manual admin updates after verifying payment proof or processing offline payments
+- Recording partial payments
+- Updating payment method and processor information
+
+**Behavior:**
+- Automatically calculates balance due based on total amount and amount paid
+- Auto-determines payment status if not explicitly provided:
+  - amountPaidCents === 0 → "pending"
+  - amountPaidCents >= totalAmountCents → "paid"
+  - 0 < amountPaidCents < totalAmountCents → "partial"
+- Validates that amount paid does not exceed booking total
+- Records transaction IDs and payment processor information
+- Updates only booking table (no separate payment records created)
+
+**Important Notes:**
+- This endpoint is designed for both webhook callbacks and manual admin entry
+- Amount paid cannot exceed the booking's total amount
+- Payment status is automatically calculated if not provided
+- Idempotent - multiple calls with same data are safe
+- All monetary values in cents to avoid floating point precision issues
+
+**Frontend Integration:**
+- Use for admin payment processing interfaces
+- Display payment history and transaction details
+- Show real-time balance due calculations
+- Handle webhook responses from payment gateways
+
+**Security:**
+- Requires BOOKINGS_UPDATE permission (Admin/Staff only)
+- Validates all monetary amounts
+- Tracks audit trail via updatedAt timestamp`,
+    tags: [ApiTags.BOOKINGS],
+    paramsSchema: BookingPathParamsSchema,
+    requestSchema: UpdatePaymentStatusSchema,
+    successSchema: BookingDetailsResponseSchema,
+    successDescription:
+      "Payment status updated successfully with updated booking data",
+    includeBadRequest: true,
+    includeNotFound: true,
   }),
 };

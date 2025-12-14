@@ -552,3 +552,44 @@ export const CreateDirectBookingRequestSchema = z
     processorPaymentId: z.string().optional(),
   })
   .openapi("CreateDirectBookingRequest");
+
+export const UpdatePaymentStatusSchema = z
+  .object({
+    paymentStatus: z
+      .enum(["pending", "partial", "paid", "failed", "refunded"])
+      .optional()
+      .openapi({
+        example: "paid",
+        description:
+          "Payment status (auto-calculated if not provided based on amounts)",
+      }),
+    amountPaidCents: z.number().int().min(0).openapi({
+      example: 50000,
+      description: "Total amount paid in cents",
+    }),
+    paymentMethod: z.string().optional().openapi({
+      example: "card",
+      description: "Payment method used (e.g., card, upi, cash)",
+    }),
+    paymentProcessor: z.string().optional().openapi({
+      example: "stripe",
+      description: "Payment processor name (e.g., stripe, razorpay)",
+    }),
+    processorPaymentId: z.string().optional().openapi({
+      example: "pi_1234567890",
+      description: "Payment ID from the payment processor",
+    }),
+    transactionId: z.string().optional().openapi({
+      example: "txn_abc123",
+      description: "Transaction ID for reference",
+    }),
+    notes: z.string().optional().openapi({
+      example: "Payment completed via customer portal",
+      description: "Additional notes about the payment",
+    }),
+  })
+  .openapi("UpdatePaymentStatusRequest");
+
+export type UpdatePaymentStatusRequest = z.infer<
+  typeof UpdatePaymentStatusSchema
+>;
