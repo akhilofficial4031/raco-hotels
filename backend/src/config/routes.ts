@@ -84,6 +84,9 @@ export const PUBLIC_ROUTE_PATTERNS: RegExp[] = [
 
   // Payment verification routes - public API for customer portal
   /^\/bookings\/[^/]+\/payment$/,
+  // public validate promocode
+
+  /^\/promo-codes\/validate\/[0-9]+\/[a-zA-Z0-9]+$/,
 ];
 
 /**

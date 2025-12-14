@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { fetcher } from "@utils/swrFetcher";
+
 import {
   Button,
   Col,
@@ -17,8 +17,9 @@ import { useEffect } from "react";
 import useSWR from "swr";
 
 import { DATE_FORMAT_API } from "@shared/constants/app";
-import { type Hotel } from "../../hotels/types/hotels";
+import { fetcher } from "@utils/swrFetcher";
 
+import { type Hotel } from "../../hotels/types/hotels";
 import {
   type CreatePromoCodePayload,
   type PromoCodeWithRelations,
@@ -74,6 +75,7 @@ const AddEditPromoCode: React.FC<AddEditPromoCodeProps> = ({
     const { dateRange, ...rest } = values;
     const payload: CreatePromoCodePayload = {
       ...rest,
+      value: values.type === "fixed" ? values.value * 100 : values.value,
       isActive: values.isActive ? 1 : 0,
       startDate: dateRange ? dateRange[0].format(DATE_FORMAT_API) : undefined,
       endDate: dateRange ? dateRange[1].format(DATE_FORMAT_API) : undefined,
