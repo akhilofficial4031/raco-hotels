@@ -81,6 +81,10 @@ export const PUBLIC_ROUTE_PATTERNS: RegExp[] = [
 
   //Public attraction routes by slug
   /^\/attractions\/slug\/[a-zA-Z0-9_-]+$/,
+
+  // public validate promocode
+
+  /^\/promo-codes\/validate\/[0-9]+\/[a-zA-Z0-9]+$/,
 ];
 
 /**
