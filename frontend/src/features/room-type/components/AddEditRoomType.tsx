@@ -27,6 +27,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import useSWR from "swr";
 import { z } from "zod";
 
+import { DATE_FORMAT_API } from "@shared/constants/app";
 import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 
 import { type Addon } from "../../addon/types/addon";
@@ -391,8 +392,12 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       maxOccupancy: data.maxOccupancy,
       basePriceCents: data.basePriceCents,
       offerPrice: data.offerPrice,
-      offerStartDate: data.offerStartDate,
-      offerEndDate: data.offerEndDate,
+      offerStartDate: data.offerStartDate
+        ? dayjs(data.offerStartDate).format(DATE_FORMAT_API)
+        : "",
+      offerEndDate: data.offerEndDate
+        ? dayjs(data.offerEndDate).format(DATE_FORMAT_API)
+        : "",
       currencyCode: data.currencyCode,
       sizeSqft: data.sizeSqft || undefined,
       bedType: data.bedType || undefined,
