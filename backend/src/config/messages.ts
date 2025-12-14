@@ -211,6 +211,7 @@ export interface Messages {
     pendingRetrieved: string;
     noPendingFound: string;
     expiringSoon: string;
+    paymentUpdated: string;
   };
 
   // Operation messages
@@ -235,6 +236,7 @@ export interface Messages {
     createDraftFailed: string;
     processPaymentFailed: string;
     fetchPendingBookingsFailed: string;
+    updatePaymentFailed: string;
   };
 
   // Validation messages
@@ -463,6 +465,7 @@ const enMessages: Messages = {
     pendingRetrieved: "Pending bookings retrieved successfully",
     noPendingFound: "No pending bookings found",
     expiringSoon: "This booking draft is expiring soon",
+    paymentUpdated: "Payment status updated successfully",
   },
 
   operation: {
@@ -486,6 +489,7 @@ const enMessages: Messages = {
     createDraftFailed: "Failed to create booking draft",
     processPaymentFailed: "Failed to process payment",
     fetchPendingBookingsFailed: "Failed to fetch pending bookings",
+    updatePaymentFailed: "Failed to update payment status",
   },
 
   validation: {
@@ -719,6 +723,7 @@ const esMessages: Messages = {
     pendingRetrieved: "Reservas pendientes obtenidas exitosamente",
     noPendingFound: "No se encontraron reservas pendientes",
     expiringSoon: "Esta reserva está próxima a expirar",
+    paymentUpdated: "Estado de pago actualizado exitosamente",
   },
 
   operation: {
@@ -742,6 +747,7 @@ const esMessages: Messages = {
     createDraftFailed: "Error al crear borrador de reserva",
     processPaymentFailed: "Error al procesar pago",
     fetchPendingBookingsFailed: "Error al obtener reservas pendientes",
+    updatePaymentFailed: "Error al actualizar estado de pago",
   },
 
   validation: {
@@ -976,6 +982,7 @@ const frMessages: Messages = {
     pendingRetrieved: "Réservations en attente récupérées avec succès",
     noPendingFound: "Aucune réservation en attente trouvée",
     expiringSoon: "Cette réservation est proche de l'expiration",
+    paymentUpdated: "Statut de paiement mis à jour avec succès",
   },
 
   operation: {
@@ -1000,6 +1007,7 @@ const frMessages: Messages = {
     processPaymentFailed: "Échec du traitement du paiement",
     fetchPendingBookingsFailed:
       "Échec de la récupération des réservations en attente",
+    updatePaymentFailed: "Échec de la mise à jour du statut de paiement",
   },
 
   validation: {

@@ -756,4 +756,75 @@ export class BookingService {
       );
     }
   }
+
+  static async updatePaymentStatus(
+    db: D1Database,
+    bookingId: number,
+    paymentData: {
+      paymentStatus?: string;
+      amountPaidCents: number;
+      paymentMethod?: string;
+      paymentProcessor?: string;
+      processorPaymentId?: string;
+      transactionId?: string;
+      notes?: string;
+    },
+  ) {
+    // Fetch existing booking to validate and get total amount
+    const existingBooking = await BookingRepository.findById(db, bookingId);
+    if (!existingBooking) {
+      throw new Error("Booking not found");
+    }
+
+    const { amountPaidCents } = paymentData;
+    const totalAmountCents = existingBooking.totalAmountCents;
+
+    // Validate that amount paid doesn't exceed total
+    if (amountPaidCents > totalAmountCents) {
+      throw new Error(
+        `Amount paid (${amountPaidCents}) cannot exceed total booking amount (${totalAmountCents})`,
+      );
+    }
+
+    // Calculate balance due
+    const balanceDueCents = totalAmountCents - amountPaidCents;
+
+    // Auto-determine payment status if not provided
+    let paymentStatus = paymentData.paymentStatus;
+    if (!paymentStatus) {
+      if (amountPaidCents === 0) {
+        paymentStatus = "pending";
+      } else if (amountPaidCents >= totalAmountCents) {
+        paymentStatus = "paid";
+      } else {
+        paymentStatus = "partial";
+      }
+    }
+
+    // Build update data
+    const updateData: any = {
+      amountPaidCents,
+      balanceDueCents,
+      paymentStatus,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Add optional fields if provided
+    if (paymentData.paymentMethod) {
+      updateData.paymentMethod = paymentData.paymentMethod;
+    }
+    if (paymentData.paymentProcessor) {
+      updateData.paymentProcessor = paymentData.paymentProcessor;
+    }
+    if (paymentData.notes) {
+      updateData.notes = paymentData.notes;
+    }
+
+    // Update the booking record
+    await BookingRepository.update(db, bookingId, updateData);
+
+    // Return the updated booking with all relationships
+    const updatedBooking = await BookingRepository.findById(db, bookingId);
+    return updatedBooking;
+  }
 }

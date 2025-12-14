@@ -125,6 +125,13 @@ bookingRoutes.openapi(
   ),
 );
 
+bookingRoutes.openapi(
+  BookingRouteDefinitions.updatePaymentStatus,
+  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
+    BookingController.updatePaymentStatus(c as AppContext),
+  ),
+);
+
 // bookingRoutes.openapi(
 //   BookingRouteDefinitions.createDirectBooking,
 //   smartPermissionHandler(PERMISSIONS.BOOKINGS_CREATE, (c) =>
