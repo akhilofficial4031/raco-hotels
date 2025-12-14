@@ -81,6 +81,9 @@ export const PUBLIC_ROUTE_PATTERNS: RegExp[] = [
 
   //Public attraction routes by slug
   /^\/attractions\/slug\/[a-zA-Z0-9_-]+$/,
+
+  // Payment verification routes - public API for customer portal
+  /^\/bookings\/[^/]+\/payment$/,
 ];
 
 /**

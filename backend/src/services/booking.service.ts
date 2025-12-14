@@ -773,21 +773,24 @@ export class BookingService {
     // Fetch existing booking to validate and get total amount
     const existingBooking = await BookingRepository.findById(db, bookingId);
     if (!existingBooking) {
-      throw new Error("Booking not found");
+      const notFoundError = new Error("Booking not found");
+      (notFoundError as any).statusCode = 404;
+      (notFoundError as any).code = "BOOKING_NOT_FOUND";
+      throw notFoundError;
     }
 
     const { amountPaidCents } = paymentData;
-    const totalAmountCents = existingBooking.totalAmountCents;
+    const totalAmountCents = existingBooking.totalAmountCents ?? 0;
 
     // Validate that amount paid doesn't exceed total
-    if (amountPaidCents > totalAmountCents) {
+    if (totalAmountCents > 0 && amountPaidCents > totalAmountCents) {
       throw new Error(
         `Amount paid (${amountPaidCents}) cannot exceed total booking amount (${totalAmountCents})`,
       );
     }
 
     // Calculate balance due
-    const balanceDueCents = totalAmountCents - amountPaidCents;
+    const balanceDueCents = Math.max(0, totalAmountCents - amountPaidCents);
 
     // Auto-determine payment status if not provided
     let paymentStatus = paymentData.paymentStatus;
@@ -806,7 +809,6 @@ export class BookingService {
       amountPaidCents,
       balanceDueCents,
       paymentStatus,
-      updatedAt: new Date().toISOString(),
     };
 
     // Add optional fields if provided

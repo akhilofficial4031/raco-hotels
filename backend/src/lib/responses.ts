@@ -509,6 +509,16 @@ export async function handleAsyncRoute(
       );
     }
 
+    // Handle "not found" errors
+    if (
+      error instanceof Error &&
+      (error.message.toLowerCase().includes("not found") ||
+        (error as any).code === "BOOKING_NOT_FOUND" ||
+        (error as any).statusCode === 404)
+    ) {
+      return ApiResponse.notFound(c, "booking.notFound");
+    }
+
     return createLocalizedError(
       c,
       "errorCodes.internalError",

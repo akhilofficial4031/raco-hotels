@@ -14,7 +14,12 @@ import {
 } from "../../drizzle/schema";
 import { getDb } from "../db";
 
-type BookingStatus = "confirmed" | "checkedin" | "checkedout" | "cancelled";
+type BookingStatus =
+  | "confirmed"
+  | "checkedin"
+  | "checkedout"
+  | "cancelled"
+  | "noshow";
 
 export class BookingRepository {
   static async findById(db: D1Database, id: number) {
@@ -85,12 +90,15 @@ export class BookingRepository {
       amountPaidCents: number;
       balanceDueCents: number;
       paymentStatus: string;
+      paymentMethod: string;
+      paymentProcessor: string;
+      notes: string;
     }>,
   ) {
     const database = getDb(db);
     await database
       .update(bookingTable)
-      .set({ ...data, updatedAt: new Date().toISOString() })
+      .set({ ...data, updatedAt: new Date().toISOString() } as any)
       .where(eq(bookingTable.id, id));
   }
 
@@ -102,7 +110,7 @@ export class BookingRepository {
     const database = getDb(db);
     await database
       .update(bookingTable)
-      .set({ status, updatedAt: new Date().toISOString() })
+      .set({ status: status as any, updatedAt: new Date().toISOString() })
       .where(eq(bookingTable.id, bookingId));
   }
 
@@ -150,7 +158,7 @@ export class BookingRepository {
       conditions.push(eq(bookingTable.hotelId, filters.hotelId));
     }
     if (filters.status) {
-      conditions.push(eq(bookingTable.status, filters.status));
+      conditions.push(eq(bookingTable.status, filters.status as any));
     }
     if (filters.checkInDateStart) {
       conditions.push(gte(bookingTable.checkInDate, filters.checkInDateStart));

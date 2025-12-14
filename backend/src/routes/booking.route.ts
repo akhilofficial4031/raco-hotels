@@ -125,11 +125,10 @@ bookingRoutes.openapi(
   ),
 );
 
-bookingRoutes.openapi(
-  BookingRouteDefinitions.updatePaymentStatus,
-  smartPermissionHandler(PERMISSIONS.BOOKINGS_UPDATE, (c) =>
-    BookingController.updatePaymentStatus(c as AppContext),
-  ),
+// Public API - Payment verification endpoint for customer portal
+// No authentication required (handled by PUBLIC_ROUTES configuration)
+bookingRoutes.openapi(BookingRouteDefinitions.updatePaymentStatus, (c) =>
+  BookingController.updatePaymentStatus(c as AppContext),
 );
 
 // bookingRoutes.openapi(
