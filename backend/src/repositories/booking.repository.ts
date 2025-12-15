@@ -19,7 +19,9 @@ type BookingStatus =
   | "checkedin"
   | "checkedout"
   | "cancelled"
-  | "noshow";
+  | "noshow"
+  | "paid"
+  | "partial_paid";
 
 export class BookingRepository {
   static async findById(db: D1Database, id: number) {

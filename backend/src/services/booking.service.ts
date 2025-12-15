@@ -804,11 +804,27 @@ export class BookingService {
       }
     }
 
+    // Determine booking status based on payment
+    let bookingStatus = existingBooking.status; // Keep existing status by default
+
+    // If payment is complete, set booking status to "paid" and ensure amount matches total
+    let finalAmountPaid = amountPaidCents;
+    if (paymentStatus === "paid" || amountPaidCents >= totalAmountCents) {
+      bookingStatus = "paid";
+      finalAmountPaid = totalAmountCents; // Ensure amount paid matches total exactly
+    } else if (paymentStatus === "partial" && amountPaidCents > 0) {
+      bookingStatus = "partial_paid";
+    }
+
+    // Recalculate balance due with final amount
+    const finalBalanceDue = Math.max(0, totalAmountCents - finalAmountPaid);
+
     // Build update data
     const updateData: any = {
-      amountPaidCents,
-      balanceDueCents,
+      amountPaidCents: finalAmountPaid,
+      balanceDueCents: finalBalanceDue,
       paymentStatus,
+      status: bookingStatus,
     };
 
     // Add optional fields if provided

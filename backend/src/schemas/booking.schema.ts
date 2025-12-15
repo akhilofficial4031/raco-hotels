@@ -5,6 +5,9 @@ export const BookingStatusEnum = z.enum([
   "checkedin",
   "checkedout",
   "cancelled",
+  "noshow",
+  "paid",
+  "partial_paid",
 ]);
 
 import {

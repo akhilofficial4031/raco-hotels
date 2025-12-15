@@ -68,6 +68,25 @@ const NewBookings = () => {
     setBookingData((prev) => ({ ...prev, appliedPromoCode: promoCode }));
   };
 
+  const getBookingStatus = (
+    checkInDate: string,
+    totalAmountCents: number,
+    amountPaidCents: number,
+  ) => {
+    const today = dayjs().startOf("day");
+    const isCheckInToday = dayjs(checkInDate).startOf("day").isSame(today);
+    if (amountPaidCents > 0 && amountPaidCents < totalAmountCents) {
+      return BOOKING_STATUS.PARTIAL_PAID;
+    }
+    if (amountPaidCents === totalAmountCents) {
+      return BOOKING_STATUS.PAID;
+    }
+    if (isCheckInToday) {
+      return BOOKING_STATUS.CHECKED_IN;
+    }
+    return BOOKING_STATUS.CONFIRMED;
+  };
+
   const handleSubmit = async (paymentDetails: {
     amountPaidCents: number;
     taxAmountCents: number;
@@ -79,17 +98,12 @@ const NewBookings = () => {
       const checkInDate = bookingData.bookingDetails.dateRange[0];
       const today = dayjs().startOf("day");
 
-      console.log("Check-in Date from form:", checkInDate);
-      console.log("Today's Date (start of day):", today);
-      console.log(
-        "Is Check-in Today?",
-        dayjs(checkInDate).startOf("day").isSame(today),
-      );
-
       const isCheckInToday = dayjs(checkInDate).startOf("day").isSame(today);
-      const bookingStatus = isCheckInToday
-        ? BOOKING_STATUS.CHECKED_IN
-        : BOOKING_STATUS.CONFIRMED;
+      const bookingStatus = getBookingStatus(
+        checkInDate,
+        paymentDetails.totalAmountCents,
+        paymentDetails.amountPaidCents,
+      );
       const payload = {
         hotelId: bookingData.bookingDetails.hotelId,
         bookingDetails: {

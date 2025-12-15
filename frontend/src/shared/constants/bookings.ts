@@ -5,4 +5,6 @@ export const BOOKING_STATUS = {
   CHECKED_IN: "checkedin",
   CHECKED_OUT: "checkedout",
   NO_SHOW: "no_show",
+  PAID: "paid",
+  PARTIAL_PAID: "partial_paid",
 };

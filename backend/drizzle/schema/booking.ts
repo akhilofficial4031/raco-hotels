@@ -35,7 +35,15 @@ export const booking = sqliteTable(
       onUpdate: "cascade",
     }),
     status: text("status", {
-      enum: ["confirmed", "checkedin", "checkedout", "cancelled", "noshow"],
+      enum: [
+        "confirmed",
+        "checkedin",
+        "checkedout",
+        "cancelled",
+        "noshow",
+        "paid",
+        "partial_paid",
+      ],
     })
       .notNull()
       .default("checkedin"),
