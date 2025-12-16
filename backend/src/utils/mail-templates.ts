@@ -331,6 +331,149 @@ export function renderPasswordResetEmail(data: {
 }
 
 /**
+ * Payment Confirmation Email Template
+ */
+export function renderPaymentConfirmationEmail(data: {
+  customerName: string;
+  hotelName: string;
+  bookingReference: string;
+  checkIn: string;
+  checkOut: string;
+  roomType: string;
+  totalAmount: string;
+  amountPaid: string;
+  paymentMethod: string;
+  paymentDate: string;
+  currencySymbol: string;
+}): { subject: string; html: string } {
+  const bodyContent = `
+    <p style="color: ${styles.secondary}; font-size: 16px; margin: 0 0 30px 0;">
+      Dear <strong>${data.customerName}</strong>,
+    </p>
+    
+    <p style="color: ${styles.secondary}; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+      Great news! We have successfully received your payment for your booking at <strong>${data.hotelName}</strong>. 
+      Your reservation is now fully confirmed and paid. Thank you for choosing Raco Hotels!
+    </p>
+    
+    <!-- Payment Summary Card -->
+    <div style="background-color: #f0fff4; padding: 30px; border-radius: 12px; 
+                margin: 30px 0; border: 2px solid ${styles.success};">
+      <h3 style="color: ${styles.success}; margin: 0 0 25px 0; font-size: 20px;">
+        💳 Payment Successfully Processed
+      </h3>
+      
+      <div style="display: table; width: 100%; border-collapse: collapse;">
+        <div style="display: table-row;">
+          <div style="display: table-cell; padding: 8px 0; color: ${styles.secondary}; font-weight: bold; width: 30%;">
+            Amount Paid:
+          </div>
+          <div style="display: table-cell; padding: 8px 0; color: ${styles.success}; font-size: 18px; font-weight: bold;">
+            ${data.currencySymbol}${data.amountPaid}
+          </div>
+        </div>
+        <div style="display: table-row;">
+          <div style="display: table-cell; padding: 8px 0; color: ${styles.secondary}; font-weight: bold;">
+            Payment Method:
+          </div>
+          <div style="display: table-cell; padding: 8px 0; color: ${styles.secondary};">
+            ${data.paymentMethod}
+          </div>
+        </div>
+        <div style="display: table-row;">
+          <div style="display: table-cell; padding: 8px 0; color: ${styles.secondary}; font-weight: bold;">
+            Payment Date:
+          </div>
+          <div style="display: table-cell; padding: 8px 0; color: ${styles.secondary};">
+            ${new Date(data.paymentDate).toLocaleDateString("en-US", {
+              weekday: "long",
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Booking Details Card -->
+    <div style="background-color: ${styles.lightGray}; padding: 30px; border-radius: 12px; 
+                margin: 30px 0; border: 1px solid ${styles.lightGray};">
+      <h3 style="color: ${styles.primary}; margin: 0 0 25px 0; font-size: 20px;">
+        📋 Booking Details
+      </h3>
+      
+      <p style="margin: 0 0 8px 0; color: ${styles.secondary}; font-weight: bold;">🆔 Booking Reference</p>
+      <p style="margin: 0 0 15px 0; color: ${styles.secondary}; font-family: monospace; font-size: 16px; font-weight: bold;">
+        ${data.bookingReference}
+      </p>
+      
+      <p style="margin: 0 0 8px 0; color: ${styles.secondary}; font-weight: bold;">🏨 Hotel</p>
+      <p style="margin: 0 0 15px 0; color: ${styles.secondary};">${data.hotelName}</p>
+      
+      <p style="margin: 0 0 8px 0; color: ${styles.secondary}; font-weight: bold;">🛏️ Room Type</p>
+      <p style="margin: 0 0 15px 0; color: ${styles.secondary};">${data.roomType}</p>
+      
+      <p style="margin: 0 0 8px 0; color: ${styles.secondary}; font-weight: bold;">📅 Check-in</p>
+      <p style="margin: 0 0 15px 0; color: ${styles.secondary};">${new Date(
+        data.checkIn,
+      ).toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })}</p>
+      
+      <p style="margin: 0 0 8px 0; color: ${styles.secondary}; font-weight: bold;">📅 Check-out</p>
+      <p style="margin: 0 0 15px 0; color: ${styles.secondary};">${new Date(
+        data.checkOut,
+      ).toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })}</p>
+    </div>
+    
+    <!-- Next Steps -->
+    <div style="background-color: #fef5e7; padding: 25px; border-radius: 8px; 
+                margin: 30px 0; border: 1px solid #f6e05e;">
+      <h3 style="color: ${styles.warning}; margin: 0 0 15px 0; font-size: 18px;">
+        📋 What's Next?
+      </h3>
+      <p style="margin: 0 0 10px 0; color: ${styles.secondary};">
+        • <strong>Check-in time:</strong> 3:00 PM on your check-in date
+      </p>
+      <p style="margin: 0 0 10px 0; color: ${styles.secondary};">
+        • <strong>Check-out time:</strong> 11:00 AM on your check-out date
+      </p>
+      <p style="margin: 0 0 10px 0; color: ${styles.secondary};">
+        • <strong>Confirmation:</strong> Show this email or your booking reference at check-in
+      </p>
+      <p style="margin: 0; color: ${styles.secondary};">
+        • <strong>Support:</strong> Our team is available 24/7 for any questions
+      </p>
+    </div>
+    
+    <p style="color: ${styles.secondary}; font-size: 16px; margin: 20px 0 0 0;">
+      Thank you for your payment and for choosing <strong>Raco Hotels</strong>! We're excited to welcome you and provide you with an exceptional experience.
+    </p>
+  `;
+
+  return {
+    subject: `Payment Confirmed - ${data.hotelName} (${data.bookingReference})`,
+    html: baseEmailTemplate(
+      styles.success,
+      "💳 Payment Confirmed!",
+      "Your booking is now fully paid and confirmed",
+      bodyContent,
+    ),
+  };
+}
+
+/**
  * Generic Notification Email Template
  */
 export function renderNotificationEmail(data: {

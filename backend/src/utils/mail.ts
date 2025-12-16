@@ -282,3 +282,60 @@ export async function sendBookingConfirmationEmail(
     notificationType: "booking_confirmation",
   });
 }
+
+/**
+ * Send payment confirmation email when payment is completed
+ */
+export async function sendPaymentConfirmationEmail(
+  c: AppContext,
+  paymentData: {
+    customerEmail: string;
+    customerName: string;
+    bookingReference: string;
+    hotelName: string;
+    roomType: string;
+    checkInDate: string;
+    checkOutDate: string;
+    numNights: number;
+    numAdults: number;
+    numChildren: number;
+    roomRent: string;
+    addonsList: string;
+    subtotal: string;
+    discount: string;
+    taxAmount: string;
+    totalAmount: string;
+    amountPaid: string;
+    paymentMethod: string;
+    currencySymbol: string;
+    paymentDate: string;
+  },
+) {
+  return sendEmailWithTemplate(c, {
+    userEmail: paymentData.customerEmail,
+    userId: paymentData.customerEmail,
+    templateId: "booking_confirmation",
+    parameters: {
+      customerName: paymentData.customerName,
+      bookingReference: paymentData.bookingReference,
+      hotelName: paymentData.hotelName,
+      roomType: paymentData.roomType,
+      checkInDate: paymentData.checkInDate,
+      checkOutDate: paymentData.checkOutDate,
+      numNights: paymentData.numNights,
+      numAdults: paymentData.numAdults,
+      numChildren: paymentData.numChildren,
+      roomRent: paymentData.roomRent,
+      addonsList: paymentData.addonsList,
+      subtotal: paymentData.subtotal,
+      discount: paymentData.discount,
+      taxAmount: paymentData.taxAmount,
+      totalAmount: paymentData.totalAmount,
+      amountPaid: paymentData.amountPaid,
+      paymentMethod: paymentData.paymentMethod,
+      currencySymbol: paymentData.currencySymbol,
+      paymentDate: paymentData.paymentDate,
+    },
+    notificationType: "booking_confirmation",
+  });
+}

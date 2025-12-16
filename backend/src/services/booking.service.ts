@@ -15,7 +15,10 @@ import { BookingRepository } from "../repositories/booking.repository";
 import { HotelRepository } from "../repositories/hotel.repository";
 import { PromoCodeRepository } from "../repositories/promo_code.repository";
 import { RoomTypeRepository } from "../repositories/room_type.repository";
-import { sendBookingConfirmationEmail } from "../utils/mail";
+import {
+  sendBookingConfirmationEmail,
+  sendPaymentConfirmationEmail,
+} from "../utils/mail";
 
 import type { BookingsQuerySchema, CreateBookingRequest } from "../schemas";
 import type { AppContext } from "../types";
@@ -781,6 +784,7 @@ export class BookingService {
       transactionId?: string;
       notes?: string;
     },
+    context?: AppContext,
   ) {
     // Fetch existing booking to validate and get total amount
     const existingBooking = await BookingRepository.findById(db, bookingId);
@@ -853,8 +857,102 @@ export class BookingService {
     // Update the booking record
     await BookingRepository.update(db, bookingId, updateData);
 
-    // Return the updated booking with all relationships
+    // Get the updated booking with all relationships
     const updatedBooking = await BookingRepository.findById(db, bookingId);
+
+    // Send payment confirmation email if payment is fully completed
+    if (context && updatedBooking && paymentStatus === "paid") {
+      try {
+        // Fetch hotel and room type details for email
+        const hotel = await HotelRepository.findById(
+          db,
+          updatedBooking.hotelId,
+        );
+        const roomType =
+          updatedBooking.items && updatedBooking.items.length > 0
+            ? await RoomTypeRepository.findById(
+                db,
+                updatedBooking.items[0].booking_item.roomTypeId,
+              )
+            : null;
+
+        if (hotel && roomType && updatedBooking.customer?.email) {
+          // Calculate number of nights
+          const nights = dayjs(updatedBooking.checkOutDate).diff(
+            dayjs(updatedBooking.checkInDate),
+            "day",
+          );
+
+          // Format currency function
+          const formatCurrency = (cents: number) => {
+            const symbol =
+              updatedBooking.currencyCode === "INR"
+                ? "₹"
+                : updatedBooking.currencyCode;
+            return `${(cents / 100).toFixed(2)}`;
+          };
+
+          // Prepare addon details from the booking
+          const addonDetails =
+            updatedBooking.addons?.map((addon: any) => {
+              const name = addon.addon?.name || `Addon #${addon.addonId}`;
+              const price = formatCurrency(addon.priceCents);
+              return `${name}: ₹${price}`;
+            }) || [];
+
+          // Calculate room rent based on booking logic: discount applied before tax
+          const addonsTotal =
+            updatedBooking.addons?.reduce(
+              (sum: number, addon: any) =>
+                sum + (addon.booking_addon?.priceCents || 0),
+              0,
+            ) || 0;
+          const subtotalAfterDiscount =
+            updatedBooking.totalAmountCents - updatedBooking.taxAmountCents;
+          const subtotal =
+            subtotalAfterDiscount + updatedBooking.discountAmountCents;
+          const roomRent = subtotal - addonsTotal;
+
+          await sendPaymentConfirmationEmail(context, {
+            customerEmail: updatedBooking.customer.email,
+            customerName: updatedBooking.customer.fullName || "Guest",
+            bookingReference: updatedBooking.referenceCode,
+            hotelName: hotel.name,
+            roomType: roomType.name,
+            checkInDate: updatedBooking.checkInDate,
+            checkOutDate: updatedBooking.checkOutDate,
+            numNights: nights,
+            numAdults: updatedBooking.numAdults,
+            numChildren: updatedBooking.numChildren,
+            roomRent: formatCurrency(roomRent),
+            addonsList:
+              addonDetails.length > 0 ? addonDetails.join(", ") : "None",
+            subtotal: formatCurrency(subtotal),
+            discount: formatCurrency(updatedBooking.discountAmountCents),
+            taxAmount: formatCurrency(updatedBooking.taxAmountCents),
+            totalAmount: formatCurrency(updatedBooking.totalAmountCents),
+            amountPaid: formatCurrency(updatedBooking.amountPaidCents),
+            paymentMethod: updateData.paymentMethod || "Card",
+            currencySymbol:
+              updatedBooking.currencyCode === "INR"
+                ? "₹"
+                : updatedBooking.currencyCode,
+            paymentDate: new Date().toISOString(),
+          });
+
+          console.log(
+            `✅ Payment confirmation email sent for booking ${updatedBooking.referenceCode}`,
+          );
+        }
+      } catch (emailError) {
+        // Log email error but don't fail the payment update
+        console.error("Failed to send payment confirmation email:", emailError);
+        console.error(
+          "Payment was processed successfully, but email notification failed",
+        );
+      }
+    }
+
     return updatedBooking;
   }
 }
