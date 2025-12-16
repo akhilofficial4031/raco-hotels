@@ -88,6 +88,9 @@ export class AvailabilityRepository {
         baseOccupancy: roomTypeTable.baseOccupancy,
         maxOccupancy: roomTypeTable.maxOccupancy,
         basePriceCents: roomTypeTable.basePriceCents,
+        offerPrice: roomTypeTable.offerPrice,
+        offerStartDate: roomTypeTable.offerStartDate,
+        offerEndDate: roomTypeTable.offerEndDate,
         currencyCode: roomTypeTable.currencyCode,
         sizeSqft: roomTypeTable.sizeSqft,
         bedType: roomTypeTable.bedType,
@@ -122,6 +125,9 @@ export class AvailabilityRepository {
           baseOccupancy: row.baseOccupancy,
           maxOccupancy: row.maxOccupancy,
           basePriceCents: row.basePriceCents,
+          offerPrice: row.offerPrice,
+          offerStartDate: row.offerStartDate,
+          offerEndDate: row.offerEndDate,
           currencyCode: row.currencyCode,
           sizeSqft: row.sizeSqft,
           bedType: row.bedType,
@@ -212,12 +218,39 @@ export class AvailabilityRepository {
 
       // Only include room types that have available rooms
       if (availableRooms.length > 0) {
+        // Calculate offer price based on date validity
+        let finalOfferPrice = null;
+
+        if (roomType.offerPrice !== null && roomType.offerPrice !== undefined) {
+          // If no offer date range is defined, use the offer price
+          if (!roomType.offerStartDate || !roomType.offerEndDate) {
+            finalOfferPrice = roomType.offerPrice;
+          } else {
+            // Check if today's date is within the offer date range
+            const today = new Date();
+            const startDate = new Date(roomType.offerStartDate);
+            const endDate = new Date(roomType.offerEndDate);
+
+            // Set time to start of day for accurate comparison
+            today.setHours(0, 0, 0, 0);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999); // End of day for end date
+
+            if (today >= startDate && today <= endDate) {
+              finalOfferPrice = roomType.offerPrice;
+            }
+          }
+        }
+
         roomTypeResults.push({
           roomTypeId: roomType.roomTypeId,
           roomTypeName: roomType.roomTypeName,
           roomTypeSlug: roomType.roomTypeSlug,
           description: roomType.description,
           baseOccupancy: roomType.baseOccupancy,
+          offerPrice: finalOfferPrice,
+          offerStartDate: roomType.offerStartDate,
+          offerEndDate: roomType.offerEndDate,
           maxOccupancy: roomType.maxOccupancy,
           basePriceCents: roomType.basePriceCents,
           currencyCode: roomType.currencyCode,
@@ -303,6 +336,9 @@ export class AvailabilityRepository {
         baseOccupancy: roomTypeTable.baseOccupancy,
         maxOccupancy: roomTypeTable.maxOccupancy,
         basePriceCents: roomTypeTable.basePriceCents,
+        offerPrice: roomTypeTable.offerPrice,
+        offerStartDate: roomTypeTable.offerStartDate,
+        offerEndDate: roomTypeTable.offerEndDate,
         currencyCode: roomTypeTable.currencyCode,
         sizeSqft: roomTypeTable.sizeSqft,
         bedType: roomTypeTable.bedType,
@@ -375,22 +411,51 @@ export class AvailabilityRepository {
 
     // Step 3: Calculate available rooms and filter out fully booked room types
     const availableRoomTypes = results
-      .map((rt) => ({
-        roomTypeId: rt.roomTypeId,
-        roomTypeName: rt.roomTypeName,
-        roomTypeSlug: rt.roomTypeSlug,
-        description: rt.description,
-        baseOccupancy: rt.baseOccupancy,
-        maxOccupancy: rt.maxOccupancy,
-        basePriceCents: rt.basePriceCents,
-        currencyCode: rt.currencyCode,
-        sizeSqft: rt.sizeSqft,
-        bedType: rt.bedType,
-        smokingAllowed: rt.smokingAllowed === 1,
-        totalRooms: rt.totalPhysicalRooms || 0,
-        availableRooms:
-          (rt.totalPhysicalRooms || 0) - (rt.bookedRoomsCount || 0),
-      }))
+      .map((rt) => {
+        // Calculate offer price based on date validity
+        let finalOfferPrice = null;
+
+        if (rt.offerPrice !== null && rt.offerPrice !== undefined) {
+          // If no offer date range is defined, use the offer price
+          if (!rt.offerStartDate || !rt.offerEndDate) {
+            finalOfferPrice = rt.offerPrice;
+          } else {
+            // Check if today's date is within the offer date range
+            const today = new Date();
+            const startDate = new Date(rt.offerStartDate);
+            const endDate = new Date(rt.offerEndDate);
+
+            // Set time to start of day for accurate comparison
+            today.setHours(0, 0, 0, 0);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999); // End of day for end date
+
+            if (today >= startDate && today <= endDate) {
+              finalOfferPrice = rt.offerPrice;
+            }
+          }
+        }
+
+        return {
+          roomTypeId: rt.roomTypeId,
+          roomTypeName: rt.roomTypeName,
+          roomTypeSlug: rt.roomTypeSlug,
+          description: rt.description,
+          baseOccupancy: rt.baseOccupancy,
+          maxOccupancy: rt.maxOccupancy,
+          basePriceCents: rt.basePriceCents,
+          offerPrice: finalOfferPrice,
+          offerStartDate: rt.offerStartDate,
+          offerEndDate: rt.offerEndDate,
+          currencyCode: rt.currencyCode,
+          sizeSqft: rt.sizeSqft,
+          bedType: rt.bedType,
+          smokingAllowed: rt.smokingAllowed === 1,
+          totalRooms: rt.totalPhysicalRooms || 0,
+          availableRooms:
+            (rt.totalPhysicalRooms || 0) - (rt.bookedRoomsCount || 0),
+        };
+      })
       .filter((rt) => rt.availableRooms > 0); // Only return room types with availability
 
     return {

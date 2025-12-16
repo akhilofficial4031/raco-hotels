@@ -51,6 +51,7 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       "https://raco-admin-fe.pages.dev",
+      "https://raco-hotels-customer-portal.raco-api.workers.dev",
       ...(process.env.FRONTEND_URL ? [process.env.FRONTEND_URL] : []), // Add production frontend URL if set
     ],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
