@@ -27,37 +27,46 @@ function generateReferenceCode(): string {
 }
 
 function getEffectiveRoomPrice(roomType: any): number {
-  // Check if offer price is available and current date is within offer period
-  if (
-    roomType &&
-    roomType.offerPrice &&
-    roomType.offerPrice > 0 &&
-    roomType.offerStartDate &&
-    roomType.offerEndDate
-  ) {
-    try {
-      // Use date-only comparison (ignore time component)
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0);
+  // Check if offer price is available
+  if (roomType && roomType.offerPrice && roomType.offerPrice > 0) {
+    // If both offer dates are null, use offer price unconditionally
+    if (!roomType.offerStartDate && !roomType.offerEndDate) {
+      console.log(
+        `✅ Using offer price ${roomType.offerPrice} for room type ${roomType.id} (no date restrictions)`,
+      );
+      return roomType.offerPrice;
+    }
 
-      const offerStart = new Date(roomType.offerStartDate);
-      offerStart.setHours(0, 0, 0, 0);
+    // If we have start and end dates, check if current date is within offer period
+    if (roomType.offerStartDate && roomType.offerEndDate) {
+      try {
+        // Use date-only comparison (ignore time component)
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
 
-      const offerEnd = new Date(roomType.offerEndDate);
-      offerEnd.setHours(23, 59, 59, 999);
+        const offerStart = new Date(roomType.offerStartDate);
+        offerStart.setHours(0, 0, 0, 0);
 
-      // Validate dates
-      if (!isNaN(offerStart.getTime()) && !isNaN(offerEnd.getTime())) {
-        // Check if current date is within offer period (inclusive)
-        if (currentDate >= offerStart && currentDate <= offerEnd) {
-          console.log(
-            `✅ Using offer price ${roomType.offerPrice} for room type ${roomType.id}`,
-          );
-          return roomType.offerPrice;
+        const offerEnd = new Date(roomType.offerEndDate);
+        offerEnd.setHours(23, 59, 59, 999);
+
+        // Validate dates
+        if (!isNaN(offerStart.getTime()) && !isNaN(offerEnd.getTime())) {
+          // Check if current date is within offer period (inclusive)
+          if (currentDate >= offerStart && currentDate <= offerEnd) {
+            console.log(
+              `✅ Using offer price ${roomType.offerPrice} for room type ${roomType.id} (within offer period)`,
+            );
+            return roomType.offerPrice;
+          } else {
+            console.log(
+              `Offer price ${roomType.offerPrice} for room type ${roomType.id} is outside valid period`,
+            );
+          }
         }
+      } catch (error) {
+        console.error("Error parsing offer dates:", error);
       }
-    } catch (error) {
-      console.error("Error parsing offer dates:", error);
     }
   }
 
