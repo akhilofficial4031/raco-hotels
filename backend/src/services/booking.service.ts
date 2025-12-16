@@ -685,7 +685,8 @@ export class BookingService {
       }
 
       // Send booking confirmation email
-      if (context) {
+      const shouldSendEmail = bookingRequest.sendConfirmationEmail !== false; // defaults to true
+      if (context && shouldSendEmail) {
         try {
           // Fetch hotel details for email (room type already fetched from database)
           const hotel = await HotelRepository.findById(db, hotelId);
@@ -750,6 +751,8 @@ export class BookingService {
             "Booking was created successfully, but email notification failed",
           );
         }
+      } else if (!shouldSendEmail) {
+        console.log("Skipping booking confirmation email as requested");
       }
 
       return newBooking;

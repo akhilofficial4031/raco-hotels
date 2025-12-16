@@ -69,6 +69,7 @@ export const CreateBookingRequestSchema = z.object({
   amountPaidCents: z.number().int().min(0).optional(),
   taxAmountCents: z.number().int().min(0).optional(),
   totalAmountCents: z.number().int().min(0).optional(),
+  sendConfirmationEmail: z.boolean().default(true).optional(),
 });
 
 export type CreateBookingRequest = z.infer<typeof CreateBookingRequestSchema>;
