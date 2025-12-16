@@ -194,6 +194,8 @@ export class AvailabilityRepository {
             or(
               eq(bookingTable.status, "confirmed"),
               eq(bookingTable.status, "checkedin"),
+              eq(bookingTable.status, "paid"),
+              eq(bookingTable.status, "partial_paid"),
             ),
           ),
         );
@@ -352,7 +354,7 @@ export class AvailabilityRepository {
         bookedRoomsCount: sql<number>`
           COUNT(DISTINCT CASE 
             WHEN ${bookingItemsTable.id} IS NOT NULL 
-            AND ${bookingTable.status} IN ('confirmed', 'checkedin')
+            AND ${bookingTable.status} IN ('confirmed', 'checkedin', 'paid', 'partial_paid')
             AND ${bookingTable.checkOutDate} > ${checkInDate}
             AND ${bookingTable.checkInDate} < ${checkOutDate}
             THEN ${bookingItemsTable.roomId}
@@ -513,6 +515,8 @@ export class AvailabilityRepository {
           or(
             eq(bookingTable.status, "confirmed"),
             eq(bookingTable.status, "checkedin"),
+            eq(bookingTable.status, "paid"),
+            eq(bookingTable.status, "partial_paid"),
           ),
         ),
       );
