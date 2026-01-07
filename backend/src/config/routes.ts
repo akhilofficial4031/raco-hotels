@@ -46,6 +46,7 @@ export const PUBLIC_ROUTES = [
   // Content routes - public read access
   "GET:/content/homepage",
   "GET:/public/homepage",
+  "GET:/public/top-banner",
 
   // Inquiry routes - public create access
   "POST:/inquiries",

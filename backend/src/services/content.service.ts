@@ -12,6 +12,7 @@ import type {
   HomePageContent,
   PublicHomePageContent,
   TestimonialItem,
+  TopBanner,
 } from "../types/content.types";
 
 export class ContentService {
@@ -374,5 +375,12 @@ export class ContentService {
       "image/webp": ".webp",
     };
     return map[mimeType.toLowerCase()] || ".jpg";
+  }
+
+  /**
+   * Get only the topBanner section from homepage content
+   */
+  static async getTopBanner(db: D1Database): Promise<TopBanner | null> {
+    return await ContentRepository.getTopBanner(db);
   }
 }

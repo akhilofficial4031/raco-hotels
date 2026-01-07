@@ -154,4 +154,21 @@ export class ContentController {
       "operation.fetchPublicHomepageContentFailed",
     );
   }
+
+  // Public API - Get only topBanner section
+  static async getTopBanner(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const topBanner = await ContentService.getTopBanner(c.env.DB);
+
+        if (!topBanner) {
+          return ApiResponse.notFound(c, "content.topBannerNotFound");
+        }
+
+        return ApiResponse.success(c, topBanner);
+      },
+      "operation.fetchTopBannerFailed",
+    );
+  }
 }

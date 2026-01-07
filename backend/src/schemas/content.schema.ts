@@ -233,3 +233,21 @@ export const PublicHomepageContentResponseSchema = z
     message: z.string().optional(),
   })
   .openapi("PublicHomepageContentResponse");
+
+// TopBanner specific schema
+export const TopBannerSchema = z
+  .object({
+    isVisible: z.boolean(),
+    text: z.string(),
+    linkText: z.string(),
+    linkUrl: z.string(),
+  })
+  .openapi("TopBanner");
+
+export const TopBannerResponseSchema = z
+  .object({
+    success: z.boolean(),
+    data: TopBannerSchema,
+    message: z.string().optional(),
+  })
+  .openapi("TopBannerResponse");

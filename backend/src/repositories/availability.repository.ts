@@ -7,6 +7,8 @@ import {
   roomType as roomTypeTable,
   hotel as hotelTable,
   roomTypeImage as roomTypeImageTable,
+  amenity as amenityTable,
+  roomTypeAmenity as roomTypeAmenityTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { type AvailabilityFilters } from "../types/availability.interface";
@@ -78,8 +80,8 @@ export class AvailabilityRepository {
       );
     }
 
-    // Get room types and their images in one go
-    const roomTypesWithImages = await database
+    // Get room types with their images and amenities in one go
+    const roomTypesWithImagesAndAmenities = await database
       .select({
         roomTypeId: roomTypeTable.id,
         roomTypeName: roomTypeTable.name,
@@ -99,23 +101,39 @@ export class AvailabilityRepository {
         imageUrl: roomTypeImageTable.url,
         imageAlt: roomTypeImageTable.alt,
         imageSortOrder: roomTypeImageTable.sortOrder,
+        amenityId: amenityTable.id,
+        amenityCode: amenityTable.code,
+        amenityName: amenityTable.name,
+        amenityIcon: amenityTable.icon,
       })
       .from(roomTypeTable)
       .leftJoin(
         roomTypeImageTable,
         eq(roomTypeImageTable.roomTypeId, roomTypeTable.id),
       )
+      .leftJoin(
+        roomTypeAmenityTable,
+        eq(roomTypeAmenityTable.roomTypeId, roomTypeTable.id),
+      )
+      .leftJoin(
+        amenityTable,
+        eq(amenityTable.id, roomTypeAmenityTable.amenityId),
+      )
       .where(and(...roomTypeConditions))
-      .orderBy(roomTypeTable.id, roomTypeImageTable.sortOrder);
+      .orderBy(
+        roomTypeTable.id,
+        roomTypeImageTable.sortOrder,
+        amenityTable.name,
+      );
 
-    if (roomTypesWithImages.length === 0) {
+    if (roomTypesWithImagesAndAmenities.length === 0) {
       return { roomTypes: [], hotelId };
     }
 
-    // Group images by room type
+    // Group images and amenities by room type
     const roomTypesMap = new Map();
 
-    for (const row of roomTypesWithImages) {
+    for (const row of roomTypesWithImagesAndAmenities) {
       if (!roomTypesMap.has(row.roomTypeId)) {
         roomTypesMap.set(row.roomTypeId, {
           roomTypeId: row.roomTypeId,
@@ -134,15 +152,40 @@ export class AvailabilityRepository {
           smokingAllowed: row.smokingAllowed,
           totalRooms: row.totalRooms,
           images: [],
+          amenities: [],
         });
       }
 
+      const roomType = roomTypesMap.get(row.roomTypeId);
+
+      // Add image if it exists and hasn't been added yet
       if (row.imageUrl) {
-        roomTypesMap.get(row.roomTypeId).images.push({
-          url: row.imageUrl,
-          alt: row.imageAlt,
-          sortOrder: row.imageSortOrder,
-        });
+        const existingImage = roomType.images.find(
+          (img: any) =>
+            img.url === row.imageUrl && img.sortOrder === row.imageSortOrder,
+        );
+        if (!existingImage) {
+          roomType.images.push({
+            url: row.imageUrl,
+            alt: row.imageAlt,
+            sortOrder: row.imageSortOrder,
+          });
+        }
+      }
+
+      // Add amenity if it exists and hasn't been added yet
+      if (row.amenityId) {
+        const existingAmenity = roomType.amenities.find(
+          (amenity: any) => amenity.id === row.amenityId,
+        );
+        if (!existingAmenity) {
+          roomType.amenities.push({
+            id: row.amenityId,
+            code: row.amenityCode,
+            name: row.amenityName,
+            icon: row.amenityIcon,
+          });
+        }
       }
     }
 
@@ -261,7 +304,8 @@ export class AvailabilityRepository {
           smokingAllowed: roomType.smokingAllowed === 1,
           totalRooms: roomType.totalRooms || 0,
           availableRooms: availableRooms.length,
-          images: roomType.images, // Add images here
+          images: roomType.images,
+          amenities: roomType.amenities,
           rooms: availableRooms,
         });
       }
