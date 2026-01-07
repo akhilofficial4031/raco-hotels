@@ -39,6 +39,7 @@ export interface AboutUs {
   description: string;
   badge: BadgeConfig;
   primaryButton: ButtonConfig;
+  subtitle: string;
   image: ImageConfig;
 }
 

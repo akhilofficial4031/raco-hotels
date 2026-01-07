@@ -65,9 +65,28 @@ const locationInfoSchema = z.object({
   images: z.array(locationInfoImageSchema),
 });
 
+// Signature validation schema
+const signatureItemSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().min(1, "Description is required"),
+});
+
+const signatureSchema = z.object({
+  title: z.string().min(1, "Signature title is required"),
+  description: z.string().min(1, "Signature description is required"),
+  items: z
+    .array(signatureItemSchema)
+    .min(1, "At least one signature item is required"),
+});
+
 // Main hotel schema
 const hotelSchema = z.object({
   name: z.string().min(1, "Hotel name is required"),
+  tagline: z.string().optional(),
+  aboutTitle: z.string().optional(),
+  aboutSubtitle: z.string().optional(),
+  aboutDescription: z.string().optional(),
+  aboutStatement: z.string().optional(),
   description: z.string().optional(),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   phone: z.string().optional(),
@@ -85,6 +104,7 @@ const hotelSchema = z.object({
   checkInTime: z.string().optional(),
   checkOutTime: z.string().optional(),
   locationInfo: z.array(locationInfoSchema).optional(),
+  signature: signatureSchema.optional(),
   amenities: z.array(z.number()).optional(),
   features: z.array(z.number()).optional(),
   isActive: z.number().optional(),
@@ -152,6 +172,11 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
     mode: "onBlur",
     defaultValues: {
       name: "",
+      tagline: "",
+      aboutTitle: "",
+      aboutSubtitle: "",
+      aboutDescription: "",
+      aboutStatement: "",
       description: "",
       email: "",
       phone: "",
@@ -169,6 +194,11 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
       checkInTime: "",
       checkOutTime: "",
       locationInfo: [],
+      signature: {
+        title: "",
+        description: "",
+        items: [{ title: "", description: "" }],
+      },
       amenities: [],
       features: [],
       isActive: 1,
@@ -220,6 +250,11 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
 
       const resetData = {
         name: hotel.name || "",
+        tagline: hotel.tagline || "",
+        aboutTitle: hotel.aboutTitle || "",
+        aboutSubtitle: hotel.aboutSubtitle || "",
+        aboutDescription: hotel.aboutDescription || "",
+        aboutStatement: hotel.aboutStatement || "",
         description: hotel.description || "",
         email: hotel.email || "",
         phone: hotel.phone || "",
@@ -244,6 +279,11 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
               url: image.url,
             })),
           })) || [],
+        signature: hotel.signature || {
+          title: "",
+          description: "",
+          items: [{ title: "", description: "" }],
+        },
         amenities: amenityIds,
         features: featureIds,
         isActive: hotel.isActive ?? 1,
@@ -262,6 +302,11 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
 
       reset({
         name: "",
+        tagline: "",
+        aboutTitle: "",
+        aboutSubtitle: "",
+        aboutDescription: "",
+        aboutStatement: "",
         description: "",
         email: "",
         phone: "",
@@ -279,6 +324,11 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
         checkInTime: "",
         checkOutTime: "",
         locationInfo: [],
+        signature: {
+          title: "",
+          description: "",
+          items: [{ title: "", description: "" }],
+        },
         amenities: [],
         features: [],
         isActive: 1,
@@ -408,6 +458,26 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
         formData.phone && formData.phone.trim()
           ? formData.phone.trim()
           : undefined,
+      tagline:
+        formData.tagline && formData.tagline.trim()
+          ? formData.tagline.trim()
+          : undefined,
+      aboutTitle:
+        formData.aboutTitle && formData.aboutTitle.trim()
+          ? formData.aboutTitle.trim()
+          : undefined,
+      aboutSubtitle:
+        formData.aboutSubtitle && formData.aboutSubtitle.trim()
+          ? formData.aboutSubtitle.trim()
+          : undefined,
+      aboutDescription:
+        formData.aboutDescription && formData.aboutDescription.trim()
+          ? formData.aboutDescription.trim()
+          : undefined,
+      aboutStatement:
+        formData.aboutStatement && formData.aboutStatement.trim()
+          ? formData.aboutStatement.trim()
+          : undefined,
       addressLine1:
         formData.addressLine1 && formData.addressLine1.trim()
           ? formData.addressLine1.trim()
@@ -444,6 +514,7 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
         formData.checkOutTime && formData.checkOutTime.trim()
           ? formData.checkOutTime.trim()
           : undefined,
+
       description:
         formData.description && formData.description.trim()
           ? formData.description.trim()
@@ -457,18 +528,19 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
       locationInfo: cleanedLocationInfo?.length
         ? cleanedLocationInfo
         : undefined,
+      signature: formData.signature || undefined,
       amenities: formData.amenities?.length ? formData.amenities : undefined,
       features: formData.features?.length ? formData.features : undefined,
       isActive: formData.isActive ?? 1,
     };
 
     // Debug: Log the data being submitted
-    console.log("Form submission data:", {
-      cleanedData,
-      uploadedImages: uploadedImages.length,
-      replaceImages: isEditMode ? replaceImages : undefined,
-      locationInfoImageFiles: locationInfoImageFiles.length,
-    });
+    // console.log("Form submission data:", {
+    //   cleanedData,
+    //   uploadedImages: uploadedImages.length,
+    //   replaceImages: isEditMode ? replaceImages : undefined,
+    //   locationInfoImageFiles: locationInfoImageFiles.length,
+    // });
 
     // Pass image data to parent
     onSubmit(
@@ -596,6 +668,17 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                 )}
               />
             </Form.Item>
+            <Form.Item
+              label="Tagline"
+              validateStatus={errors.tagline ? "error" : ""}
+              help={errors.tagline?.message}
+            >
+              <Controller
+                name="tagline"
+                control={control}
+                render={({ field }) => <Input size="large" {...field} />}
+              />
+            </Form.Item>
 
             <Row gutter={[24, 16]}>
               <Col span={8}>
@@ -670,6 +753,252 @@ const AddEditHotel: React.FC<AddEditHotelProps> = ({
                 </Form.Item>
               </Col>
             </Row>
+          </Card>
+
+          {/* About Us Information  */}
+          <Card
+            title={
+              <span className="text-lg font-semibold">
+                About Us Information
+              </span>
+            }
+            className="shadow-sm border-gray-200"
+          >
+            <Row gutter={[24, 16]}>
+              <Col span={12}>
+                <Form.Item
+                  label="About Title"
+                  validateStatus={errors.aboutTitle ? "error" : ""}
+                  help={errors.aboutTitle?.message}
+                >
+                  <Controller
+                    name="aboutTitle"
+                    control={control}
+                    render={({ field }) => <Input size="large" {...field} />}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="About Subtitle"
+                  validateStatus={errors.aboutSubtitle ? "error" : ""}
+                  help={errors.aboutSubtitle?.message}
+                >
+                  <Controller
+                    name="aboutSubtitle"
+                    control={control}
+                    render={({ field }) => <Input size="large" {...field} />}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="About Description"
+                  validateStatus={errors.aboutDescription ? "error" : ""}
+                  help={errors.aboutDescription?.message}
+                >
+                  <Controller
+                    name="aboutDescription"
+                    control={control}
+                    render={({ field }) => (
+                      <TextArea rows={4} size="large" {...field} />
+                    )}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label="About Statement"
+                  validateStatus={errors.aboutStatement ? "error" : ""}
+                  help={errors.aboutStatement?.message}
+                >
+                  <Controller
+                    name="aboutStatement"
+                    control={control}
+                    render={({ field }) => (
+                      <TextArea rows={4} size="large" {...field} />
+                    )}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Signature Experiences */}
+          <Card
+            title={
+              <span className="text-lg font-semibold">
+                Signature Experiences
+              </span>
+            }
+            className="shadow-sm border-gray-200"
+          >
+            <Row gutter={[24, 16]}>
+              <Col span={24}>
+                <Form.Item
+                  label="Signature Title"
+                  validateStatus={errors.signature?.title ? "error" : ""}
+                  help={errors.signature?.title?.message}
+                >
+                  <Controller
+                    name="signature.title"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        size="large"
+                        {...field}
+                        value={field.value || ""}
+                        placeholder="e.g., Signature Experiences"
+                      />
+                    )}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={24}>
+                <Form.Item
+                  label="Signature Description"
+                  validateStatus={errors.signature?.description ? "error" : ""}
+                  help={errors.signature?.description?.message}
+                >
+                  <Controller
+                    name="signature.description"
+                    control={control}
+                    render={({ field }) => (
+                      <TextArea
+                        rows={3}
+                        {...field}
+                        value={field.value || ""}
+                        size="large"
+                        placeholder="Describe what makes your hotel unique..."
+                      />
+                    )}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            {/* Dynamic Signature Items */}
+            <Form.Item
+              label="Signature Items"
+              validateStatus={errors.signature?.items ? "error" : ""}
+              help={errors.signature?.items?.message}
+            >
+              <Controller
+                name="signature.items"
+                control={control}
+                render={({ field }) => {
+                  const items = field.value || [];
+
+                  const addItem = () => {
+                    const newItems = [...items, { title: "", description: "" }];
+                    field.onChange(newItems);
+                  };
+
+                  const removeItem = (index: number) => {
+                    const newItems = items.filter(
+                      (_: any, i: number) => i !== index,
+                    );
+                    field.onChange(newItems);
+                  };
+
+                  const updateItem = (
+                    index: number,
+                    key: string,
+                    value: string,
+                  ) => {
+                    const newItems = [...items];
+                    newItems[index] = { ...newItems[index], [key]: value };
+                    field.onChange(newItems);
+                  };
+
+                  return (
+                    <div className="space-y-4">
+                      {items.map((item: any, index: number) => (
+                        <Card
+                          key={index}
+                          size="small"
+                          className="border border-gray-300"
+                          extra={
+                            <Button
+                              type="text"
+                              danger
+                              size="small"
+                              onClick={() => removeItem(index)}
+                              disabled={items.length === 1}
+                            >
+                              Remove
+                            </Button>
+                          }
+                        >
+                          <Row gutter={[16, 8]}>
+                            <Col span={24}>
+                              <Form.Item
+                                label="Item Title"
+                                validateStatus={
+                                  errors.signature?.items?.[index]?.title
+                                    ? "error"
+                                    : ""
+                                }
+                                help={
+                                  errors.signature?.items?.[index]?.title
+                                    ?.message
+                                }
+                                className="mb-3"
+                              >
+                                <Input
+                                  value={item.title}
+                                  onChange={(e) =>
+                                    updateItem(index, "title", e.target.value)
+                                  }
+                                  placeholder="e.g., Luxury Spa Experience"
+                                />
+                              </Form.Item>
+                            </Col>
+                            <Col span={24}>
+                              <Form.Item
+                                label="Item Description"
+                                validateStatus={
+                                  errors.signature?.items?.[index]?.description
+                                    ? "error"
+                                    : ""
+                                }
+                                help={
+                                  errors.signature?.items?.[index]?.description
+                                    ?.message
+                                }
+                                className="mb-0"
+                              >
+                                <TextArea
+                                  rows={2}
+                                  value={item.description}
+                                  onChange={(e) =>
+                                    updateItem(
+                                      index,
+                                      "description",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="Describe this signature experience..."
+                                />
+                              </Form.Item>
+                            </Col>
+                          </Row>
+                        </Card>
+                      ))}
+
+                      <Button
+                        type="dashed"
+                        onClick={addItem}
+                        className="w-full"
+                        icon={<span>+</span>}
+                      >
+                        Add Signature Item
+                      </Button>
+                    </div>
+                  );
+                }}
+              />
+            </Form.Item>
           </Card>
 
           {/* Contact Information */}
