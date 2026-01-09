@@ -163,6 +163,20 @@ const homepageContentSchema = z.object({
       buttons: z.array(buttonSchema),
     })
     .optional(),
+  signatureSection: z
+    .object({
+      title: z.string().min(1, "Title is required"),
+      description: z.string().min(1, "Description is required"),
+      items: z
+        .array(
+          z.object({
+            title: z.string().min(1, "Item title is required"),
+            description: z.string().min(1, "Item description is required"),
+          }),
+        )
+        .min(1, "At least one signature item is required"),
+    })
+    .optional(),
   seo: z
     .object({
       title: z.string(),
@@ -336,6 +350,17 @@ function HomepageContent() {
           },
         ],
       },
+      signatureSection: {
+        title: "SIGNATURE EXPERIENCES",
+        description: "Discover our curated collection of unique experiences",
+        items: [
+          {
+            title: "Premium Service",
+            description:
+              "Exceptional hospitality and personalized attention to detail",
+          },
+        ],
+      },
       seo: {
         title: "",
         description: "",
@@ -391,6 +416,17 @@ function HomepageContent() {
             {
               text: "Follow Us",
               type: "secondary" as const,
+            },
+          ],
+        },
+        signatureSection: contentData.data.signatureSection || {
+          title: "SIGNATURE EXPERIENCES",
+          description: "Discover our curated collection of unique experiences",
+          items: [
+            {
+              title: "Premium Service",
+              description:
+                "Exceptional hospitality and personalized attention to detail",
             },
           ],
         },

@@ -46,6 +46,7 @@ export interface AboutUs {
 export interface OurStays {
   sectionTag: string;
   title: string;
+  title2: string;
   description: string;
 }
 
@@ -53,6 +54,17 @@ export interface FeaturedStays {
   title: string;
   description: string;
   primaryButton: ButtonConfig;
+}
+
+export interface SignatureSection {
+  title: string;
+  description: string;
+  items: SignatureItems[];
+}
+
+export interface SignatureItems {
+  title: string;
+  description: string;
 }
 
 export interface SignatureExperiencesClub {
@@ -125,6 +137,7 @@ export interface HomePageContent {
   aboutUs: AboutUs;
   ourStays: OurStays;
   featuredStays: FeaturedStays;
+  signatureSection: SignatureSection;
   signatureExperiences: SignatureExperiences;
   gravityBar: GravityBar;
   restaurant: Restaurant;

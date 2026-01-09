@@ -96,6 +96,17 @@ export interface Gallery {
   buttons: ButtonConfig[];
 }
 
+export interface SignatureItems {
+  title: string;
+  description: string;
+}
+
+export interface SignatureSection {
+  title: string;
+  description: string;
+  items: SignatureItems[];
+}
+
 export interface SEO {
   title: string;
   description: string;
@@ -112,5 +123,6 @@ export interface HomePageContent {
   gravityBar: GravityBar;
   restaurant: Restaurant;
   gallery: Gallery;
+  signatureSection: SignatureSection;
   seo: SEO;
 }
