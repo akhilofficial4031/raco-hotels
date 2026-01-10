@@ -136,6 +136,18 @@ export const HomePageContentSchema = z
         primaryButton: ButtonConfigSchema,
       })
       .optional(),
+    signatureSection: z
+      .object({
+        title: z.string(),
+        description: z.string(),
+        items: z.array(
+          z.object({
+            title: z.string(),
+            description: z.string(),
+          }),
+        ),
+      })
+      .optional(),
     signatureExperiences: z
       .object({
         sectionTag: z.string(),

@@ -6,7 +6,6 @@ import {
   ContentBlockResponseSchema,
   CreateContentBlockRequestSchema,
   UpdateContentBlockRequestSchema,
-  HomepageContentQueryParamsSchema,
   HomepageContentResponseSchema,
   SaveHomepageContentRequestSchema,
   PublicHomepageContentResponseSchema,

@@ -1,4 +1,4 @@
-import { and, count, desc, eq, like, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, like, or } from "drizzle-orm";
 
 import {
   hotel as hotelTable,
