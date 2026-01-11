@@ -201,6 +201,13 @@ export const HomePageContentSchema = z
         keywords: z.string(),
       })
       .optional(),
+    policyPages: z
+      .object({
+        privacyPolicy: z.string().optional(),
+        termsAndConditions: z.string().optional(),
+        cookiePolicy: z.string().optional(),
+      })
+      .optional(),
   })
   .openapi("HomePageContent");
 
@@ -263,3 +270,20 @@ export const TopBannerResponseSchema = z
     message: z.string().optional(),
   })
   .openapi("TopBannerResponse");
+
+// PolicyPages specific schema
+export const PolicyPagesSchema = z
+  .object({
+    privacyPolicy: z.string().optional(),
+    termsAndConditions: z.string().optional(),
+    cookiePolicy: z.string().optional(),
+  })
+  .openapi("PolicyPages");
+
+export const PolicyPagesResponseSchema = z
+  .object({
+    success: z.boolean(),
+    data: PolicyPagesSchema,
+    message: z.string().optional(),
+  })
+  .openapi("PolicyPagesResponse");

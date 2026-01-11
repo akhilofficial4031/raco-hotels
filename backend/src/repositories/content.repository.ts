@@ -16,6 +16,7 @@ import type {
   HomepageContentRecord,
   HomePageContent,
   TopBanner,
+  PolicyPages,
 } from "../types/content.types";
 
 export class ContentRepository {
@@ -193,6 +194,28 @@ export class ContentRepository {
     try {
       const content = JSON.parse(record.content);
       return content.topBanner || null;
+    } catch (error) {
+      console.error("Error parsing homepage content JSON:", error);
+      return null;
+    }
+  }
+
+  static async getPolicyPages(db: D1Database): Promise<PolicyPages | null> {
+    const database = getDb(db);
+
+    const rows = await database
+      .select()
+      .from(homepageContentTable)
+      .where(eq(homepageContentTable.isPublished, 1))
+      .orderBy(desc(homepageContentTable.updatedAt))
+      .limit(1);
+
+    const record = (rows[0] as any) || null;
+    if (!record) return null;
+
+    try {
+      const content = JSON.parse(record.content);
+      return content.policyPages || null;
     } catch (error) {
       console.error("Error parsing homepage content JSON:", error);
       return null;

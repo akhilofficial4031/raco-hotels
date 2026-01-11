@@ -11,6 +11,7 @@ import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 import {
   AboutUsForm,
   HeroForm,
+  PolicyPagesForm,
   SeoForm,
   SimpleSectionsForm,
   TopBannerForm,
@@ -182,6 +183,13 @@ const homepageContentSchema = z.object({
       title: z.string(),
       description: z.string(),
       keywords: z.string(),
+    })
+    .optional(),
+  policyPages: z
+    .object({
+      privacyPolicy: z.string().optional(),
+      termsAndConditions: z.string().optional(),
+      cookiePolicy: z.string().optional(),
     })
     .optional(),
 });
@@ -366,6 +374,11 @@ function HomepageContent() {
         description: "",
         keywords: "",
       },
+      policyPages: {
+        privacyPolicy: "",
+        termsAndConditions: "",
+        cookiePolicy: "",
+      },
     },
   });
 
@@ -435,6 +448,11 @@ function HomepageContent() {
           description: "",
           keywords: "",
         },
+        policyPages: contentData.data.policyPages || {
+          privacyPolicy: "",
+          termsAndConditions: "",
+          cookiePolicy: "",
+        },
       };
       reset(mergedData as any);
     }
@@ -479,8 +497,8 @@ function HomepageContent() {
       "2": ["hero"],
       "3": ["aboutUs"],
       "4": ["ourStays", "featuredStays"],
-      "5": ["signatureExperiences"],
-      "6": ["seo"],
+      "5": ["seo"],
+      "6": ["policyPages"],
     };
 
     const fieldsToValidate = fieldMap[activeTab];
@@ -582,6 +600,15 @@ function HomepageContent() {
                   </div>
                 ),
               },
+              {
+                label: "Policy Pages",
+                key: "6",
+                children: (
+                  <div className="p-4">
+                    <PolicyPagesForm control={control} errors={errors} />
+                  </div>
+                ),
+              },
             ]}
           />
         </div>
@@ -640,6 +667,11 @@ function HomepageContent() {
                     title: "",
                     description: "",
                     keywords: "",
+                  },
+                  policyPages: contentData.data.policyPages || {
+                    privacyPolicy: "",
+                    termsAndConditions: "",
+                    cookiePolicy: "",
                   },
                 };
                 reset(mergedData as any);

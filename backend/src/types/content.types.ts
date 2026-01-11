@@ -67,6 +67,12 @@ export interface SignatureItems {
   description: string;
 }
 
+export interface PolicyPages {
+  privacyPolicy: string;
+  termsAndConditions: string;
+  cookiePolicy: string;
+}
+
 export interface SignatureExperiencesClub {
   name: string;
   tagline: string;
@@ -143,6 +149,7 @@ export interface HomePageContent {
   restaurant: Restaurant;
   gallery: Gallery;
   seo: SEO;
+  policyPages: PolicyPages;
 }
 
 export interface PublicHomePageContent extends HomePageContent {

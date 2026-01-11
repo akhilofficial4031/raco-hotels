@@ -77,4 +77,9 @@ contentRoutes.openapi(ContentRouteDefinitions.getTopBanner, (c) =>
   ContentController.getTopBanner(c as AppContext),
 );
 
+// Public API - Get only policy pages
+contentRoutes.openapi(ContentRouteDefinitions.getPolicyPages, (c) =>
+  ContentController.getPolicyPages(c as AppContext),
+);
+
 export default contentRoutes;

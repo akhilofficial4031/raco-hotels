@@ -171,4 +171,21 @@ export class ContentController {
       "operation.fetchTopBannerFailed",
     );
   }
+
+  // Public API - Get only policy pages
+  static async getPolicyPages(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const policyPages = await ContentService.getPolicyPages(c.env.DB);
+
+        if (!policyPages) {
+          return ApiResponse.notFound(c, "content.policyPagesNotFound");
+        }
+
+        return ApiResponse.success(c, policyPages);
+      },
+      "operation.fetchPolicyPagesFailed",
+    );
+  }
 }

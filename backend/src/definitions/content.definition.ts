@@ -10,6 +10,7 @@ import {
   SaveHomepageContentRequestSchema,
   PublicHomepageContentResponseSchema,
   TopBannerResponseSchema,
+  PolicyPagesResponseSchema,
 } from "../schemas";
 
 export const ContentRouteDefinitions = {
@@ -120,6 +121,19 @@ export const ContentRouteDefinitions = {
     tags: [ApiTags.CONTENT],
     successSchema: TopBannerResponseSchema,
     successDescription: "Top banner content retrieved successfully",
+    includeNotFound: true,
+  }),
+
+  // Public API - Get only policy pages
+  getPolicyPages: createRoute({
+    method: "get",
+    path: "/public/policy-pages",
+    summary: "Get policy pages content",
+    description:
+      "Retrieve only the policy pages (privacy policy, terms and conditions, cookie policy) from homepage content. No authentication required.",
+    tags: [ApiTags.CONTENT],
+    successSchema: PolicyPagesResponseSchema,
+    successDescription: "Policy pages content retrieved successfully",
     includeNotFound: true,
   }),
 };

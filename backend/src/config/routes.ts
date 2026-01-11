@@ -54,6 +54,9 @@ export const PUBLIC_ROUTES = [
   //Public inquiry routes add inquiry
   "POST:/inquiries",
 
+  //Public policy pages
+  "GET:/public/policy-pages",
+
   // Add other public routes here as needed
   // "/public-endpoint",
   // "GET:/some-route",

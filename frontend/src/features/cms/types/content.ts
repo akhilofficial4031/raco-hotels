@@ -113,6 +113,12 @@ export interface SEO {
   keywords: string;
 }
 
+export interface PolicyPages {
+  privacyPolicy: string;
+  termsAndConditions: string;
+  cookiePolicy: string;
+}
+
 export interface HomePageContent {
   topBanner: TopBanner;
   hero: Hero;
@@ -125,4 +131,5 @@ export interface HomePageContent {
   gallery: Gallery;
   signatureSection: SignatureSection;
   seo: SEO;
+  policyPages: PolicyPages;
 }
