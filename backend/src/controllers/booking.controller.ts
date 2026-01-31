@@ -254,6 +254,7 @@ export class BookingController {
           c.env.DB,
           bookingId,
           body,
+          c, // Pass context for email functionality
         );
 
         return ApiResponse.success(c, {

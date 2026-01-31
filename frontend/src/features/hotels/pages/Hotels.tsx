@@ -4,12 +4,6 @@ import {
   ExclamationCircleOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
-import { convertJsonToQueryParams } from "@utils/queryParams";
-import {
-  fetcher,
-  mutationFetcher,
-  multipartMutationFetcher,
-} from "@utils/swrFetcher";
 import {
   Button,
   Dropdown,
@@ -27,6 +21,12 @@ import useSWR, { mutate } from "swr";
 
 import TableHeader from "@shared/components/TableHeader";
 import { APP_LOCALE } from "@shared/constants/app";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import {
+  fetcher,
+  mutationFetcher,
+  multipartMutationFetcher,
+} from "@utils/swrFetcher";
 
 import AddEditHotel from "../components/AddEditHotel";
 import {

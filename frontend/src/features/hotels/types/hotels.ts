@@ -34,6 +34,17 @@ export interface LocationInfoForm {
   images: LocationInfoImageForm[];
 }
 
+export interface HotelSignatureItem {
+  title: string;
+  description: string;
+}
+
+export interface HotelSignature {
+  title: string;
+  description: string;
+  items: HotelSignatureItem[];
+}
+
 export interface HotelImage {
   id: number;
   hotelId: number;
@@ -46,6 +57,11 @@ export interface HotelImage {
 export interface Hotel {
   id: number;
   name: string;
+  tagline?: string;
+  aboutTitle?: string;
+  aboutSubtitle?: string;
+  aboutDescription?: string;
+  aboutStatement?: string;
   slug: string | null;
   description: string | null;
   email: string | null;
@@ -63,6 +79,7 @@ export interface Hotel {
   checkInTime: string | null;
   checkOutTime: string | null;
   locationInfo: LocationInfo[] | null;
+  signature: HotelSignature | null;
   amenities: number[] | Amenity[] | null;
   features: number[] | Feature[] | null;
   isActive: number;
@@ -97,6 +114,11 @@ export interface HotelDetailsResponse {
 
 export interface CreateHotelPayload {
   name: string;
+  tagline?: string;
+  aboutTitle?: string;
+  aboutSubtitle?: string;
+  aboutDescription?: string;
+  aboutStatement?: string;
   slug?: string;
   description?: string;
   email?: string;
@@ -115,6 +137,7 @@ export interface CreateHotelPayload {
   checkInTime?: string;
   checkOutTime?: string;
   locationInfo?: LocationInfo[];
+  signature?: HotelSignature;
   amenities?: number[];
   features?: number[];
   isActive?: number;
@@ -123,6 +146,11 @@ export interface CreateHotelPayload {
 // Form-specific payload that uses file uploads for location info images
 export interface CreateHotelFormPayload {
   name: string;
+  tagline?: string;
+  aboutTitle?: string;
+  aboutSubtitle?: string;
+  aboutDescription?: string;
+  aboutStatement?: string;
   slug?: string;
   description?: string;
   email?: string;
@@ -141,6 +169,7 @@ export interface CreateHotelFormPayload {
   checkInTime?: string;
   checkOutTime?: string;
   locationInfo?: LocationInfoForm[];
+  signature?: HotelSignature;
   amenities?: number[];
   features?: number[];
   isActive?: number;

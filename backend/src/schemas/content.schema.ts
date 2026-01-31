@@ -136,6 +136,18 @@ export const HomePageContentSchema = z
         primaryButton: ButtonConfigSchema,
       })
       .optional(),
+    signatureSection: z
+      .object({
+        title: z.string(),
+        description: z.string(),
+        items: z.array(
+          z.object({
+            title: z.string(),
+            description: z.string(),
+          }),
+        ),
+      })
+      .optional(),
     signatureExperiences: z
       .object({
         sectionTag: z.string(),
@@ -189,6 +201,13 @@ export const HomePageContentSchema = z
         keywords: z.string(),
       })
       .optional(),
+    policyPages: z
+      .object({
+        privacyPolicy: z.string().optional(),
+        termsAndConditions: z.string().optional(),
+        cookiePolicy: z.string().optional(),
+      })
+      .optional(),
   })
   .openapi("HomePageContent");
 
@@ -233,3 +252,38 @@ export const PublicHomepageContentResponseSchema = z
     message: z.string().optional(),
   })
   .openapi("PublicHomepageContentResponse");
+
+// TopBanner specific schema
+export const TopBannerSchema = z
+  .object({
+    isVisible: z.boolean(),
+    text: z.string(),
+    linkText: z.string(),
+    linkUrl: z.string(),
+  })
+  .openapi("TopBanner");
+
+export const TopBannerResponseSchema = z
+  .object({
+    success: z.boolean(),
+    data: TopBannerSchema,
+    message: z.string().optional(),
+  })
+  .openapi("TopBannerResponse");
+
+// PolicyPages specific schema
+export const PolicyPagesSchema = z
+  .object({
+    privacyPolicy: z.string().optional(),
+    termsAndConditions: z.string().optional(),
+    cookiePolicy: z.string().optional(),
+  })
+  .openapi("PolicyPages");
+
+export const PolicyPagesResponseSchema = z
+  .object({
+    success: z.boolean(),
+    data: PolicyPagesSchema,
+    message: z.string().optional(),
+  })
+  .openapi("PolicyPagesResponse");

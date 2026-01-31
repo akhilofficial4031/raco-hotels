@@ -11,8 +11,10 @@ import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 import {
   AboutUsForm,
   HeroForm,
+  PolicyPagesForm,
   SeoForm,
   SimpleSectionsForm,
+  TopBannerForm,
   // TopBannerForm,
 } from "../components";
 
@@ -162,11 +164,32 @@ const homepageContentSchema = z.object({
       buttons: z.array(buttonSchema),
     })
     .optional(),
+  signatureSection: z
+    .object({
+      title: z.string().min(1, "Title is required"),
+      description: z.string().min(1, "Description is required"),
+      items: z
+        .array(
+          z.object({
+            title: z.string().min(1, "Item title is required"),
+            description: z.string().min(1, "Item description is required"),
+          }),
+        )
+        .min(1, "At least one signature item is required"),
+    })
+    .optional(),
   seo: z
     .object({
       title: z.string(),
       description: z.string(),
       keywords: z.string(),
+    })
+    .optional(),
+  policyPages: z
+    .object({
+      privacyPolicy: z.string().optional(),
+      termsAndConditions: z.string().optional(),
+      cookiePolicy: z.string().optional(),
     })
     .optional(),
 });
@@ -335,10 +358,26 @@ function HomepageContent() {
           },
         ],
       },
+      signatureSection: {
+        title: "SIGNATURE EXPERIENCES",
+        description: "Discover our curated collection of unique experiences",
+        items: [
+          {
+            title: "Premium Service",
+            description:
+              "Exceptional hospitality and personalized attention to detail",
+          },
+        ],
+      },
       seo: {
         title: "",
         description: "",
         keywords: "",
+      },
+      policyPages: {
+        privacyPolicy: "",
+        termsAndConditions: "",
+        cookiePolicy: "",
       },
     },
   });
@@ -393,10 +432,26 @@ function HomepageContent() {
             },
           ],
         },
+        signatureSection: contentData.data.signatureSection || {
+          title: "SIGNATURE EXPERIENCES",
+          description: "Discover our curated collection of unique experiences",
+          items: [
+            {
+              title: "Premium Service",
+              description:
+                "Exceptional hospitality and personalized attention to detail",
+            },
+          ],
+        },
         seo: contentData.data.seo || {
           title: "",
           description: "",
           keywords: "",
+        },
+        policyPages: contentData.data.policyPages || {
+          privacyPolicy: "",
+          termsAndConditions: "",
+          cookiePolicy: "",
         },
       };
       reset(mergedData as any);
@@ -442,8 +497,8 @@ function HomepageContent() {
       "2": ["hero"],
       "3": ["aboutUs"],
       "4": ["ourStays", "featuredStays"],
-      "5": ["signatureExperiences"],
-      "6": ["seo"],
+      "5": ["seo"],
+      "6": ["policyPages"],
     };
 
     const fieldsToValidate = fieldMap[activeTab];
@@ -488,18 +543,18 @@ function HomepageContent() {
             activeKey={activeTab}
             onChange={setActiveTab}
             items={[
-              // {
-              //   label: "Top Banner",
-              //   key: "1",
-              //   children: (
-              //     <div className="p-4">
-              //       <TopBannerForm control={control} errors={errors} />
-              //     </div>
-              //   ),
-              // },
+              {
+                label: "Top Banner",
+                key: "1",
+                children: (
+                  <div className="p-4">
+                    <TopBannerForm control={control} errors={errors} />
+                  </div>
+                ),
+              },
               {
                 label: "Hero Section",
-                key: "1",
+                key: "2",
                 children: (
                   <div className="p-4">
                     <HeroForm control={control} errors={errors} />
@@ -538,10 +593,19 @@ function HomepageContent() {
               // },
               {
                 label: "SEO",
-                key: "6",
+                key: "5",
                 children: (
                   <div className="p-4">
                     <SeoForm control={control} errors={errors} />
+                  </div>
+                ),
+              },
+              {
+                label: "Policy Pages",
+                key: "6",
+                children: (
+                  <div className="p-4">
+                    <PolicyPagesForm control={control} errors={errors} />
                   </div>
                 ),
               },
@@ -603,6 +667,11 @@ function HomepageContent() {
                     title: "",
                     description: "",
                     keywords: "",
+                  },
+                  policyPages: contentData.data.policyPages || {
+                    privacyPolicy: "",
+                    termsAndConditions: "",
+                    cookiePolicy: "",
                   },
                 };
                 reset(mergedData as any);

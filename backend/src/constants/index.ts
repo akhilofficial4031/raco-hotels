@@ -72,13 +72,13 @@ export const PAYMENT_PROCESSORS = {
 
 // Booking Status
 export const BOOKING_STATUS = {
-  DRAFT: "draft",
-  RESERVED: "reserved",
   CONFIRMED: "confirmed",
-  CHECKED_IN: "checked_in",
-  CHECKED_OUT: "checked_out",
+  CHECKEDIN: "checkedin",
+  CHECKEDOUT: "checkedout",
   CANCELLED: "cancelled",
-  NO_SHOW: "no_show",
+  NOSHOW: "noshow",
+  PAID: "paid",
+  PARTIAL_PAID: "partial_paid",
 } as const;
 
 // Payment Status

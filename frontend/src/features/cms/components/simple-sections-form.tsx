@@ -1,5 +1,6 @@
 import { UploadOutlined } from "@ant-design/icons";
 import {
+  Button,
   Card,
   Col,
   Form,
@@ -11,7 +12,12 @@ import {
   message,
 } from "antd";
 import { useEffect, useState } from "react";
-import { Controller, type Control, type FieldErrors } from "react-hook-form";
+import {
+  Controller,
+  useFieldArray,
+  type Control,
+  type FieldErrors,
+} from "react-hook-form";
 
 import type { UploadFile } from "antd";
 
@@ -160,13 +166,19 @@ function SimpleSectionsForm({ control, errors }: SimpleSectionsFormProps) {
   const ourStaysErrors = errors.ourStays as any;
   const featuredStaysErrors = errors.featuredStays as any;
   const galleryErrors = errors.gallery as any;
+  const signatureSectionErrors = errors.signatureSection as any;
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "signatureSection.items",
+  });
 
   return (
     <>
       {/* Our Stays Section */}
       <Card
         title={<span className="text-lg font-semibold">Our Stays Section</span>}
-        className="shadow-sm border-gray-200"
+        className="shadow-sm border-gray-200 !mb-2"
       >
         <Row gutter={[24, 16]}>
           <Col span={24}>
@@ -197,6 +209,19 @@ function SimpleSectionsForm({ control, errors }: SimpleSectionsFormProps) {
           </Col>
           <Col span={24}>
             <Form.Item
+              label="Title 2"
+              validateStatus={ourStaysErrors?.title2 ? "error" : ""}
+              help={ourStaysErrors?.title2?.message}
+            >
+              <Controller
+                name="ourStays.title2"
+                control={control}
+                render={({ field }) => <Input size="large" {...field} />}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item
               label="Description"
               validateStatus={ourStaysErrors?.description ? "error" : ""}
               help={ourStaysErrors?.description?.message}
@@ -218,7 +243,7 @@ function SimpleSectionsForm({ control, errors }: SimpleSectionsFormProps) {
         title={
           <span className="text-lg font-semibold">Featured Stays Section</span>
         }
-        className="shadow-sm border-gray-200"
+        className="shadow-sm border-gray-200 !mb-2"
       >
         <Row gutter={[24, 16]}>
           <Col span={24}>
@@ -270,7 +295,7 @@ function SimpleSectionsForm({ control, errors }: SimpleSectionsFormProps) {
       {/* Gallery Section */}
       <Card
         title={<span className="text-lg font-semibold">Gallery Section</span>}
-        className="shadow-sm border-gray-200"
+        className="shadow-sm border-gray-200 !mb-2"
       >
         <Row gutter={[24, 16]}>
           <Col span={24}>
@@ -315,6 +340,127 @@ function SimpleSectionsForm({ control, errors }: SimpleSectionsFormProps) {
                   />
                 )}
               />
+            </Form.Item>
+          </Col>
+        </Row>
+      </Card>
+
+      {/* Signature Section */}
+      <Card
+        title={<span className="text-lg font-semibold">Signature Section</span>}
+        className="shadow-sm border-gray-200 !mb-2"
+      >
+        <Row gutter={[24, 16]}>
+          <Col span={24}>
+            <Form.Item
+              label="Title"
+              validateStatus={signatureSectionErrors?.title ? "error" : ""}
+              help={signatureSectionErrors?.title?.message}
+            >
+              <Controller
+                name="signatureSection.title"
+                control={control}
+                render={({ field }) => <Input size="large" {...field} />}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item
+              label="Description"
+              validateStatus={
+                signatureSectionErrors?.description ? "error" : ""
+              }
+              help={signatureSectionErrors?.description?.message}
+            >
+              <Controller
+                name="signatureSection.description"
+                control={control}
+                render={({ field }) => (
+                  <TextArea rows={3} size="large" {...field} />
+                )}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={24}>
+            <Form.Item
+              label="Signature Items"
+              validateStatus={signatureSectionErrors?.items ? "error" : ""}
+              help={signatureSectionErrors?.items?.message}
+            >
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <Card
+                    key={field.id}
+                    size="small"
+                    title={`Item ${index + 1}`}
+                    extra={
+                      <Button
+                        type="text"
+                        danger
+                        onClick={() => remove(index)}
+                        disabled={fields.length <= 1}
+                      >
+                        Remove
+                      </Button>
+                    }
+                    className="border-gray-200"
+                  >
+                    <Row gutter={[16, 8]}>
+                      <Col span={24}>
+                        <Form.Item
+                          label="Title"
+                          validateStatus={
+                            signatureSectionErrors?.items?.[index]?.title
+                              ? "error"
+                              : ""
+                          }
+                          help={
+                            signatureSectionErrors?.items?.[index]?.title
+                              ?.message
+                          }
+                          className="mb-3"
+                        >
+                          <Controller
+                            name={`signatureSection.items.${index}.title`}
+                            control={control}
+                            render={({ field }) => <Input {...field} />}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={24}>
+                        <Form.Item
+                          label="Description"
+                          validateStatus={
+                            signatureSectionErrors?.items?.[index]?.description
+                              ? "error"
+                              : ""
+                          }
+                          help={
+                            signatureSectionErrors?.items?.[index]?.description
+                              ?.message
+                          }
+                          className="mb-0"
+                        >
+                          <Controller
+                            name={`signatureSection.items.${index}.description`}
+                            control={control}
+                            render={({ field }) => (
+                              <TextArea rows={2} {...field} />
+                            )}
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </Card>
+                ))}
+                <Button
+                  type="dashed"
+                  onClick={() => append({ title: "", description: "" })}
+                  className="w-full"
+                >
+                  Add Signature Item
+                </Button>
+              </div>
             </Form.Item>
           </Col>
         </Row>

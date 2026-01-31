@@ -154,4 +154,38 @@ export class ContentController {
       "operation.fetchPublicHomepageContentFailed",
     );
   }
+
+  // Public API - Get only topBanner section
+  static async getTopBanner(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const topBanner = await ContentService.getTopBanner(c.env.DB);
+
+        if (!topBanner) {
+          return ApiResponse.notFound(c, "content.topBannerNotFound");
+        }
+
+        return ApiResponse.success(c, topBanner);
+      },
+      "operation.fetchTopBannerFailed",
+    );
+  }
+
+  // Public API - Get only policy pages
+  static async getPolicyPages(c: AppContext) {
+    return handleAsyncRoute(
+      c,
+      async () => {
+        const policyPages = await ContentService.getPolicyPages(c.env.DB);
+
+        if (!policyPages) {
+          return ApiResponse.notFound(c, "content.policyPagesNotFound");
+        }
+
+        return ApiResponse.success(c, policyPages);
+      },
+      "operation.fetchPolicyPagesFailed",
+    );
+  }
 }

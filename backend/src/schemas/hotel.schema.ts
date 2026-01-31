@@ -51,6 +51,31 @@ const LocationInfoSectionSchema = z
   })
   .openapi("LocationInfoSection");
 
+const HotelSignatureItemSchema = z
+  .object({
+    title: z.string().openapi({ example: "Signature Experience" }),
+    description: z.string().openapi({
+      example: "Experience luxury and comfort at our boutique hotel...",
+    }),
+  })
+  .openapi("HotelSignatureItem");
+
+const HotelSignatureSchema = z
+  .object({
+    title: z.string().openapi({ example: "Signature Experiences" }),
+    description: z.string().openapi({
+      example: "Experience luxury and comfort at our boutique hotel...",
+    }),
+    items: z.array(HotelSignatureItemSchema).openapi({
+      example: [
+        {
+          title: "Signature Experience",
+          description: "Experience luxury and comfort at our boutique hotel...",
+        },
+      ],
+    }),
+  })
+  .openapi("HotelSignature");
 // Hotel Image Schema
 export const HotelImageSchema = z
   .object({
@@ -71,6 +96,21 @@ export const HotelSchema = z
     id: z.number().int().positive().openapi({ example: 1 }),
     name: z.string().openapi({ example: "Raco Grand" }),
     slug: z.string().nullable().openapi({ example: "raco-grand" }),
+    tagline: z
+      .string()
+      .nullable()
+      .openapi({ example: "Your home away from home" }),
+    aboutTitle: z.string().nullable().openapi({ example: "About Our Hotel" }),
+    aboutSubtitle: z
+      .string()
+      .nullable()
+      .openapi({ example: "Comfort and elegance combined" }),
+    aboutDescription: z.string().nullable().openapi({
+      example: "Experience luxury and comfort at our boutique hotel...",
+    }),
+    aboutStatement: z.string().nullable().openapi({
+      example: "We are committed to providing exceptional hospitality.",
+    }),
     description: z
       .string()
       .nullable()
@@ -89,6 +129,19 @@ export const HotelSchema = z
     starRating: z.number().int().nullable().openapi({ example: 4 }),
     checkInTime: z.string().nullable().openapi({ example: "15:00" }),
     checkOutTime: z.string().nullable().openapi({ example: "11:00" }),
+    signature: HotelSignatureSchema.nullable().openapi({
+      example: {
+        title: "Signature Experiences",
+        description: "Experience luxury and comfort at our boutique hotel...",
+        items: [
+          {
+            title: "Signature Experience",
+            description:
+              "Experience luxury and comfort at our boutique hotel...",
+          },
+        ],
+      },
+    }),
     locationInfo: z.array(LocationInfoSectionSchema).nullable().openapi({
       description: "Optional rich JSON content about nearby locations",
     }),
@@ -103,6 +156,21 @@ export const HotelWithImagesSchema = z
     id: z.number().int().positive().openapi({ example: 1 }),
     name: z.string().openapi({ example: "Raco Grand" }),
     slug: z.string().nullable().openapi({ example: "raco-grand" }),
+    tagline: z
+      .string()
+      .nullable()
+      .openapi({ example: "Your home away from home" }),
+    aboutTitle: z.string().nullable().openapi({ example: "About Our Hotel" }),
+    aboutSubtitle: z
+      .string()
+      .nullable()
+      .openapi({ example: "Comfort and elegance combined" }),
+    aboutDescription: z.string().nullable().openapi({
+      example: "Experience luxury and comfort at our boutique hotel...",
+    }),
+    aboutStatement: z.string().nullable().openapi({
+      example: "We are committed to providing exceptional hospitality.",
+    }),
     description: z
       .string()
       .nullable()
@@ -124,6 +192,19 @@ export const HotelWithImagesSchema = z
     locationInfo: z.array(LocationInfoSectionSchema).nullable().openapi({
       description: "Optional rich JSON content about nearby locations",
     }),
+    signature: HotelSignatureSchema.nullable().openapi({
+      example: {
+        title: "Signature Experiences",
+        description: "Experience luxury and comfort at our boutique hotel...",
+        items: [
+          {
+            title: "Signature Experience",
+            description:
+              "Experience luxury and comfort at our boutique hotel...",
+          },
+        ],
+      },
+    }),
     isActive: z.number().int().openapi({ example: 1 }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     updatedAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
@@ -136,6 +217,21 @@ export const HotelWithAllRelationsSchema = z
     id: z.number().int().positive().openapi({ example: 1 }),
     name: z.string().openapi({ example: "Raco Grand" }),
     slug: z.string().nullable().openapi({ example: "raco-grand" }),
+    tagline: z
+      .string()
+      .nullable()
+      .openapi({ example: "Your home away from home" }),
+    aboutTitle: z.string().nullable().openapi({ example: "About Our Hotel" }),
+    aboutSubtitle: z
+      .string()
+      .nullable()
+      .openapi({ example: "Comfort and elegance combined" }),
+    aboutDescription: z.string().nullable().openapi({
+      example: "Experience luxury and comfort at our boutique hotel...",
+    }),
+    aboutStatement: z.string().nullable().openapi({
+      example: "We are committed to providing exceptional hospitality.",
+    }),
     description: z
       .string()
       .nullable()
@@ -156,6 +252,19 @@ export const HotelWithAllRelationsSchema = z
     checkOutTime: z.string().nullable().openapi({ example: "11:00" }),
     locationInfo: z.array(LocationInfoSectionSchema).nullable().openapi({
       description: "Optional rich JSON content about nearby locations",
+    }),
+    signature: HotelSignatureSchema.nullable().openapi({
+      example: {
+        title: "Signature Experiences",
+        description: "Experience luxury and comfort at our boutique hotel...",
+        items: [
+          {
+            title: "Signature Experience",
+            description:
+              "Experience luxury and comfort at our boutique hotel...",
+          },
+        ],
+      },
     }),
     isActive: z.number().int().openapi({ example: 1 }),
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
@@ -171,6 +280,21 @@ export const HotelWithAllRelationsSchema = z
 export const CreateHotelRequestSchema = z
   .object({
     name: z.string().min(1).openapi({ example: "Raco Grand" }),
+    tagline: z
+      .string()
+      .optional()
+      .openapi({ example: "Your home away from home" }),
+    aboutTitle: z.string().optional().openapi({ example: "About Our Hotel" }),
+    aboutSubtitle: z
+      .string()
+      .optional()
+      .openapi({ example: "Comfort and elegance combined" }),
+    aboutDescription: z.string().optional().openapi({
+      example: "Experience luxury and comfort at our boutique hotel...",
+    }),
+    aboutStatement: z.string().optional().openapi({
+      example: "We are committed to providing exceptional hospitality.",
+    }),
     description: z
       .string()
       .optional()
@@ -197,6 +321,19 @@ export const CreateHotelRequestSchema = z
     checkOutTime: z.string().optional().openapi({ example: "11:00" }),
     locationInfo: z.array(LocationInfoSectionSchema).optional().openapi({
       description: "Optional rich JSON content about nearby locations",
+    }),
+    signature: HotelSignatureSchema.optional().openapi({
+      example: {
+        title: "Signature Experiences",
+        description: "Experience luxury and comfort at our boutique hotel...",
+        items: [
+          {
+            title: "Signature Experience",
+            description:
+              "Experience luxury and comfort at our boutique hotel...",
+          },
+        ],
+      },
     }),
     amenities: z
       .array(z.number().int().positive())

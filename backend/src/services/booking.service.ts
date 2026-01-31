@@ -10,13 +10,16 @@ import {
   booking as bookingTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
+import { PaymentService } from "./payment.service";
 import { AddonRepository } from "../repositories/addon.repository";
 import { BookingRepository } from "../repositories/booking.repository";
 import { HotelRepository } from "../repositories/hotel.repository";
 import { PromoCodeRepository } from "../repositories/promo_code.repository";
 import { RoomTypeRepository } from "../repositories/room_type.repository";
-import { PaymentService } from "./payment.service";
-import { sendBookingConfirmationEmail } from "../utils/mail";
+import {
+  sendBookingConfirmationEmail,
+  sendPaymentConfirmationEmail,
+} from "../utils/mail";
 
 import type { BookingsQuerySchema, CreateBookingRequest } from "../schemas";
 import type { AppContext } from "../types";
@@ -28,37 +31,46 @@ function generateReferenceCode(): string {
 }
 
 function getEffectiveRoomPrice(roomType: any): number {
-  // Check if offer price is available and current date is within offer period
-  if (
-    roomType &&
-    roomType.offerPrice &&
-    roomType.offerPrice > 0 &&
-    roomType.offerStartDate &&
-    roomType.offerEndDate
-  ) {
-    try {
-      // Use date-only comparison (ignore time component)
-      const currentDate = new Date();
-      currentDate.setHours(0, 0, 0, 0);
+  // Check if offer price is available
+  if (roomType && roomType.offerPrice && roomType.offerPrice > 0) {
+    // If both offer dates are null, use offer price unconditionally
+    if (!roomType.offerStartDate && !roomType.offerEndDate) {
+      console.log(
+        `✅ Using offer price ${roomType.offerPrice} for room type ${roomType.id} (no date restrictions)`,
+      );
+      return roomType.offerPrice;
+    }
 
-      const offerStart = new Date(roomType.offerStartDate);
-      offerStart.setHours(0, 0, 0, 0);
+    // If we have start and end dates, check if current date is within offer period
+    if (roomType.offerStartDate && roomType.offerEndDate) {
+      try {
+        // Use date-only comparison (ignore time component)
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
 
-      const offerEnd = new Date(roomType.offerEndDate);
-      offerEnd.setHours(23, 59, 59, 999);
+        const offerStart = new Date(roomType.offerStartDate);
+        offerStart.setHours(0, 0, 0, 0);
 
-      // Validate dates
-      if (!isNaN(offerStart.getTime()) && !isNaN(offerEnd.getTime())) {
-        // Check if current date is within offer period (inclusive)
-        if (currentDate >= offerStart && currentDate <= offerEnd) {
-          console.log(
-            `✅ Using offer price ${roomType.offerPrice} for room type ${roomType.id}`,
-          );
-          return roomType.offerPrice;
+        const offerEnd = new Date(roomType.offerEndDate);
+        offerEnd.setHours(23, 59, 59, 999);
+
+        // Validate dates
+        if (!isNaN(offerStart.getTime()) && !isNaN(offerEnd.getTime())) {
+          // Check if current date is within offer period (inclusive)
+          if (currentDate >= offerStart && currentDate <= offerEnd) {
+            console.log(
+              `✅ Using offer price ${roomType.offerPrice} for room type ${roomType.id} (within offer period)`,
+            );
+            return roomType.offerPrice;
+          } else {
+            console.log(
+              `Offer price ${roomType.offerPrice} for room type ${roomType.id} is outside valid period`,
+            );
+          }
         }
+      } catch (error) {
+        console.error("Error parsing offer dates:", error);
       }
-    } catch (error) {
-      console.error("Error parsing offer dates:", error);
     }
   }
 
@@ -518,9 +530,7 @@ export class BookingService {
         console.error("Error processing refund:", error);
         // Re-throw with sanitized error message (don't expose internal details)
         const errorMessage = (error as Error).message || "Unknown error";
-        throw new Error(
-          `Failed to process refund: ${errorMessage}`,
-        );
+        throw new Error(`Failed to process refund: ${errorMessage}`);
       }
     }
 
@@ -778,7 +788,8 @@ export class BookingService {
       }
 
       // Send booking confirmation email
-      if (context) {
+      const shouldSendEmail = bookingRequest.sendConfirmationEmail !== false; // defaults to true
+      if (context && shouldSendEmail) {
         try {
           // Fetch hotel details for email (room type already fetched from database)
           const hotel = await HotelRepository.findById(db, hotelId);
@@ -843,6 +854,8 @@ export class BookingService {
             "Booking was created successfully, but email notification failed",
           );
         }
+      } else if (!shouldSendEmail) {
+        console.log("Skipping booking confirmation email as requested");
       }
 
       return newBooking;
@@ -871,6 +884,7 @@ export class BookingService {
       transactionId?: string;
       notes?: string;
     },
+    context?: AppContext,
   ) {
     // Fetch existing booking to validate and get total amount
     const existingBooking = await BookingRepository.findById(db, bookingId);
@@ -891,9 +905,6 @@ export class BookingService {
       );
     }
 
-    // Calculate balance due
-    const balanceDueCents = Math.max(0, totalAmountCents - amountPaidCents);
-
     // Auto-determine payment status if not provided
     let paymentStatus = paymentData.paymentStatus;
     if (!paymentStatus) {
@@ -906,11 +917,27 @@ export class BookingService {
       }
     }
 
+    // Determine booking status based on payment
+    let bookingStatus = existingBooking.status; // Keep existing status by default
+
+    // If payment is complete, set booking status to "paid" and ensure amount matches total
+    let finalAmountPaid = amountPaidCents;
+    if (paymentStatus === "paid" || amountPaidCents >= totalAmountCents) {
+      bookingStatus = "paid";
+      finalAmountPaid = totalAmountCents; // Ensure amount paid matches total exactly
+    } else if (paymentStatus === "partial" && amountPaidCents > 0) {
+      bookingStatus = "partial_paid";
+    }
+
+    // Recalculate balance due with final amount
+    const finalBalanceDue = Math.max(0, totalAmountCents - finalAmountPaid);
+
     // Build update data
     const updateData: any = {
-      amountPaidCents,
-      balanceDueCents,
+      amountPaidCents: finalAmountPaid,
+      balanceDueCents: finalBalanceDue,
       paymentStatus,
+      status: bookingStatus,
     };
 
     // Add optional fields if provided
@@ -927,8 +954,98 @@ export class BookingService {
     // Update the booking record
     await BookingRepository.update(db, bookingId, updateData);
 
-    // Return the updated booking with all relationships
+    // Get the updated booking with all relationships
     const updatedBooking = await BookingRepository.findById(db, bookingId);
+
+    // Send payment confirmation email if payment is fully completed
+    if (context && updatedBooking && paymentStatus === "paid") {
+      try {
+        // Fetch hotel and room type details for email
+        const hotel = await HotelRepository.findById(
+          db,
+          updatedBooking.hotelId,
+        );
+        const roomType =
+          updatedBooking.items && updatedBooking.items.length > 0
+            ? await RoomTypeRepository.findById(
+                db,
+                updatedBooking.items[0].booking_item.roomTypeId,
+              )
+            : null;
+
+        if (hotel && roomType && updatedBooking.customer?.email) {
+          // Calculate number of nights
+          const nights = dayjs(updatedBooking.checkOutDate).diff(
+            dayjs(updatedBooking.checkInDate),
+            "day",
+          );
+
+          // Format currency function
+          const formatCurrency = (cents: number) => {
+            return `${(cents / 100).toFixed(2)}`;
+          };
+
+          // Prepare addon details from the booking
+          const addonDetails =
+            updatedBooking.addons?.map((addon: any) => {
+              const name = addon.addon?.name || `Addon #${addon.addonId}`;
+              const price = formatCurrency(addon.priceCents);
+              return `${name}: ₹${price}`;
+            }) || [];
+
+          // Calculate room rent based on booking logic: discount applied before tax
+          const addonsTotal =
+            updatedBooking.addons?.reduce(
+              (sum: number, addon: any) =>
+                sum + (addon.booking_addon?.priceCents || 0),
+              0,
+            ) || 0;
+          const subtotalAfterDiscount =
+            updatedBooking.totalAmountCents - updatedBooking.taxAmountCents;
+          const subtotal =
+            subtotalAfterDiscount + updatedBooking.discountAmountCents;
+          const roomRent = subtotal - addonsTotal;
+
+          await sendPaymentConfirmationEmail(context, {
+            customerEmail: updatedBooking.customer.email,
+            customerName: updatedBooking.customer.fullName || "Guest",
+            bookingReference: updatedBooking.referenceCode,
+            hotelName: hotel.name,
+            roomType: roomType.name,
+            checkInDate: updatedBooking.checkInDate,
+            checkOutDate: updatedBooking.checkOutDate,
+            numNights: nights,
+            numAdults: updatedBooking.numAdults,
+            numChildren: updatedBooking.numChildren,
+            roomRent: formatCurrency(roomRent),
+            addonsList:
+              addonDetails.length > 0 ? addonDetails.join(", ") : "None",
+            subtotal: formatCurrency(subtotal),
+            discount: formatCurrency(updatedBooking.discountAmountCents),
+            taxAmount: formatCurrency(updatedBooking.taxAmountCents),
+            totalAmount: formatCurrency(updatedBooking.totalAmountCents),
+            amountPaid: formatCurrency(updatedBooking.amountPaidCents),
+            paymentMethod: updateData.paymentMethod || "Card",
+            currencySymbol:
+              updatedBooking.currencyCode === "INR"
+                ? "₹"
+                : updatedBooking.currencyCode,
+            paymentDate: new Date().toISOString(),
+          });
+
+          console.log(
+            `✅ Payment confirmation email sent for booking ${updatedBooking.referenceCode}`,
+          );
+        }
+      } catch (emailError) {
+        // Log email error but don't fail the payment update
+        console.error("Failed to send payment confirmation email:", emailError);
+        console.error(
+          "Payment was processed successfully, but email notification failed",
+        );
+      }
+    }
+
     return updatedBooking;
   }
 }

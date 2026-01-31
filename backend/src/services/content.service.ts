@@ -12,6 +12,8 @@ import type {
   HomePageContent,
   PublicHomePageContent,
   TestimonialItem,
+  TopBanner,
+  PolicyPages,
 } from "../types/content.types";
 
 export class ContentService {
@@ -374,5 +376,19 @@ export class ContentService {
       "image/webp": ".webp",
     };
     return map[mimeType.toLowerCase()] || ".jpg";
+  }
+
+  /**
+   * Get only the topBanner section from homepage content
+   */
+  static async getTopBanner(db: D1Database): Promise<TopBanner | null> {
+    return await ContentRepository.getTopBanner(db);
+  }
+
+  /**
+   * Get only the policy pages from homepage content
+   */
+  static async getPolicyPages(db: D1Database): Promise<PolicyPages | null> {
+    return await ContentRepository.getPolicyPages(db);
   }
 }

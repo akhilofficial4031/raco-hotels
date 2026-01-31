@@ -1,9 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { capitalize } from "@utils/utility";
 import { Button, Drawer, Form, Input, Select, Space } from "antd";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
+
+import { capitalize } from "@utils/utility";
 
 import {
   UserStatus,

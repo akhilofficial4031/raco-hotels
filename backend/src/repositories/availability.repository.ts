@@ -7,6 +7,8 @@ import {
   roomType as roomTypeTable,
   hotel as hotelTable,
   roomTypeImage as roomTypeImageTable,
+  amenity as amenityTable,
+  roomTypeAmenity as roomTypeAmenityTable,
 } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { type AvailabilityFilters } from "../types/availability.interface";
@@ -78,8 +80,8 @@ export class AvailabilityRepository {
       );
     }
 
-    // Get room types and their images in one go
-    const roomTypesWithImages = await database
+    // Get room types with their images and amenities in one go
+    const roomTypesWithImagesAndAmenities = await database
       .select({
         roomTypeId: roomTypeTable.id,
         roomTypeName: roomTypeTable.name,
@@ -88,6 +90,9 @@ export class AvailabilityRepository {
         baseOccupancy: roomTypeTable.baseOccupancy,
         maxOccupancy: roomTypeTable.maxOccupancy,
         basePriceCents: roomTypeTable.basePriceCents,
+        offerPrice: roomTypeTable.offerPrice,
+        offerStartDate: roomTypeTable.offerStartDate,
+        offerEndDate: roomTypeTable.offerEndDate,
         currencyCode: roomTypeTable.currencyCode,
         sizeSqft: roomTypeTable.sizeSqft,
         bedType: roomTypeTable.bedType,
@@ -96,23 +101,39 @@ export class AvailabilityRepository {
         imageUrl: roomTypeImageTable.url,
         imageAlt: roomTypeImageTable.alt,
         imageSortOrder: roomTypeImageTable.sortOrder,
+        amenityId: amenityTable.id,
+        amenityCode: amenityTable.code,
+        amenityName: amenityTable.name,
+        amenityIcon: amenityTable.icon,
       })
       .from(roomTypeTable)
       .leftJoin(
         roomTypeImageTable,
         eq(roomTypeImageTable.roomTypeId, roomTypeTable.id),
       )
+      .leftJoin(
+        roomTypeAmenityTable,
+        eq(roomTypeAmenityTable.roomTypeId, roomTypeTable.id),
+      )
+      .leftJoin(
+        amenityTable,
+        eq(amenityTable.id, roomTypeAmenityTable.amenityId),
+      )
       .where(and(...roomTypeConditions))
-      .orderBy(roomTypeTable.id, roomTypeImageTable.sortOrder);
+      .orderBy(
+        roomTypeTable.id,
+        roomTypeImageTable.sortOrder,
+        amenityTable.name,
+      );
 
-    if (roomTypesWithImages.length === 0) {
+    if (roomTypesWithImagesAndAmenities.length === 0) {
       return { roomTypes: [], hotelId };
     }
 
-    // Group images by room type
+    // Group images and amenities by room type
     const roomTypesMap = new Map();
 
-    for (const row of roomTypesWithImages) {
+    for (const row of roomTypesWithImagesAndAmenities) {
       if (!roomTypesMap.has(row.roomTypeId)) {
         roomTypesMap.set(row.roomTypeId, {
           roomTypeId: row.roomTypeId,
@@ -122,21 +143,49 @@ export class AvailabilityRepository {
           baseOccupancy: row.baseOccupancy,
           maxOccupancy: row.maxOccupancy,
           basePriceCents: row.basePriceCents,
+          offerPrice: row.offerPrice,
+          offerStartDate: row.offerStartDate,
+          offerEndDate: row.offerEndDate,
           currencyCode: row.currencyCode,
           sizeSqft: row.sizeSqft,
           bedType: row.bedType,
           smokingAllowed: row.smokingAllowed,
           totalRooms: row.totalRooms,
           images: [],
+          amenities: [],
         });
       }
 
+      const roomType = roomTypesMap.get(row.roomTypeId);
+
+      // Add image if it exists and hasn't been added yet
       if (row.imageUrl) {
-        roomTypesMap.get(row.roomTypeId).images.push({
-          url: row.imageUrl,
-          alt: row.imageAlt,
-          sortOrder: row.imageSortOrder,
-        });
+        const existingImage = roomType.images.find(
+          (img: any) =>
+            img.url === row.imageUrl && img.sortOrder === row.imageSortOrder,
+        );
+        if (!existingImage) {
+          roomType.images.push({
+            url: row.imageUrl,
+            alt: row.imageAlt,
+            sortOrder: row.imageSortOrder,
+          });
+        }
+      }
+
+      // Add amenity if it exists and hasn't been added yet
+      if (row.amenityId) {
+        const existingAmenity = roomType.amenities.find(
+          (amenity: any) => amenity.id === row.amenityId,
+        );
+        if (!existingAmenity) {
+          roomType.amenities.push({
+            id: row.amenityId,
+            code: row.amenityCode,
+            name: row.amenityName,
+            icon: row.amenityIcon,
+          });
+        }
       }
     }
 
@@ -188,6 +237,8 @@ export class AvailabilityRepository {
             or(
               eq(bookingTable.status, "confirmed"),
               eq(bookingTable.status, "checkedin"),
+              eq(bookingTable.status, "paid"),
+              eq(bookingTable.status, "partial_paid"),
             ),
           ),
         );
@@ -212,12 +263,39 @@ export class AvailabilityRepository {
 
       // Only include room types that have available rooms
       if (availableRooms.length > 0) {
+        // Calculate offer price based on date validity
+        let finalOfferPrice = null;
+
+        if (roomType.offerPrice !== null && roomType.offerPrice !== undefined) {
+          // If no offer date range is defined, use the offer price
+          if (!roomType.offerStartDate || !roomType.offerEndDate) {
+            finalOfferPrice = roomType.offerPrice;
+          } else {
+            // Check if today's date is within the offer date range
+            const today = new Date();
+            const startDate = new Date(roomType.offerStartDate);
+            const endDate = new Date(roomType.offerEndDate);
+
+            // Set time to start of day for accurate comparison
+            today.setHours(0, 0, 0, 0);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999); // End of day for end date
+
+            if (today >= startDate && today <= endDate) {
+              finalOfferPrice = roomType.offerPrice;
+            }
+          }
+        }
+
         roomTypeResults.push({
           roomTypeId: roomType.roomTypeId,
           roomTypeName: roomType.roomTypeName,
           roomTypeSlug: roomType.roomTypeSlug,
           description: roomType.description,
           baseOccupancy: roomType.baseOccupancy,
+          offerPrice: finalOfferPrice,
+          offerStartDate: roomType.offerStartDate,
+          offerEndDate: roomType.offerEndDate,
           maxOccupancy: roomType.maxOccupancy,
           basePriceCents: roomType.basePriceCents,
           currencyCode: roomType.currencyCode,
@@ -226,7 +304,8 @@ export class AvailabilityRepository {
           smokingAllowed: roomType.smokingAllowed === 1,
           totalRooms: roomType.totalRooms || 0,
           availableRooms: availableRooms.length,
-          images: roomType.images, // Add images here
+          images: roomType.images,
+          amenities: roomType.amenities,
           rooms: availableRooms,
         });
       }
@@ -303,6 +382,9 @@ export class AvailabilityRepository {
         baseOccupancy: roomTypeTable.baseOccupancy,
         maxOccupancy: roomTypeTable.maxOccupancy,
         basePriceCents: roomTypeTable.basePriceCents,
+        offerPrice: roomTypeTable.offerPrice,
+        offerStartDate: roomTypeTable.offerStartDate,
+        offerEndDate: roomTypeTable.offerEndDate,
         currencyCode: roomTypeTable.currencyCode,
         sizeSqft: roomTypeTable.sizeSqft,
         bedType: roomTypeTable.bedType,
@@ -316,7 +398,7 @@ export class AvailabilityRepository {
         bookedRoomsCount: sql<number>`
           COUNT(DISTINCT CASE 
             WHEN ${bookingItemsTable.id} IS NOT NULL 
-            AND ${bookingTable.status} IN ('confirmed', 'checkedin')
+            AND ${bookingTable.status} IN ('confirmed', 'checkedin', 'paid', 'partial_paid')
             AND ${bookingTable.checkOutDate} > ${checkInDate}
             AND ${bookingTable.checkInDate} < ${checkOutDate}
             THEN ${bookingItemsTable.roomId}
@@ -375,22 +457,51 @@ export class AvailabilityRepository {
 
     // Step 3: Calculate available rooms and filter out fully booked room types
     const availableRoomTypes = results
-      .map((rt) => ({
-        roomTypeId: rt.roomTypeId,
-        roomTypeName: rt.roomTypeName,
-        roomTypeSlug: rt.roomTypeSlug,
-        description: rt.description,
-        baseOccupancy: rt.baseOccupancy,
-        maxOccupancy: rt.maxOccupancy,
-        basePriceCents: rt.basePriceCents,
-        currencyCode: rt.currencyCode,
-        sizeSqft: rt.sizeSqft,
-        bedType: rt.bedType,
-        smokingAllowed: rt.smokingAllowed === 1,
-        totalRooms: rt.totalPhysicalRooms || 0,
-        availableRooms:
-          (rt.totalPhysicalRooms || 0) - (rt.bookedRoomsCount || 0),
-      }))
+      .map((rt) => {
+        // Calculate offer price based on date validity
+        let finalOfferPrice = null;
+
+        if (rt.offerPrice !== null && rt.offerPrice !== undefined) {
+          // If no offer date range is defined, use the offer price
+          if (!rt.offerStartDate || !rt.offerEndDate) {
+            finalOfferPrice = rt.offerPrice;
+          } else {
+            // Check if today's date is within the offer date range
+            const today = new Date();
+            const startDate = new Date(rt.offerStartDate);
+            const endDate = new Date(rt.offerEndDate);
+
+            // Set time to start of day for accurate comparison
+            today.setHours(0, 0, 0, 0);
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999); // End of day for end date
+
+            if (today >= startDate && today <= endDate) {
+              finalOfferPrice = rt.offerPrice;
+            }
+          }
+        }
+
+        return {
+          roomTypeId: rt.roomTypeId,
+          roomTypeName: rt.roomTypeName,
+          roomTypeSlug: rt.roomTypeSlug,
+          description: rt.description,
+          baseOccupancy: rt.baseOccupancy,
+          maxOccupancy: rt.maxOccupancy,
+          basePriceCents: rt.basePriceCents,
+          offerPrice: finalOfferPrice,
+          offerStartDate: rt.offerStartDate,
+          offerEndDate: rt.offerEndDate,
+          currencyCode: rt.currencyCode,
+          sizeSqft: rt.sizeSqft,
+          bedType: rt.bedType,
+          smokingAllowed: rt.smokingAllowed === 1,
+          totalRooms: rt.totalPhysicalRooms || 0,
+          availableRooms:
+            (rt.totalPhysicalRooms || 0) - (rt.bookedRoomsCount || 0),
+        };
+      })
       .filter((rt) => rt.availableRooms > 0); // Only return room types with availability
 
     return {
@@ -448,6 +559,8 @@ export class AvailabilityRepository {
           or(
             eq(bookingTable.status, "confirmed"),
             eq(bookingTable.status, "checkedin"),
+            eq(bookingTable.status, "paid"),
+            eq(bookingTable.status, "partial_paid"),
           ),
         ),
       );

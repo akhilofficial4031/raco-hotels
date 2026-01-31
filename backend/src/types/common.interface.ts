@@ -114,12 +114,13 @@ export type RoomStatus =
 
 // Booking status types
 export type BookingStatus =
-  | "draft"
   | "confirmed"
-  | "checked_in"
-  | "checked_out"
+  | "checkedin"
+  | "checkedout"
   | "cancelled"
-  | "no_show";
+  | "noshow"
+  | "paid"
+  | "partial_paid";
 
 // Payment status types
 export type PaymentStatus =

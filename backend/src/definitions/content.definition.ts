@@ -6,10 +6,11 @@ import {
   ContentBlockResponseSchema,
   CreateContentBlockRequestSchema,
   UpdateContentBlockRequestSchema,
-  HomepageContentQueryParamsSchema,
   HomepageContentResponseSchema,
   SaveHomepageContentRequestSchema,
   PublicHomepageContentResponseSchema,
+  TopBannerResponseSchema,
+  PolicyPagesResponseSchema,
 } from "../schemas";
 
 export const ContentRouteDefinitions = {
@@ -107,6 +108,32 @@ export const ContentRouteDefinitions = {
     tags: [ApiTags.CONTENT],
     successSchema: PublicHomepageContentResponseSchema,
     successDescription: "Public homepage content retrieved successfully",
+    includeNotFound: true,
+  }),
+
+  // Public API - Get only topBanner section
+  getTopBanner: createRoute({
+    method: "get",
+    path: "/public/top-banner",
+    summary: "Get top banner content",
+    description:
+      "Retrieve only the top banner section from homepage content. No authentication required.",
+    tags: [ApiTags.CONTENT],
+    successSchema: TopBannerResponseSchema,
+    successDescription: "Top banner content retrieved successfully",
+    includeNotFound: true,
+  }),
+
+  // Public API - Get only policy pages
+  getPolicyPages: createRoute({
+    method: "get",
+    path: "/public/policy-pages",
+    summary: "Get policy pages content",
+    description:
+      "Retrieve only the policy pages (privacy policy, terms and conditions, cookie policy) from homepage content. No authentication required.",
+    tags: [ApiTags.CONTENT],
+    successSchema: PolicyPagesResponseSchema,
+    successDescription: "Policy pages content retrieved successfully",
     includeNotFound: true,
   }),
 };

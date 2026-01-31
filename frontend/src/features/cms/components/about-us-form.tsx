@@ -90,6 +90,19 @@ function AboutUsForm({ control, errors }: AboutUsFormProps) {
         </Col>
         <Col span={24}>
           <Form.Item
+            label="Subtitle"
+            validateStatus={aboutUsErrors?.subtitle ? "error" : ""}
+            help={aboutUsErrors?.subtitle?.message}
+          >
+            <Controller
+              name="aboutUs.subtitle"
+              control={control}
+              render={({ field }) => <Input size="large" {...field} />}
+            />
+          </Form.Item>
+        </Col>
+        <Col span={24}>
+          <Form.Item
             label="Description"
             validateStatus={aboutUsErrors?.description ? "error" : ""}
             help={aboutUsErrors?.description?.message}

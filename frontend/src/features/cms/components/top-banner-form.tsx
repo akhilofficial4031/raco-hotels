@@ -1,8 +1,6 @@
 import { Card, Col, Form, Input, Row, Switch } from "antd";
 import { Controller, type Control, type FieldErrors } from "react-hook-form";
 
-import type { HomePageContent } from "../types";
-
 interface TopBannerFormProps {
   control: Control<any>;
   errors: FieldErrors<any>;
@@ -44,7 +42,7 @@ function TopBannerForm({ control, errors }: TopBannerFormProps) {
             />
           </Form.Item>
         </Col>
-        <Col span={12}>
+        {/* <Col span={12}>
           <Form.Item
             label="Link Text"
             validateStatus={topBannerErrors?.linkText ? "error" : ""}
@@ -69,7 +67,7 @@ function TopBannerForm({ control, errors }: TopBannerFormProps) {
               render={({ field }) => <Input size="large" {...field} />}
             />
           </Form.Item>
-        </Col>
+        </Col> */}
       </Row>
     </Card>
   );

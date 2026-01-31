@@ -21,12 +21,18 @@ export interface DatabaseHotel
     ContactInfo {
   name: string;
   slug: string | null;
+  tagline: string | null;
+  aboutTitle: string | null;
+  aboutSubtitle: string | null;
+  aboutDescription: string | null;
+  aboutStatement: string | null;
   description: string | null;
   timezone: string | null;
   starRating: number | null;
   checkInTime: string | null;
   checkOutTime: string | null;
   locationInfo: LocationInfoSection[] | null;
+  signature: HotelSignature | null;
   isActive: number;
 }
 
@@ -50,6 +56,23 @@ export interface LocationInfoSection {
 }
 
 /**
+ * Hotel signature item
+ */
+export interface HotelSignatureItem {
+  title: string;
+  description: string;
+}
+
+/**
+ * Hotel signature experiences
+ */
+export interface HotelSignature {
+  title: string;
+  description: string;
+  items: HotelSignatureItem[];
+}
+
+/**
  * Filters for querying hotels
  */
 export interface HotelFilters extends BaseFilters, ActiveStatusFilter {
@@ -70,12 +93,18 @@ export interface CreateHotelData
     Partial<ContactInfo> {
   name: string;
   slug?: string | null;
+  tagline?: string | null;
+  aboutTitle?: string | null;
+  aboutSubtitle?: string | null;
+  aboutDescription?: string | null;
+  aboutStatement?: string | null;
   description?: string | null;
   timezone?: string | null;
   starRating?: number | null;
   checkInTime?: string | null;
   checkOutTime?: string | null;
   locationInfo?: LocationInfoSection[] | null;
+  signature?: HotelSignature | null;
   isActive?: number;
 }
 

@@ -4,8 +4,6 @@ import {
   ExclamationCircleOutlined,
   MoreOutlined,
 } from "@ant-design/icons";
-import { convertJsonToQueryParams } from "@utils/queryParams";
-import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 import {
   Button,
   Dropdown,
@@ -25,8 +23,10 @@ import useSWR, { mutate } from "swr";
 
 import TableHeader from "@shared/components/TableHeader";
 import { APP_LOCALE, LOCALE_DATE_OPTIONS_SHORT } from "@shared/constants/app";
-import { type Hotel } from "../../hotels/types/hotels";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 
+import { type Hotel } from "../../hotels/types/hotels";
 import AddEditPromoCode from "../components/AddEditPromoCode";
 import PromoCodeFilters from "../components/PromoCodeFilters";
 import {
