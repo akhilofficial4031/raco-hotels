@@ -14,6 +14,7 @@ import attractionRoutes from "./routes/attraction.route";
 import authRoutes from "./routes/auth.route";
 import availabilityRoutes from "./routes/availability.route";
 import bookingRoutes from "./routes/booking.route";
+import bookingCancellationRoutes from "./routes/booking_cancellation.route";
 // import cancellationPolicyRoutes from "./routes/cancellation_policy.route";
 import contentRoutes from "./routes/content.route";
 import customerRoutes from "./routes/customer.route";
@@ -98,6 +99,7 @@ app.route("/api", availabilityRoutes); // Move availability routes BEFORE room r
 app.route("/api", roomRoutes);
 app.route("/api", roomPublicRoutes);
 app.route("/api", bookingRoutes);
+app.route("/api", bookingCancellationRoutes);
 app.route("/api", reviewRoutes);
 app.route("/api", contentRoutes);
 app.route("/api", taxFeeRoutes);

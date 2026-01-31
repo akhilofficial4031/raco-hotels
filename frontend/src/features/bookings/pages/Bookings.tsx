@@ -29,10 +29,12 @@ import { convertJsonToQueryParams } from "@utils/queryParams";
 import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 
 import BookingFilters from "../components/BookingFilters";
+import CancellationModal from "../components/CancellationModal";
 import {
   type Booking,
   type BookingListParamStructure,
   type BookingListResponse,
+  type CancelBookingRequest,
 } from "../types/bookings";
 
 const { confirm } = Modal;
@@ -47,6 +49,9 @@ const Bookings = () => {
     hotelId: "",
   });
   const [openFiltersPanel, setOpenFiltersPanel] = useState(false);
+  const [cancellationModalOpen, setCancellationModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const queryString = useMemo(
     () => convertJsonToQueryParams(filterParams),
@@ -69,24 +74,45 @@ const Bookings = () => {
   };
 
   const handleCancelBooking = (booking: Booking) => {
-    confirm({
-      title: "Are you sure you want to cancel this booking?",
-      icon: <ExclamationCircleOutlined />,
-      content: `This action will cancel booking ${booking.referenceCode}.`,
-      onOk: async () => {
-        try {
-          await mutationFetcher(`/bookings/${booking.id}/cancel`, {
-            arg: { method: "PATCH" },
-          });
+    setSelectedBooking(booking);
+    setCancellationModalOpen(true);
+  };
+
+  const handleCancelConfirm = async (data: CancelBookingRequest) => {
+    if (!selectedBooking) return;
+
+    try {
+      setCancelLoading(true);
+      const response: any = await mutationFetcher(`/bookings/${selectedBooking.id}/cancel`, {
+        arg: {
+          method: "PATCH",
+          body: data,
+        },
+      });
+      
+      // Show appropriate message based on refund processing result
+      if (data.refundAmountCents && data.refundAmountCents > 0) {
+        if (response.data?.refundProcessed) {
+          message.success("Booking cancelled and refund processed via Razorpay successfully");
+        } else if (response.data?.refundMarkedManual) {
+          message.warning("Booking cancelled. Refund marked for manual processing (no Razorpay payment found)");
+        } else {
           message.success("Booking cancelled successfully");
-          mutate(`/bookings${queryString}`);
-        } catch (err) {
-          if (err) {
-            message.error("Failed to cancel booking");
-          }
         }
-      },
-    });
+      } else {
+        message.success("Booking cancelled successfully");
+      }
+      
+      setCancellationModalOpen(false);
+      setSelectedBooking(null);
+      mutate(`/bookings${queryString}`);
+    } catch (err) {
+      message.error(
+        (err as Error).message || "Failed to cancel booking. Please try again."
+      );
+    } finally {
+      setCancelLoading(false);
+    }
   };
 
   const handleCheckoutBooking = (booking: Booking) => {
@@ -318,6 +344,16 @@ const Bookings = () => {
         onClose={() => setOpenFiltersPanel(false)}
         onApplyFilters={handleApplyFilters}
         currentFilters={filterParams}
+      />
+      <CancellationModal
+        open={cancellationModalOpen}
+        booking={selectedBooking}
+        onCancel={() => {
+          setCancellationModalOpen(false);
+          setSelectedBooking(null);
+        }}
+        onConfirm={handleCancelConfirm}
+        loading={cancelLoading}
       />
     </div>
   );

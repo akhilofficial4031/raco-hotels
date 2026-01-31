@@ -5,6 +5,8 @@ export const BookingStatusEnum = z.enum([
   "checkedin",
   "checkedout",
   "cancelled",
+  "noshow",
+  "pending_cancellation",
 ]);
 
 import {
@@ -593,3 +595,18 @@ export const UpdatePaymentStatusSchema = z
 export type UpdatePaymentStatusRequest = z.infer<
   typeof UpdatePaymentStatusSchema
 >;
+
+export const CancelBookingSchema = z
+  .object({
+    refundAmountCents: z.number().int().min(0).optional().openapi({
+      example: 50000,
+      description: "Refund amount in cents (must not exceed amount paid)",
+    }),
+    cancellationReason: z.string().optional().openapi({
+      example: "Customer requested cancellation",
+      description: "Reason for cancellation",
+    }),
+  })
+  .openapi("CancelBookingRequest");
+
+export type CancelBookingRequest = z.infer<typeof CancelBookingSchema>;

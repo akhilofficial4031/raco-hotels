@@ -19,7 +19,8 @@ type BookingStatus =
   | "checkedin"
   | "checkedout"
   | "cancelled"
-  | "noshow";
+  | "noshow"
+  | "pending_cancellation";
 
 export class BookingRepository {
   static async findById(db: D1Database, id: number) {
@@ -121,6 +122,73 @@ export class BookingRepository {
       .from(bookingItemsTable)
       .where(eq(bookingItemsTable.bookingId, bookingId));
     return rows as any[];
+  }
+
+  static async findByReferenceCode(db: D1Database, referenceCode: string) {
+    const database = getDb(db);
+    const rows = await database
+      .select({
+        booking: bookingTable,
+        hotel: hotelTable,
+        customer: customerTable,
+      })
+      .from(bookingTable)
+      .where(eq(bookingTable.referenceCode, referenceCode))
+      .leftJoin(hotelTable, eq(bookingTable.hotelId, hotelTable.id))
+      .leftJoin(customerTable, eq(bookingTable.customerId, customerTable.id))
+      .limit(1);
+
+    if (!rows.length) {
+      return null;
+    }
+
+    const bookingInfo = {
+      ...rows[0].booking,
+      hotel: rows[0].hotel,
+      customer: rows[0].customer,
+    };
+
+    const items = await database
+      .select({
+        booking_item: bookingItemsTable,
+        room_type: roomTypeTable,
+        room_unit: roomTable,
+      })
+      .from(bookingItemsTable)
+      .where(eq(bookingItemsTable.bookingId, bookingInfo.id))
+      .leftJoin(
+        roomTypeTable,
+        eq(bookingItemsTable.roomTypeId, roomTypeTable.id),
+      )
+      .leftJoin(roomTable, eq(bookingItemsTable.roomId, roomTable.id));
+
+    const addons = await database
+      .select({
+        booking_addon: bookingAddonTable,
+        addon: addonTable,
+      })
+      .from(bookingAddonTable)
+      .where(eq(bookingAddonTable.bookingId, bookingInfo.id))
+      .leftJoin(addonTable, eq(bookingAddonTable.addonId, addonTable.id));
+
+    const promotions = await database
+      .select({
+        booking_promotion: bookingPromotionTable,
+        promo_code: promoCodeTable,
+      })
+      .from(bookingPromotionTable)
+      .where(eq(bookingPromotionTable.bookingId, bookingInfo.id))
+      .leftJoin(
+        promoCodeTable,
+        eq(bookingPromotionTable.promoCodeId, promoCodeTable.id),
+      );
+
+    return {
+      ...bookingInfo,
+      items,
+      addons,
+      promotions,
+    };
   }
 
   static async findBookingsByRoomId(db: D1Database, roomId: number) {
@@ -230,6 +298,75 @@ export class BookingRepository {
       orderedQuery = bookingsQuery;
     }
 
+    const finalQuery = orderedQuery.limit(limit).offset(offset);
+
+    const [items, totalResult] = await Promise.all([finalQuery, totalQuery]);
+
+    const total = totalResult[0].count;
+    const totalPages = Math.ceil(total / limit);
+    const hasNext = page < totalPages;
+    const hasPrev = page > 1;
+
+    return {
+      items,
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext,
+      hasPrev,
+    };
+  }
+
+  static async findPendingCancellations(
+    db: D1Database,
+    filters?: {
+      page?: number;
+      limit?: number;
+      hotelId?: number;
+    },
+  ) {
+    const database = getDb(db);
+    const conditions = [eq(bookingTable.status, "pending_cancellation" as any)];
+
+    if (filters?.hotelId) {
+      conditions.push(eq(bookingTable.hotelId, filters.hotelId));
+    }
+
+    const bookingsQuery = database
+      .select({
+        id: bookingTable.id,
+        referenceCode: bookingTable.referenceCode,
+        hotelId: bookingTable.hotelId,
+        hotelName: hotelTable.name,
+        customerName: customerTable.fullName,
+        customerEmail: customerTable.email,
+        checkInDate: bookingTable.checkInDate,
+        checkOutDate: bookingTable.checkOutDate,
+        status: bookingTable.status,
+        totalAmountCents: bookingTable.totalAmountCents,
+        amountPaidCents: bookingTable.amountPaidCents,
+        currencyCode: bookingTable.currencyCode,
+        notes: bookingTable.notes,
+        updatedAt: bookingTable.updatedAt,
+        createdAt: bookingTable.createdAt,
+      })
+      .from(bookingTable)
+      .leftJoin(hotelTable, eq(bookingTable.hotelId, hotelTable.id))
+      .leftJoin(customerTable, eq(bookingTable.customerId, customerTable.id))
+      .where(and(...conditions));
+
+    const totalQuery = database
+      .select({ count: sql<number>`count(*)` })
+      .from(bookingTable)
+      .where(and(...conditions));
+
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 20;
+    const offset = (page - 1) * limit;
+
+    // Order by most recent update (pending cancellations should be processed in order)
+    const orderedQuery = bookingsQuery.orderBy(desc(bookingTable.updatedAt));
     const finalQuery = orderedQuery.limit(limit).offset(offset);
 
     const [items, totalResult] = await Promise.all([finalQuery, totalQuery]);

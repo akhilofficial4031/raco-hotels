@@ -282,3 +282,28 @@ export async function sendBookingConfirmationEmail(
     notificationType: "booking_confirmation",
   });
 }
+
+/**
+ * Send cancellation OTP email
+ */
+export async function sendCancellationOtpEmail(
+  c: AppContext,
+  customerEmail: string,
+  customerName: string,
+  bookingReference: string,
+  otpCode: string,
+) {
+  return sendEmailWithTemplate(c, {
+    userEmail: customerEmail,
+    userId: customerEmail,
+    templateId: "generic_notification",
+    parameters: {
+      user: customerName,
+      subject: "Booking Cancellation - OTP Verification",
+      message: `Your OTP for cancelling booking ${bookingReference} is: ${otpCode}. This code expires in 30 minutes. If you did not request this cancellation, please ignore this email.`,
+      actionUrl: "#",
+      actionText: "Cancel Booking",
+    },
+    notificationType: "generic_notification",
+  });
+}

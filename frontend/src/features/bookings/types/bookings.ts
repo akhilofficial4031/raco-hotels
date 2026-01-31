@@ -20,6 +20,10 @@ export interface Booking {
   createdAt: string;
   numAdults?: number;
   numChildren?: number;
+  notes?: string;
+  cancelledAt?: string;
+  cancellationReason?: string;
+  refundAmountCents?: number;
   hotel?: {
     id: number;
     name: string;
@@ -58,4 +62,9 @@ export interface BookingListParamStructure {
   hotelId?: string;
   checkInDateStart?: string;
   checkInDateEnd?: string;
+}
+
+export interface CancelBookingRequest {
+  refundAmountCents?: number;
+  cancellationReason?: string;
 }

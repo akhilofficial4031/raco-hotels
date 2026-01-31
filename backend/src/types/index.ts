@@ -16,6 +16,8 @@ export interface AppBindings {
   PASSWORD_RESET_TOKEN_EXPIRY_DAYS?: string;
   ENVIRONMENT?: "development" | "production";
   CRON_SECRET?: string;
+  RAZORPAY_KEY_ID?: string;
+  RAZORPAY_KEY_SECRET?: string;
 }
 
 /**
@@ -58,7 +60,6 @@ export type {
   BaseTimestamps,
   BaseEntity,
   HotelScopedEntity,
-  PaginationParams,
   PaginatedResponse,
   BaseFilters,
   HotelScopedFilters,

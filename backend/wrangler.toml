@@ -20,6 +20,12 @@ FRONTEND_URL = "http://localhost:5173"
 # Password reset token expiry in days
 PASSWORD_RESET_TOKEN_EXPIRY_DAYS = "7"
 
+# Razorpay Payment Gateway
+# Get these credentials from https://dashboard.razorpay.com/
+# Key ID and Key Secret are found in Settings > API Keys
+RAZORPAY_KEY_ID = "rzp_test_RqjjwxvGA0imq8"
+RAZORPAY_KEY_SECRET = "02PQErRmkiEmzUnn8YZjhIeg"
+
 
 
 [[r2_buckets]]

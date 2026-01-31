@@ -29,6 +29,7 @@
     "hono": "^4.6.9",
     "jsonwebtoken": "^9.0.2",
     "notificationapi-node-server-sdk": "^2.3.1",
+    "razorpay": "^2.9.4",
     "zod": "^4.0.16"
   },
   "devDependencies": {

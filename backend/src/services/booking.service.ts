@@ -15,6 +15,7 @@ import { BookingRepository } from "../repositories/booking.repository";
 import { HotelRepository } from "../repositories/hotel.repository";
 import { PromoCodeRepository } from "../repositories/promo_code.repository";
 import { RoomTypeRepository } from "../repositories/room_type.repository";
+import { PaymentService } from "./payment.service";
 import { sendBookingConfirmationEmail } from "../utils/mail";
 
 import type { BookingsQuerySchema, CreateBookingRequest } from "../schemas";
@@ -430,8 +431,109 @@ export class BookingService {
     await BookingRepository.updateStatus(db, bookingId, "checkedin");
   }
 
-  static async cancelBooking(db: D1Database, bookingId: number) {
-    await BookingRepository.updateStatus(db, bookingId, "cancelled");
+  static async cancelBooking(
+    db: D1Database,
+    bookingId: number,
+    refundAmountCents?: number,
+    cancellationReason?: string,
+    context?: AppContext,
+  ): Promise<{ refundProcessed: boolean; refundMarkedManual: boolean }> {
+    // Get booking details
+    const booking = await BookingRepository.findById(db, bookingId);
+    if (!booking) {
+      throw new Error("Booking not found");
+    }
+
+    // Check if booking is already cancelled
+    if (booking.status === "cancelled") {
+      throw new Error("Booking is already cancelled");
+    }
+
+    // Validate refund amount is a safe number
+    if (refundAmountCents !== undefined && refundAmountCents !== null) {
+      if (
+        !Number.isFinite(refundAmountCents) ||
+        refundAmountCents < 0 ||
+        refundAmountCents > Number.MAX_SAFE_INTEGER
+      ) {
+        throw new Error("Invalid refund amount");
+      }
+    }
+
+    // Sanitize cancellation reason to prevent injection
+    const sanitizedReason = cancellationReason
+      ? cancellationReason.substring(0, 500).trim()
+      : null;
+
+    let refundProcessed = false;
+    let refundMarkedManual = false;
+
+    // Check for payment and process refund if applicable
+    if (refundAmountCents && refundAmountCents > 0 && context) {
+      try {
+        // Get payment details for this booking
+        const payments = await PaymentService.getPaymentsByBookingId(
+          db,
+          bookingId,
+        );
+
+        // Find a paid payment
+        const paidPayment = payments.find(
+          (p) => p.status === "succeeded" || p.status === "paid",
+        );
+
+        // Only process refund if there's a paid payment via Razorpay
+        if (paidPayment) {
+          // Validate refund amount doesn't exceed amount paid (server-side validation)
+          if (refundAmountCents > paidPayment.amountCents) {
+            throw new Error(
+              `Refund amount cannot exceed amount paid (${paidPayment.amountCents / 100} ${booking.currencyCode})`,
+            );
+          }
+
+          // Process refund via PaymentService
+          await PaymentService.processRefund(db, context, {
+            paymentId: paidPayment.id,
+            amountCents: refundAmountCents,
+            notes: {
+              booking_reference: booking.referenceCode,
+              cancellation_reason: sanitizedReason || "Booking cancellation",
+            },
+            reason: sanitizedReason || undefined,
+          });
+
+          refundProcessed = true;
+          console.log(
+            `Refund of ${refundAmountCents / 100} ${booking.currencyCode} processed successfully for booking ${booking.referenceCode}`,
+          );
+        } else {
+          // No paid payment found - just log and continue with cancellation
+          // The refund amount will be stored in booking record for manual processing
+          refundMarkedManual = true;
+          console.log(
+            `No Razorpay payment found for booking ${booking.referenceCode}. Refund of ${refundAmountCents / 100} ${booking.currencyCode} marked for manual processing.`,
+          );
+        }
+      } catch (error) {
+        console.error("Error processing refund:", error);
+        // Re-throw with sanitized error message (don't expose internal details)
+        const errorMessage = (error as Error).message || "Unknown error";
+        throw new Error(
+          `Failed to process refund: ${errorMessage}`,
+        );
+      }
+    }
+
+    // Update booking status to cancelled (single update, no race condition)
+    await BookingRepository.update(db, bookingId, {
+      status: "cancelled",
+      cancelledAt: new Date().toISOString(),
+      cancellationReason: sanitizedReason,
+      refundAmountCents: refundAmountCents || null,
+      updatedAt: new Date().toISOString(),
+    } as any);
+
+    return { refundProcessed, refundMarkedManual };
   }
 
   static async checkoutBooking(db: D1Database, bookingId: number) {

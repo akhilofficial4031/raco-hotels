@@ -24,6 +24,7 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import { useNavigate, useParams } from "react-router";
+import { useState } from "react";
 import useSWR, { mutate } from "swr";
 
 import Spinner from "@shared/components/Spinner";
@@ -31,7 +32,8 @@ import { APP_LOCALE } from "@shared/constants/app";
 import { type ApiResponse } from "@shared/models/common";
 import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 
-import { type Booking } from "../types/bookings";
+import { type Booking, type CancelBookingRequest } from "../types/bookings";
+import CancellationModal from "../components/CancellationModal";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -39,6 +41,9 @@ const { confirm } = Modal;
 function ViewBooking() {
   const navigate = useNavigate();
   const { id } = useParams();
+
+  const [cancellationModalOpen, setCancellationModalOpen] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const {
     data: response,
@@ -139,6 +144,46 @@ function ViewBooking() {
     });
   };
 
+  const handleCancelBooking = () => {
+    setCancellationModalOpen(true);
+  };
+
+  const handleCancelConfirm = async (data: CancelBookingRequest) => {
+    if (!booking) return;
+
+    try {
+      setCancelLoading(true);
+      const response: any = await mutationFetcher(`/bookings/${booking.id}/cancel`, {
+        arg: {
+          method: "PATCH",
+          body: data,
+        },
+      });
+      
+      // Show appropriate message based on refund processing result
+      if (data.refundAmountCents && data.refundAmountCents > 0) {
+        if (response.data?.refundProcessed) {
+          message.success("Booking cancelled and refund processed via Razorpay successfully");
+        } else if (response.data?.refundMarkedManual) {
+          message.warning("Booking cancelled. Refund marked for manual processing (no Razorpay payment found)");
+        } else {
+          message.success("Booking cancelled successfully");
+        }
+      } else {
+        message.success("Booking cancelled successfully");
+      }
+      
+      setCancellationModalOpen(false);
+      mutate(`/bookings/${id}`);
+    } catch (err) {
+      message.error(
+        (err as Error).message || "Failed to cancel booking. Please try again."
+      );
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "confirmed":
@@ -151,6 +196,8 @@ function ViewBooking() {
         return "red";
       case "noshow":
         return "volcano";
+      case "pending_cancellation":
+        return "orange";
       default:
         return "default";
     }
@@ -182,10 +229,18 @@ function ViewBooking() {
       label: "Mark as No Show",
       onClick: handleNoShowBooking,
     },
-    {
+    booking?.status?.toLowerCase() === "pending_cancellation" && {
+      key: "process_cancel",
+      icon: <CloseCircleOutlined />,
+      label: "Process Cancellation",
+      onClick: handleCancelBooking,
+    },
+    (booking?.status?.toLowerCase() === "confirmed" ||
+      booking?.status?.toLowerCase() === "checkedin") && {
       key: "cancel",
       icon: <CloseCircleOutlined />,
       label: "Cancel Booking",
+      onClick: handleCancelBooking,
     },
   ].filter(Boolean) as Required<MenuProps>["items"];
 
@@ -254,6 +309,22 @@ function ViewBooking() {
           </div>
         )}
       </div>
+      {booking.status === "pending_cancellation" && (
+        <Alert
+          message="Cancellation Requested"
+          description={
+            <div>
+              <p>The customer has requested to cancel this booking via the public cancellation system.</p>
+              {booking.notes && booking.notes.includes("Customer requested cancellation via OTP") && (
+                <p>Please review the booking details and process the refund if applicable.</p>
+              )}
+            </div>
+          }
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
       <Card>
         <Row gutter={[16, 16]}>
           <Col xs={24} md={16}>
@@ -423,6 +494,14 @@ function ViewBooking() {
           </Col>
         </Row>
       </Card>
+      <CancellationModal
+        open={cancellationModalOpen}
+        booking={booking || null}
+        onCancel={() => setCancellationModalOpen(false)}
+        onConfirm={handleCancelConfirm}
+        loading={cancelLoading}
+        isPendingCancellation={booking?.status === "pending_cancellation"}
+      />
     </div>
   );
 }

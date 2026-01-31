@@ -25,6 +25,7 @@ export * from "./refund";
 export * from "./addon";
 export * from "./room_type_addon";
 export * from "./booking_addon";
+export * from "./booking_cancellation_otp";
 export * from "./password_reset_token";
 export * from "./relations";
 export * from "./room_type_addon";

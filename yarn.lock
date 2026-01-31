@@ -2048,6 +2048,7 @@ __metadata:
     hono: "npm:^4.6.9"
     jsonwebtoken: "npm:^9.0.2"
     notificationapi-node-server-sdk: "npm:^2.3.1"
+    razorpay: "npm:^2.9.4"
     tsx: "npm:^4.20.3"
     typescript: "npm:^5.5.4"
     wrangler: "npm:^3.80.3"
@@ -3491,6 +3492,17 @@ __metadata:
   version: 4.10.3
   resolution: "axe-core@npm:4.10.3"
   checksum: 10c0/1b1c24f435b2ffe89d76eca0001cbfff42dbf012ad9bd37398b70b11f0d614281a38a28bc3069e8972e3c90ec929a8937994bd24b0ebcbaab87b8d1e241ab0c7
+  languageName: node
+  linkType: hard
+
+"axios@npm:^1.6.8":
+  version: 1.13.4
+  resolution: "axios@npm:1.13.4"
+  dependencies:
+    follow-redirects: "npm:^1.15.6"
+    form-data: "npm:^4.0.4"
+    proxy-from-env: "npm:^1.1.0"
+  checksum: 10c0/474c00b7d71f4de4ad562589dae6b615149df7c2583bbc5ebba96229f3f85bfb0775d23705338df072f12e48d3e85685c065a3cf6855d58968a672d19214c728
   languageName: node
   linkType: hard
 
@@ -7920,6 +7932,15 @@ __metadata:
     typescript: "npm:^5.9.2"
   languageName: unknown
   linkType: soft
+
+"razorpay@npm:^2.9.4":
+  version: 2.9.6
+  resolution: "razorpay@npm:2.9.6"
+  dependencies:
+    axios: "npm:^1.6.8"
+  checksum: 10c0/aeffe41e221ed99c7ca58bf04aa765aee623d5b259075cdcc5fafd28d5fb66e807737186746ddd72499b4c0ef57f7eef766c3932796472c027e07ad89802951c
+  languageName: node
+  linkType: hard
 
 "rc-cascader@npm:~3.34.0":
   version: 3.34.0

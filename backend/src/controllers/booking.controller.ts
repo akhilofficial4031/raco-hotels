@@ -1,5 +1,8 @@
 import { ApiResponse, handleAsyncRoute } from "../lib/responses";
-import { CreateBookingRequestSchema } from "../schemas/booking.schema";
+import {
+  CreateBookingRequestSchema,
+  CancelBookingSchema,
+} from "../schemas/booking.schema";
 import { BookingService } from "../services/booking.service";
 
 import type { AppContext } from "../types";
@@ -116,9 +119,61 @@ export class BookingController {
       async () => {
         const { id } = c.req.param();
         const bookingId = parseInt(id, 10);
-        await BookingService.cancelBooking(c.env.DB, bookingId);
+
+        // Validate bookingId
+        if (!Number.isFinite(bookingId) || bookingId <= 0) {
+          return ApiResponse.badRequest(c, "Invalid booking ID");
+        }
+
+        // Parse and validate request body
+        let cancelData;
+        try {
+          const body = await c.req.json();
+          cancelData = CancelBookingSchema.parse(body);
+        } catch (error) {
+          return ApiResponse.badRequest(
+            c,
+            "Invalid request data. Please check your input.",
+          );
+        }
+
+        // Additional server-side validation for refund amount
+        if (
+          cancelData.refundAmountCents !== undefined &&
+          cancelData.refundAmountCents !== null
+        ) {
+          if (
+            !Number.isFinite(cancelData.refundAmountCents) ||
+            cancelData.refundAmountCents < 0
+          ) {
+            return ApiResponse.badRequest(c, "Invalid refund amount");
+          }
+        }
+
+        // Call service with refund parameters
+        const result = await BookingService.cancelBooking(
+          c.env.DB,
+          bookingId,
+          cancelData.refundAmountCents,
+          cancelData.cancellationReason,
+          c,
+        );
+
+        // Determine appropriate message based on refund processing result
+        let message = "booking.cancelled";
+        if (cancelData.refundAmountCents && cancelData.refundAmountCents > 0) {
+          if (result.refundProcessed) {
+            message = "booking.cancelledWithRefund";
+          } else if (result.refundMarkedManual) {
+            message = "booking.cancelledWithManualRefund";
+          }
+        }
+
         return ApiResponse.success(c, {
           booking: { id: bookingId, status: "cancelled" },
+          message,
+          refundProcessed: result.refundProcessed,
+          refundMarkedManual: result.refundMarkedManual,
         });
       },
       "operation.cancelBookingFailed",

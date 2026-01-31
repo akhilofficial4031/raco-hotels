@@ -18,6 +18,7 @@ import {
   BookingDetailsResponseSchema,
   UpdateBookingRequestSchema,
   UpdatePaymentStatusSchema,
+  CancelBookingSchema,
 } from "../schemas";
 
 export const BookingRouteDefinitions = {
@@ -471,11 +472,28 @@ export const BookingRouteDefinitions = {
     method: "patch",
     path: "/bookings/{id}/cancel",
     summary: "Cancel a booking",
-    description: "Cancel a specific booking by its ID.",
+    description: `Cancel a specific booking by its ID. Optionally process a refund if the booking was paid via Razorpay.
+
+**Refund Processing:**
+- If refundAmountCents is provided and booking has a paid payment via Razorpay, a refund will be processed automatically
+- Refund amount must not exceed the amount that was actually paid
+- For partially paid bookings, only the paid amount is eligible for refund
+- If refund fails, the booking will NOT be cancelled and an error will be returned
+
+**Use Cases:**
+- Cancel unpaid booking: No refund processed
+- Cancel paid booking with full refund: Set refundAmountCents to amountPaidCents
+- Cancel paid booking with partial refund: Set refundAmountCents to desired amount (must be ≤ amountPaidCents)
+
+**Requirements:**
+- RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be configured in environment
+- Payment must be from Razorpay processor (other processors not supported)
+- Payment status must be 'paid' or 'succeeded'`,
     tags: [ApiTags.BOOKINGS],
     successSchema: BookingResponseSchema,
-    successDescription: "Booking cancelled successfully.",
+    successDescription: "Booking cancelled successfully, refund processed if applicable.",
     paramsSchema: BookingPathParamsSchema,
+    requestSchema: CancelBookingSchema,
     includeBadRequest: true,
   }),
 

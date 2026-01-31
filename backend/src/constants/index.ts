@@ -38,6 +38,7 @@ export const API_TAGS = {
   REPORTS: "Reports",
   ADDONS: "Addons",
   DASHBOARD: "Dashboard",
+  PUBLIC: "Public API",
 } as const;
 
 // Booking Sources

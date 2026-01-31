@@ -35,7 +35,7 @@ export const booking = sqliteTable(
       onUpdate: "cascade",
     }),
     status: text("status", {
-      enum: ["confirmed", "checkedin", "checkedout", "cancelled", "noshow"],
+      enum: ["confirmed", "checkedin", "checkedout", "cancelled", "noshow", "pending_cancellation"],
     })
       .notNull()
       .default("checkedin"),
@@ -58,6 +58,7 @@ export const booking = sqliteTable(
     notes: text("notes"),
     cancelledAt: text("cancelled_at"),
     cancellationReason: text("cancellation_reason"),
+    refundAmountCents: integer("refund_amount_cents"),
     createdAt: text("created_at")
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
