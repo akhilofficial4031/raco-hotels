@@ -41,7 +41,7 @@ export class BookingCancellationService {
 
     if (!booking) {
       const error = new Error("Booking not found");
-      (error as any).statusCode = 404;
+      (error as any).statusCode = 400;
       (error as any).code = "BOOKING_NOT_FOUND";
       throw error;
     }
@@ -109,6 +109,8 @@ export class BookingCancellationService {
         customerEmail,
         booking.customer?.fullName || "Customer",
         booking.referenceCode,
+        booking.checkInDate,
+        booking.checkOutDate,
         otpCode,
       );
     } catch (emailError) {
@@ -157,7 +159,7 @@ export class BookingCancellationService {
 
     if (!booking) {
       const error = new Error("Booking not found");
-      (error as any).statusCode = 404;
+      (error as any).statusCode = 400;
       (error as any).code = "BOOKING_NOT_FOUND";
       throw error;
     }

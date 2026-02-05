@@ -64,6 +64,11 @@ export const AttractionSchema = z
     createdAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     updatedAt: z.string().openapi({ example: "2024-01-01T00:00:00.000Z" }),
     hotelName: z.string().optional().openapi({ example: "Grand Hotel" }),
+    hotelSlug: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "grand-hotel" }),
   })
   .openapi("Attraction");
 
