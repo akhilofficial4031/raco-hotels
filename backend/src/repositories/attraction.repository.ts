@@ -44,6 +44,7 @@ export class AttractionRepository {
         createdAt: attractionTable.createdAt,
         updatedAt: attractionTable.updatedAt,
         hotelName: hotelTable.name,
+        hotelSlug: hotelTable.slug,
       })
       .from(attractionTable)
       .leftJoin(hotelTable, eq(attractionTable.hotelId, hotelTable.id))
@@ -73,6 +74,7 @@ export class AttractionRepository {
         createdAt: attractionTable.createdAt,
         updatedAt: attractionTable.updatedAt,
         hotelName: hotelTable.name,
+        hotelSlug: hotelTable.slug,
       })
       .from(attractionTable)
       .leftJoin(hotelTable, eq(attractionTable.hotelId, hotelTable.id))
@@ -104,6 +106,7 @@ export class AttractionRepository {
         createdAt: attractionTable.createdAt,
         updatedAt: attractionTable.updatedAt,
         hotelName: hotelTable.name,
+        hotelSlug: hotelTable.slug,
       })
       .from(attractionTable)
       .leftJoin(hotelTable, eq(attractionTable.hotelId, hotelTable.id))

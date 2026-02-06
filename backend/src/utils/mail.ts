@@ -291,6 +291,8 @@ export async function sendCancellationOtpEmail(
   customerEmail: string,
   customerName: string,
   bookingReference: string,
+  checkInDate: string,
+  checkOutDate: string,
   otpCode: string,
 ) {
   return sendEmailWithTemplate(c, {
@@ -299,10 +301,14 @@ export async function sendCancellationOtpEmail(
     templateId: "generic_notification",
     parameters: {
       user: customerName,
-      subject: "Booking Cancellation - OTP Verification",
-      message: `Your OTP for cancelling booking ${bookingReference} is: ${otpCode}. This code expires in 30 minutes. If you did not request this cancellation, please ignore this email.`,
-      actionUrl: "#",
-      actionText: "Cancel Booking",
+      // subject: "Booking Cancellation - OTP Verification",
+      // message: `Your OTP for cancelling booking ${bookingReference} is: ${otpCode}. This code expires in 30 minutes. If you did not request this cancellation, please ignore this email.`,
+      // actionUrl: "#",
+      // actionText: "Cancel Booking",
+      otp: otpCode,
+      bookingReference: bookingReference,
+      checkInDate: checkInDate,
+      checkOutDate: checkOutDate,
     },
     notificationType: "generic_notification",
   });

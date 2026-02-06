@@ -57,6 +57,15 @@ export const PUBLIC_ROUTES = [
   //Public policy pages
   "GET:/public/policy-pages",
 
+  //Public attraction routes
+  "GET:/attractions",
+
+  //Public booking cancellation routes
+  "POST:/public/bookings/cancel/request-otp",
+
+  //Public booking cancellation routes
+  "POST:/public/bookings/cancel/verify-otp",
+
   // Add other public routes here as needed
   // "/public-endpoint",
   // "GET:/some-route",
