@@ -14,6 +14,7 @@ import { PaymentService } from "./payment.service";
 import { AddonRepository } from "../repositories/addon.repository";
 import { BookingRepository } from "../repositories/booking.repository";
 import { HotelRepository } from "../repositories/hotel.repository";
+import { PaymentRepository } from "../repositories/payment.repository";
 import { PromoCodeRepository } from "../repositories/promo_code.repository";
 import { RoomTypeRepository } from "../repositories/room_type.repository";
 import {
@@ -931,6 +932,27 @@ export class BookingService {
 
     // Recalculate balance due with final amount
     const finalBalanceDue = Math.max(0, totalAmountCents - finalAmountPaid);
+
+    // Calculate transaction amount (difference between new total paid and previous total paid)
+    const transactionAmount = finalAmountPaid - (existingBooking.amountPaidCents ?? 0);
+
+    // If this is a new payment (amount increased), record it in the payment table
+    if (transactionAmount > 0) {
+      try {
+        await PaymentRepository.create(db, {
+          bookingId: bookingId,
+          amountCents: transactionAmount,
+          currencyCode: existingBooking.currencyCode,
+          status: "succeeded", // Mark as succeeded since we are updating payment status
+          method: paymentData.paymentMethod || "card",
+          processor: paymentData.paymentProcessor || "manual",
+          processorPaymentId: paymentData.processorPaymentId || paymentData.transactionId,
+        });
+      } catch (error) {
+        console.error("Failed to record payment in payment table:", error);
+        // We don't throw here to avoid failing the booking update, but this should be investigated
+      }
+    }
 
     // Build update data
     const updateData: any = {
