@@ -113,6 +113,9 @@ const NewBookings = () => {
             bookingData.bookingDetails.dateRange[1].format(DATE_FORMAT_API),
           numAdults: bookingData.bookingDetails.numAdults,
           numChildren: bookingData.bookingDetails.numChildren,
+          childrenAges: (bookingData.bookingDetails.childrenAges ?? []).map(
+            (c: { age: number }) => c.age,
+          ),
           status: bookingStatus,
         },
         customerData: {

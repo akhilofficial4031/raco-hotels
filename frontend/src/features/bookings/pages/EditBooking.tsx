@@ -177,6 +177,9 @@ function EditBooking() {
         ),
         numAdults: bookingData.bookingDetails.numAdults,
         numChildren: bookingData.bookingDetails.numChildren,
+        childrenAges: (bookingData.bookingDetails.childrenAges ?? []).map(
+          (c: { age: number }) => c.age,
+        ),
         status: bookingData.bookingDetails.status,
         roomTypeId: bookingData.bookingDetails.roomTypeId,
       },

@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 import {
+  Alert,
   Button,
   Card,
   Col,
@@ -163,6 +164,19 @@ const ReviewAndSubmit = ({
 
   const subtotal = roomTotal + addOnsTotal;
 
+  // Occupancy policy — only adults (age 10+) count toward max_occupancy
+  const numRooms = selectedRooms?.length ?? 0;
+  const maxOccupancy = roomTypeDetails?.maxOccupancy ?? 0;
+  const maxAllowed = maxOccupancy * numRooms;
+  const numAdults = bookingDetails?.numAdults ?? 0;
+  const hasExtraAdult = numAdults > 0 && numAdults === maxAllowed + 1;
+  const isOccupancyBlocked = numAdults > 0 && numAdults >= maxAllowed + 2;
+
+  const extraAdultChargeCents = hasExtraAdult
+    ? (roomTypeDetails?.extraAdultChargeCents ?? 100000)
+    : 0;
+  const extraAdultTaxCents = Math.round(extraAdultChargeCents * 0.05);
+
   const [discount, setDiscount] = useState(0);
   useEffect(() => {
     if (appliedPromoCode) {
@@ -186,10 +200,11 @@ const ReviewAndSubmit = ({
     }
   }, [appliedPromoCode, subtotal]);
 
-  // Apply discount to subtotal first, then calculate tax on the discounted amount
+  // Apply discount to subtotal, calculate 18% room tax, then add extra adult charge + 5% tax
   const subtotalAfterDiscount = Math.max(0, subtotal - discount);
-  const taxes = subtotalAfterDiscount * 0.18; // 18% tax rate applied after discount
-  const total = subtotalAfterDiscount + taxes;
+  const roomTax = subtotalAfterDiscount * 0.18;
+  const taxes = roomTax + extraAdultTaxCents;
+  const total = subtotalAfterDiscount + taxes + extraAdultChargeCents;
 
   const [promoCodeInput, setPromoCodeInput] = useState("");
   const [isApplying, setIsApplying] = useState(false);
@@ -212,6 +227,7 @@ const ReviewAndSubmit = ({
   const remainingAmount = total / 100 - amountPaid;
 
   const handleFinalSubmit = () => {
+    if (isOccupancyBlocked) return;
     onSubmit({
       amountPaidCents: Math.round(amountPaid * 100),
       taxAmountCents: Math.round(taxes),
@@ -450,6 +466,26 @@ const ReviewAndSubmit = ({
         </Col>
 
         <Col span={10}>
+          {isOccupancyBlocked && (
+            <Alert
+              type="error"
+              showIcon
+              style={{ marginBottom: 16 }}
+              message="Maximum occupancy exceeded"
+              description={`${numAdults} adults cannot be accommodated in ${numRooms} room(s) with max occupancy of ${maxOccupancy} per room. Please book an additional room.`}
+            />
+          )}
+
+          {hasExtraAdult && !isOccupancyBlocked && (
+            <Alert
+              type="warning"
+              showIcon
+              style={{ marginBottom: 16 }}
+              message="One extra adult"
+              description={`One extra adult will be charged ₹${(extraAdultChargeCents / 100).toLocaleString()} + 5% tax (₹${(extraAdultTaxCents / 100).toLocaleString()}).`}
+            />
+          )}
+
           <Card>
             <Title level={4}>Price Details</Title>
             <Descriptions column={1} size="middle">
@@ -476,8 +512,18 @@ const ReviewAndSubmit = ({
                 >{`₹${(subtotalAfterDiscount / 100).toLocaleString()}`}</Text>
               </Descriptions.Item>
               <Descriptions.Item label="Taxes & Fees (18%)">
-                <Text>{`₹${(taxes / 100).toLocaleString()}`}</Text>
+                <Text>{`₹${(roomTax / 100).toLocaleString()}`}</Text>
               </Descriptions.Item>
+              {hasExtraAdult && (
+                <>
+                  <Descriptions.Item label="Extra Adult Charge">
+                    <Text>{`₹${(extraAdultChargeCents / 100).toLocaleString()}`}</Text>
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Extra Adult Tax (5%)">
+                    <Text>{`₹${(extraAdultTaxCents / 100).toLocaleString()}`}</Text>
+                  </Descriptions.Item>
+                </>
+              )}
               <Descriptions.Item label="Total Amount">
                 <Title level={3}>{`₹${(total / 100).toLocaleString()}`}</Title>
               </Descriptions.Item>
@@ -560,7 +606,10 @@ const ReviewAndSubmit = ({
                   onClick={handleFinalSubmit}
                   loading={isSubmitting}
                   disabled={
-                    isSubmitting || amountPaid > total / 100 || amountPaid < 0
+                    isSubmitting ||
+                    isOccupancyBlocked ||
+                    amountPaid > total / 100 ||
+                    amountPaid < 0
                   }
                 >
                   {mode === "edit" ? "Update Booking" : "Complete Booking"}

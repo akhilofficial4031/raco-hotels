@@ -45,7 +45,8 @@ export const RoomsAvailabilityQueryParamsSchema = z
     }),
     guestCount: z.string().optional().openapi({
       example: "2",
-      description: "Number of guests (filters by max occupancy)",
+      description:
+        "Number of adult guests (age 10+). Filters room types that can accommodate this many adults (normally or with one extra adult allowance). Children under 10 do not count toward occupancy.",
     }),
   })
   .openapi("RoomsAvailabilityQueryParams");
@@ -126,6 +127,11 @@ export const AvailableRoomTypeSchema = z
     smokingAllowed: z.boolean().openapi({
       example: false,
       description: "Whether smoking is allowed in this room type",
+    }),
+    extraAdultChargeCents: z.number().int().openapi({
+      example: 100000,
+      description:
+        "Flat charge in cents when one extra adult is added beyond max occupancy",
     }),
     totalRooms: z.number().int().openapi({
       example: 10,

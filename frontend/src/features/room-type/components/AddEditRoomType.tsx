@@ -68,6 +68,9 @@ const roomTypeSchema = z
     basePriceCents: z
       .number()
       .min(0, { message: "Base price must be non-negative" }),
+    extraAdultChargeCents: z
+      .number()
+      .min(0, { message: "Extra adult charge must be non-negative" }),
     offerPrice: z
       .number()
       .min(0, { message: "Offer price must be non-negative" })
@@ -129,6 +132,8 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
   const [offerPriceInRupees, setOfferPriceInRupees] = useState<
     number | undefined
   >(undefined);
+  const [extraAdultChargeInRupees, setExtraAdultChargeInRupees] =
+    useState<number>(1000);
 
   // Image upload state
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
@@ -157,6 +162,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       baseOccupancy: 1,
       maxOccupancy: 2,
       basePriceCents: 0,
+      extraAdultChargeCents: 100000,
       offerPrice: undefined,
       offerStartDate: undefined,
       offerEndDate: undefined,
@@ -233,6 +239,12 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
     }
   };
 
+  const handleExtraAdultChargeChange = (value: number | null) => {
+    const chargeInCents = value ? Math.round(value * 100) : 0;
+    setValue("extraAdultChargeCents", chargeInCents);
+    setExtraAdultChargeInRupees(value ?? 0);
+  };
+
   // Validate images function
   const validateImages = (): boolean => {
     const hasUploadedImages = uploadedImages.length > 0;
@@ -291,6 +303,9 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         setExistingImages(images);
       }
 
+      const extraAdultChargeRupees =
+        (roomType.extraAdultChargeCents ?? 100000) / 100;
+
       reset({
         hotelId: roomType.hotelId,
         name: roomType.name,
@@ -298,6 +313,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         baseOccupancy: roomType.baseOccupancy,
         maxOccupancy: roomType.maxOccupancy,
         basePriceCents: roomType.basePriceCents,
+        extraAdultChargeCents: roomType.extraAdultChargeCents ?? 100000,
         offerPrice: roomType.offerPrice || undefined,
         offerStartDate: roomType.offerStartDate || undefined,
         offerEndDate: roomType.offerEndDate || undefined,
@@ -312,6 +328,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       });
       setPriceInRupees(priceInRupees);
       setOfferPriceInRupees(offerPriceInRupees);
+      setExtraAdultChargeInRupees(extraAdultChargeRupees);
       // Clear validation error when room type data is loaded
       setImageValidationError("");
     } else {
@@ -329,6 +346,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
         baseOccupancy: 1,
         maxOccupancy: 2,
         basePriceCents: 0,
+        extraAdultChargeCents: 100000,
         offerPrice: undefined,
         offerStartDate: undefined,
         offerEndDate: undefined,
@@ -343,6 +361,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       });
       setPriceInRupees(0);
       setOfferPriceInRupees(undefined);
+      setExtraAdultChargeInRupees(1000);
     }
   }, [roomType, reset]);
 
@@ -391,6 +410,7 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
       baseOccupancy: data.baseOccupancy,
       maxOccupancy: data.maxOccupancy,
       basePriceCents: data.basePriceCents,
+      extraAdultChargeCents: data.extraAdultChargeCents,
       offerPrice: data.offerPrice,
       offerStartDate: data.offerStartDate
         ? dayjs(data.offerStartDate).format(DATE_FORMAT_API)
@@ -653,6 +673,23 @@ const AddEditRoomType: React.FC<AddEditRoomTypeProps> = ({
             precision={2}
             className="w-full"
             placeholder="1500.00"
+            addonBefore="₹"
+          />
+        </Form.Item>
+
+        <Form.Item
+          label="Extra Adult Charge (INR)"
+          tooltip="Flat charge applied when one adult beyond max occupancy is added to the booking. A 5% tax is added on top of this charge."
+          validateStatus={errors.extraAdultChargeCents ? "error" : ""}
+          help={errors.extraAdultChargeCents?.message}
+        >
+          <InputNumber
+            value={extraAdultChargeInRupees}
+            onChange={handleExtraAdultChargeChange}
+            min={0}
+            precision={2}
+            className="w-full"
+            placeholder="1000.00"
             addonBefore="₹"
           />
         </Form.Item>

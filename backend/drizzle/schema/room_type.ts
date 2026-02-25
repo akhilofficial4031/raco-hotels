@@ -30,6 +30,9 @@ export const roomType = sqliteTable(
     sizeSqft: integer("size_sqft"),
     bedType: text("bed_type"),
     smokingAllowed: integer("smoking_allowed").notNull().default(0),
+    extraAdultChargeCents: integer("extra_adult_charge_cents")
+      .notNull()
+      .default(100000),
     totalRooms: integer("total_rooms").notNull().default(0),
     isActive: integer("is_active").notNull().default(1),
     createdAt: text("created_at")

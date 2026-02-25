@@ -74,9 +74,11 @@ export class AvailabilityRepository {
         sql`${roomTypeTable.basePriceCents} <= ${filters.maxPriceCents}`,
       );
     }
+    // Filter by adult count: show rooms that can accommodate the adults either normally
+    // or with the one-extra-adult allowance (maxOccupancy >= numAdults - 1)
     if (filters.guestCount !== undefined) {
       roomTypeConditions.push(
-        sql`${roomTypeTable.maxOccupancy} >= ${filters.guestCount}`,
+        sql`${roomTypeTable.maxOccupancy} >= ${filters.guestCount} - 1`,
       );
     }
 
@@ -97,6 +99,7 @@ export class AvailabilityRepository {
         sizeSqft: roomTypeTable.sizeSqft,
         bedType: roomTypeTable.bedType,
         smokingAllowed: roomTypeTable.smokingAllowed,
+        extraAdultChargeCents: roomTypeTable.extraAdultChargeCents,
         totalRooms: roomTypeTable.totalRooms,
         imageUrl: roomTypeImageTable.url,
         imageAlt: roomTypeImageTable.alt,
@@ -150,6 +153,7 @@ export class AvailabilityRepository {
           sizeSqft: row.sizeSqft,
           bedType: row.bedType,
           smokingAllowed: row.smokingAllowed,
+          extraAdultChargeCents: row.extraAdultChargeCents,
           totalRooms: row.totalRooms,
           images: [],
           amenities: [],
@@ -302,6 +306,7 @@ export class AvailabilityRepository {
           sizeSqft: roomType.sizeSqft,
           bedType: roomType.bedType,
           smokingAllowed: roomType.smokingAllowed === 1,
+          extraAdultChargeCents: roomType.extraAdultChargeCents ?? 100000,
           totalRooms: roomType.totalRooms || 0,
           availableRooms: availableRooms.length,
           images: roomType.images,

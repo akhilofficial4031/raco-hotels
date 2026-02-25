@@ -40,6 +40,7 @@ export interface RoomType {
   currencyCode: string;
   sizeSqft: number | null;
   bedType: string | null;
+  extraAdultChargeCents: number;
   smokingAllowed: number;
   totalRooms: number;
   isActive: number;
@@ -87,6 +88,7 @@ export interface CreateRoomTypePayload {
   baseOccupancy?: number;
   maxOccupancy?: number;
   basePriceCents?: number;
+  extraAdultChargeCents?: number;
   offerPrice?: number | null;
   offerStartDate?: string | null;
   offerEndDate?: string | null;
@@ -127,6 +129,7 @@ export interface RoomTypeFormData {
   baseOccupancy: number;
   maxOccupancy: number;
   basePriceCents: number;
+  extraAdultChargeCents: number;
   offerPrice?: number | null;
   offerStartDate?: string | null;
   offerEndDate?: string | null;

@@ -3,6 +3,7 @@ import { and, eq, inArray } from "drizzle-orm";
 
 import {
   bookingAddon,
+  bookingChildren,
   bookingItems,
   bookingPromotion,
   customer,
@@ -149,6 +150,24 @@ export class BookingService {
         throw new Error("Room type not found");
       }
 
+      // Occupancy validation — only adults count toward max_occupancy
+      const numRooms = data.selectedRooms.length;
+      const maxAllowed = (roomType.maxOccupancy ?? 0) * numRooms;
+      const numAdultsUpdate = data.bookingDetails.numAdults ?? booking.numAdults;
+      if (numAdultsUpdate > maxAllowed + 1) {
+        throw new Error(
+          `validation: Maximum occupancy exceeded. ${numAdultsUpdate} adults cannot be accommodated in ${numRooms} room(s) with max occupancy of ${roomType.maxOccupancy} per room. Please book an additional room.`,
+        );
+      }
+
+      const hasExtraAdultUpdate = numAdultsUpdate === maxAllowed + 1;
+      const extraAdultChargeCentsUpdate = hasExtraAdultUpdate
+        ? (roomType.extraAdultChargeCents ?? 100000)
+        : 0;
+      const extraAdultTaxCentsUpdate = hasExtraAdultUpdate
+        ? Math.round(extraAdultChargeCentsUpdate * 0.05)
+        : 0;
+
       // Calculate number of nights
       const checkInDate = data.bookingDetails.checkInDate;
       const checkOutDate = data.bookingDetails.checkOutDate;
@@ -223,10 +242,12 @@ export class BookingService {
         }
       }
 
-      // Calculate tax on discounted subtotal (new logic)
+      // Apply discount, then add 18% room tax + extra adult charge with its 5% tax
       const subtotalAfterDiscount = Math.max(0, subtotal - discountAmountCents);
-      taxAmountCents = Math.round(subtotalAfterDiscount * 0.18); // 18% tax rate
-      totalAmountCents = subtotalAfterDiscount + taxAmountCents;
+      const roomTaxCents = Math.round(subtotalAfterDiscount * 0.18);
+      taxAmountCents = roomTaxCents + extraAdultTaxCentsUpdate;
+      totalAmountCents =
+        subtotalAfterDiscount + taxAmountCents + extraAdultChargeCentsUpdate;
     }
 
     // Update booking data
@@ -338,6 +359,22 @@ export class BookingService {
 
           await database.insert(bookingAddon).values(newAddons);
         }
+      }
+    }
+
+    // Update child ages for auditing — replace all existing entries
+    if (data.bookingDetails?.childrenAges !== undefined) {
+      await database
+        .delete(bookingChildren)
+        .where(eq(bookingChildren.bookingId, id));
+
+      if (data.bookingDetails.childrenAges.length > 0) {
+        await database.insert(bookingChildren).values(
+          data.bookingDetails.childrenAges.map((age: number) => ({
+            bookingId: id,
+            age,
+          })),
+        );
       }
     }
 
@@ -586,6 +623,26 @@ export class BookingService {
       dayjs(bookingDetails.checkInDate),
       "day",
     );
+
+    // Occupancy validation — only adults count toward max_occupancy
+    const numRooms = selectedRooms.length;
+    const maxAllowed = (roomTypeFromDb.maxOccupancy ?? 0) * numRooms;
+    const numAdults = bookingDetails.numAdults;
+    if (numAdults > maxAllowed + 1) {
+      throw new Error(
+        `validation: Maximum occupancy exceeded. ${numAdults} adults cannot be accommodated in ${numRooms} room(s) with max occupancy of ${roomTypeFromDb.maxOccupancy} per room. Please book an additional room.`,
+      );
+    }
+
+    // Extra adult charge applies when numAdults is exactly one above the combined max
+    const hasExtraAdult = numAdults === maxAllowed + 1;
+    const extraAdultChargeCents = hasExtraAdult
+      ? (roomTypeFromDb.extraAdultChargeCents ?? 100000)
+      : 0;
+    const extraAdultTaxCents = hasExtraAdult
+      ? Math.round(extraAdultChargeCents * 0.05)
+      : 0;
+
     // Use effective room price (offer price if available and valid) from DATABASE
     const effectiveRoomPrice = getEffectiveRoomPrice(roomTypeFromDb);
     const roomTotal = effectiveRoomPrice * nights * selectedRooms.length;
@@ -657,10 +714,13 @@ export class BookingService {
     }
 
     // Always calculate tax and total on server-side for security (never trust frontend)
-    // New logic: apply discount to subtotal first, then calculate tax on discounted amount
+    // Apply discount to subtotal first, then calculate tax on discounted amount
+    // Extra adult charge and its 5% tax are added on top of the discounted room+addon total
     const subtotalAfterDiscount = Math.max(0, subtotal - discountAmountCents);
-    const taxAmountCents = Math.round(subtotalAfterDiscount * 0.18); // 18% tax rate
-    const totalAmountCents = subtotalAfterDiscount + taxAmountCents;
+    const roomTaxAmountCents = Math.round(subtotalAfterDiscount * 0.18); // 18% tax rate
+    const taxAmountCents = roomTaxAmountCents + extraAdultTaxCents;
+    const totalAmountCents =
+      subtotalAfterDiscount + taxAmountCents + extraAdultChargeCents;
     const amountPaidCents = bookingRequest.amountPaidCents || 0;
     const balanceDueCents = totalAmountCents - amountPaidCents;
 
@@ -784,6 +844,17 @@ export class BookingService {
             quantity: 1,
             createdAt: currentTime,
             updatedAt: currentTime,
+          })),
+        );
+      }
+
+      // Persist individual child ages for auditing
+      const childrenAges = bookingDetails.childrenAges ?? [];
+      if (childrenAges.length > 0) {
+        await database.insert(bookingChildren).values(
+          childrenAges.map((age) => ({
+            bookingId: newBooking.id,
+            age,
           })),
         );
       }

@@ -31,3 +31,4 @@ export * from "./relations";
 export * from "./room_type_addon";
 export * from "./attraction";
 export * from "./inquiry";
+export * from "./booking_children";
