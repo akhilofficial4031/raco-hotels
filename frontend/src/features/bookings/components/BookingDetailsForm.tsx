@@ -14,13 +14,21 @@ import { getRoomTypes } from "../../room-type/services/roomTypeService";
 import type { Hotel } from "../../hotels/types/hotels";
 import type { RoomType } from "../../room-type/types/roomType";
 
+const CHILD_AGE_OPTIONS = [
+  { value: 0.5, label: "Below 1 year" },
+  ...Array.from({ length: 18 }, (_, i) => ({
+    value: i + 1,
+    label: `${i + 1} ${i + 1 === 1 ? "year" : "years"}`,
+  })),
+];
+
 
 interface BookingDetailsFormValues {
   hotelId: number | null;
   roomTypeId: number | null;
   numAdults: number;
   numChildren: number;
-  childrenAges: { age: number }[];
+  childrenAges: { age: number | undefined }[];
   numRooms: number;
   dateRange: [Dayjs, Dayjs] | null;
   status?: string;
@@ -32,12 +40,14 @@ interface BookingDetailsFormProps {
   onFinish: (values: BookingDetailsFormValues) => void;
   initialValues?: Partial<BookingDetailsFormValues>;
   mode?: "create" | "edit";
+  isLoading?: boolean;
 }
 
 const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
   onFinish,
   initialValues,
   mode = "create",
+  isLoading = false,
 }) => {
   const {
     control,
@@ -45,6 +55,7 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
     watch,
     setError,
     clearErrors,
+    getValues,
     formState: { errors },
     reset,
   } = useForm<BookingDetailsFormValues>({
@@ -72,7 +83,7 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
 
   // Clear occupancy error when adults or rooms count changes
   useEffect(() => {
-    clearErrors("numAdults");
+    clearErrors(["numAdults", "numRooms"]);
   }, [watchedNumAdults, watchedNumRooms, watchedRoomTypeId, clearErrors]);
 
   useEffect(() => {
@@ -87,12 +98,15 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
     }
   }, [initialValues, reset]);
 
-  // Sync childrenAges array length with numChildren count
+  // Sync childrenAges array length with numChildren count.
+  // Use getValues (reads from internal store, not reactive state) to avoid stale closure
+  // when this effect fires after a form reset() call.
   useEffect(() => {
     const count = numChildren ?? 0;
+    const currentAges = getValues("childrenAges");
     replaceChildrenAges(
       Array.from({ length: count }, (_, i) => ({
-        age: childrenAgeFields[i]?.age ?? 0,
+        age: currentAges[i]?.age,
       })),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,21 +140,34 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
       );
 
       if (selectedRoomType) {
-        const maxAllowed = selectedRoomType.maxOccupancy * values.numRooms;
-        const isOccupancyBlocked = values.numAdults >= maxAllowed + 2;
-        const hasExtraAdult = values.numAdults === maxAllowed + 1;
+        // Children 10+ count as adults for occupancy
+        const childrenOver10 = (values.childrenAges ?? []).filter(
+          (c) => (c.age ?? 0) >= 10,
+        ).length;
+        const effectiveAdults = values.numAdults + childrenOver10;
 
-        if (isOccupancyBlocked) {
-          setError("numAdults", {
+        const maxOccupancy = selectedRoomType.maxOccupancy;
+        // Each room allows maxOccupancy + 1 adults (1 extra with charge)
+        const minRoomsNeeded =
+          maxOccupancy > 0
+            ? Math.ceil(effectiveAdults / (maxOccupancy + 1))
+            : values.numRooms;
+
+        if (values.numRooms < minRoomsNeeded) {
+          setError("numRooms", {
             type: "manual",
-            message: `Exceeds max occupancy. Max ${selectedRoomType.maxOccupancy} adults per room (${maxAllowed} total for ${values.numRooms} room(s)). Please increase rooms or reduce adults.`,
+            message: `Your group of ${effectiveAdults} adult${effectiveAdults !== 1 ? "s" : ""} needs at least ${minRoomsNeeded} room${minRoomsNeeded !== 1 ? "s" : ""}. Please increase the number of rooms.`,
           });
           return;
         }
 
-        if (hasExtraAdult) {
+        const maxAllowed = maxOccupancy * values.numRooms;
+        const extraAdults = Math.max(0, effectiveAdults - maxAllowed);
+        if (extraAdults > 0) {
+          const totalExtraCharge =
+            extraAdults * selectedRoomType.extraAdultChargeCents;
           void message.info(
-            `One extra adult detected. An additional charge of ₹${(selectedRoomType.extraAdultChargeCents / 100).toLocaleString()} + 5% tax will be applied at checkout.`,
+            `${extraAdults} extra adult${extraAdults > 1 ? "s" : ""} detected. An additional charge of ₹${(totalExtraCharge / 100).toLocaleString("en-IN")} + 5% tax will be applied at checkout.`,
             6,
           );
         }
@@ -305,17 +332,12 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
                 <Controller
                   name={`childrenAges.${index}.age`}
                   control={control}
-                  rules={{
-                    required: "Age is required",
-                    min: { value: 0, message: "Age must be 0 or above" },
-                    max: { value: 17, message: "Age must be 17 or below" },
-                  }}
+                  rules={{ required: "Age is required" }}
                   render={({ field: ageField }) => (
-                    <InputNumber
+                    <Select
                       {...ageField}
-                      min={0}
-                      max={17}
-                      placeholder="0–17"
+                      placeholder="Select age"
+                      options={CHILD_AGE_OPTIONS}
                       className="!w-full"
                     />
                   )}
@@ -327,7 +349,7 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
       )}
 
       <div className="flex justify-end">
-        <Button type="primary" htmlType="submit">
+        <Button type="primary" htmlType="submit" loading={isLoading}>
           {mode === "create" ? "Check Availability" : "Next"}
         </Button>
       </div>

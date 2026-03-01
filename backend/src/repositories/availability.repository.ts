@@ -74,11 +74,17 @@ export class AvailabilityRepository {
         sql`${roomTypeTable.basePriceCents} <= ${filters.maxPriceCents}`,
       );
     }
-    // Filter by adult count: show rooms that can accommodate the adults either normally
-    // or with the one-extra-adult allowance (maxOccupancy >= numAdults - 1)
+    // Filter by adult count: show room types that can accommodate the guests.
+    // With multiple rooms: each room needs min ceil(guestCount/numRooms) - 1 (extra adult allowance).
+    // With single room: maxOccupancy >= guestCount - 1.
     if (filters.guestCount !== undefined) {
+      const roomsForOccupancy = numberOfRooms ?? 1;
+      const minOccupancyPerRoom = Math.max(
+        0,
+        Math.ceil(filters.guestCount / roomsForOccupancy) - 1,
+      );
       roomTypeConditions.push(
-        sql`${roomTypeTable.maxOccupancy} >= ${filters.guestCount} - 1`,
+        sql`${roomTypeTable.maxOccupancy} >= ${minOccupancyPerRoom}`,
       );
     }
 
@@ -214,7 +220,8 @@ export class AvailabilityRepository {
             eq(roomUnitTable.hotelId, hotelId),
             eq(roomUnitTable.roomTypeId, roomType.roomTypeId),
             eq(roomUnitTable.isActive, 1),
-            eq(roomUnitTable.status, "available"), // Only available rooms
+            ne(roomUnitTable.status, "out_of_order"),
+            ne(roomUnitTable.status, "maintenance"),
           ),
         );
 

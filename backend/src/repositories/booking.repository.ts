@@ -5,6 +5,7 @@ import {
   bookingItems as bookingItemsTable,
   bookingAddon as bookingAddonTable,
   bookingPromotion as bookingPromotionTable,
+  bookingChildren as bookingChildrenTable,
   promoCode as promoCodeTable,
   hotel as hotelTable,
   customer as customerTable,
@@ -74,7 +75,12 @@ export class BookingRepository {
         eq(bookingPromotionTable.promoCodeId, promoCodeTable.id),
       );
 
-    return { ...bookingInfo, items, addons, promotions };
+    const children = await database
+      .select()
+      .from(bookingChildrenTable)
+      .where(eq(bookingChildrenTable.bookingId, id));
+
+    return { ...bookingInfo, items, addons, promotions, children };
   }
 
   static async update(

@@ -44,6 +44,7 @@ export interface Booking {
   items?: any[];
   addons?: any[];
   promotions?: any[];
+  children?: { id: number; bookingId: number; age: number }[];
 }
 
 export interface BookingListResponse {

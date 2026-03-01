@@ -65,6 +65,7 @@ function EditBooking() {
           checkOutDate: dayjs(booking.checkOutDate),
           numAdults: booking.numAdults,
           numChildren: booking.numChildren,
+          childrenAges: (booking.children ?? []).map((c) => ({ age: c.age })),
           status: booking.status,
           hotelId: booking.hotelId,
           roomTypeId: booking.items?.[0]?.room.roomTypeId,
@@ -272,6 +273,9 @@ function EditBooking() {
             DATE_FORMAT_API,
           )}
           numRooms={bookingData.bookingDetails.numRooms}
+          numAdults={bookingData.bookingDetails.numAdults}
+          numChildren={bookingData.bookingDetails.numChildren}
+          childrenAges={bookingData.bookingDetails.childrenAges ?? []}
           onNext={handleRoomSelectionFinish}
           onBack={handleBack}
           initialSelectedRooms={bookingData.selectedRooms}

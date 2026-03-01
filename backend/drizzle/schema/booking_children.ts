@@ -1,4 +1,4 @@
-import { sqliteTable, integer, index } from "drizzle-orm/sqlite-core";
+import { sqliteTable, integer, real, index } from "drizzle-orm/sqlite-core";
 
 import { booking } from "./booking";
 
@@ -9,7 +9,7 @@ export const bookingChildren = sqliteTable(
     bookingId: integer("booking_id")
       .notNull()
       .references(() => booking.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    age: integer("age").notNull(),
+    age: real("age").notNull(),
   },
   (t) => ({
     bookingChildrenBookingIdx: index("idx_booking_children_booking").on(

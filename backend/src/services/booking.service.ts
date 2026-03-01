@@ -150,23 +150,23 @@ export class BookingService {
         throw new Error("Room type not found");
       }
 
-      // Occupancy validation — only adults count toward max_occupancy
+      // Occupancy validation — each room allows up to maxOccupancy + 1 adults (1 extra per room with charge)
       const numRooms = data.selectedRooms.length;
       const maxAllowed = (roomType.maxOccupancy ?? 0) * numRooms;
+      const maxAllowedWithExtra = maxAllowed + numRooms;
       const numAdultsUpdate = data.bookingDetails.numAdults ?? booking.numAdults;
-      if (numAdultsUpdate > maxAllowed + 1) {
+      if (numAdultsUpdate > maxAllowedWithExtra) {
         throw new Error(
-          `validation: Maximum occupancy exceeded. ${numAdultsUpdate} adults cannot be accommodated in ${numRooms} room(s) with max occupancy of ${roomType.maxOccupancy} per room. Please book an additional room.`,
+          `validation: Maximum occupancy exceeded. ${numAdultsUpdate} adults cannot be accommodated in ${numRooms} room(s). Max ${roomType.maxOccupancy + 1} adults per room (${maxAllowedWithExtra} total). Please book an additional room.`,
         );
       }
 
-      const hasExtraAdultUpdate = numAdultsUpdate === maxAllowed + 1;
-      const extraAdultChargeCentsUpdate = hasExtraAdultUpdate
-        ? (roomType.extraAdultChargeCents ?? 100000)
-        : 0;
-      const extraAdultTaxCentsUpdate = hasExtraAdultUpdate
-        ? Math.round(extraAdultChargeCentsUpdate * 0.05)
-        : 0;
+      const extraAdultsUpdate = Math.max(0, numAdultsUpdate - maxAllowed);
+      const extraAdultChargeCentsUpdate =
+        extraAdultsUpdate * (roomType.extraAdultChargeCents ?? 100000);
+      const extraAdultTaxCentsUpdate = Math.round(
+        extraAdultChargeCentsUpdate * 0.05,
+      );
 
       // Calculate number of nights
       const checkInDate = data.bookingDetails.checkInDate;
@@ -624,24 +624,22 @@ export class BookingService {
       "day",
     );
 
-    // Occupancy validation — only adults count toward max_occupancy
+    // Occupancy validation — each room allows up to maxOccupancy + 1 adults (1 extra per room with charge)
     const numRooms = selectedRooms.length;
     const maxAllowed = (roomTypeFromDb.maxOccupancy ?? 0) * numRooms;
+    const maxAllowedWithExtra = maxAllowed + numRooms;
     const numAdults = bookingDetails.numAdults;
-    if (numAdults > maxAllowed + 1) {
+    if (numAdults > maxAllowedWithExtra) {
       throw new Error(
-        `validation: Maximum occupancy exceeded. ${numAdults} adults cannot be accommodated in ${numRooms} room(s) with max occupancy of ${roomTypeFromDb.maxOccupancy} per room. Please book an additional room.`,
+        `validation: Maximum occupancy exceeded. ${numAdults} adults cannot be accommodated in ${numRooms} room(s). Max ${roomTypeFromDb.maxOccupancy + 1} adults per room (${maxAllowedWithExtra} total). Please book an additional room.`,
       );
     }
 
-    // Extra adult charge applies when numAdults is exactly one above the combined max
-    const hasExtraAdult = numAdults === maxAllowed + 1;
-    const extraAdultChargeCents = hasExtraAdult
-      ? (roomTypeFromDb.extraAdultChargeCents ?? 100000)
-      : 0;
-    const extraAdultTaxCents = hasExtraAdult
-      ? Math.round(extraAdultChargeCents * 0.05)
-      : 0;
+    // Extra adult charge: one charge per adult beyond standard max, up to 1 extra per room
+    const extraAdults = Math.max(0, numAdults - maxAllowed);
+    const extraAdultChargeCents =
+      extraAdults * (roomTypeFromDb.extraAdultChargeCents ?? 100000);
+    const extraAdultTaxCents = Math.round(extraAdultChargeCents * 0.05);
 
     // Use effective room price (offer price if available and valid) from DATABASE
     const effectiveRoomPrice = getEffectiveRoomPrice(roomTypeFromDb);

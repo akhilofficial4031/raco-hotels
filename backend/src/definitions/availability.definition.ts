@@ -42,7 +42,7 @@ export const AvailabilityRouteDefinitions = {
     
     **Performance:**
     - Uses optimized SQL with proper indexing
-    - Filters rooms by "available" status only
+    - Excludes rooms with status "out_of_order" or "maintenance"
     - Excludes rooms with booking conflicts`,
     tags: [ApiTags.ROOMS],
     successSchema: RoomsAvailabilityResponseSchema,

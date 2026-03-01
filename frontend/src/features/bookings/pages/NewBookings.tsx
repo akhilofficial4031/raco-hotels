@@ -5,8 +5,10 @@ import { Link, useNavigate } from "react-router";
 
 import { DATE_FORMAT_API } from "../../../shared/constants/app";
 import { BOOKING_STATUS } from "../../../shared/constants/bookings";
-import { mutationFetcher } from "../../../utils/swrFetcher";
+import { fetcher, mutationFetcher } from "../../../utils/swrFetcher";
 import { type PromoCode } from "../../promo-code/types/promoCode";
+
+const CHILD_ADULT_AGE_THRESHOLD = 10;
 import { type RoomTypeWithRelations } from "../../room-type/types/roomType";
 import BookingDetailsForm from "../components/BookingDetailsForm";
 import CustomerInformationForm from "../components/CustomerInformationForm";
@@ -32,11 +34,44 @@ const NewBookings = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [bookingData, setBookingData] = useState<BookingData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const navigate = useNavigate();
 
   // Room types data is now handled in BookingDetailsForm component
 
-  const handleBookingDetailsFinish = (values: any) => {
+  const handleBookingDetailsFinish = async (values: any) => {
+    // Compute effective adult count (children 10+ count as adults)
+    const childrenOver10 = (values.childrenAges ?? []).filter(
+      (c: { age: number | undefined }) => (c.age ?? 0) >= CHILD_ADULT_AGE_THRESHOLD,
+    ).length;
+    const effectiveAdults = values.numAdults + childrenOver10;
+
+    setIsCheckingAvailability(true);
+    try {
+      const checkInDate = values.dateRange[0].format(DATE_FORMAT_API);
+      const checkOutDate = values.dateRange[1].format(DATE_FORMAT_API);
+      const query = `/rooms/availability?hotelId=${values.hotelId}&roomTypeId=${values.roomTypeId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&guestCount=${effectiveAdults}&numberOfRooms=${values.numRooms}`;
+      const result = await fetcher(query);
+      const roomCount = result?.data?.roomTypes?.[0]?.rooms?.length ?? 0;
+
+      if (roomCount === 0) {
+        void message.warning(
+          "No rooms are available for your selected dates and group size. Please adjust your search.",
+          5,
+        );
+        return;
+      }
+    } catch {
+      // API throws a validation error when no rooms found for the given roomTypeId
+      void message.warning(
+        "No rooms are available for your selected dates and group size. Please adjust your search.",
+        5,
+      );
+      return;
+    } finally {
+      setIsCheckingAvailability(false);
+    }
+
     setBookingData((prev) => ({ ...prev, bookingDetails: values }));
     setCurrentStep(1);
   };
@@ -191,6 +226,7 @@ const NewBookings = () => {
           onFinish={handleBookingDetailsFinish}
           initialValues={bookingData.bookingDetails}
           mode="create"
+          isLoading={isCheckingAvailability}
         />
       ),
     },
@@ -207,6 +243,9 @@ const NewBookings = () => {
             DATE_FORMAT_API,
           )}
           numRooms={bookingData.bookingDetails.numRooms}
+          numAdults={bookingData.bookingDetails.numAdults}
+          numChildren={bookingData.bookingDetails.numChildren}
+          childrenAges={bookingData.bookingDetails.childrenAges ?? []}
           onNext={handleRoomSelectionFinish}
           onBack={handleBack}
           initialSelectedRooms={bookingData.selectedRooms}

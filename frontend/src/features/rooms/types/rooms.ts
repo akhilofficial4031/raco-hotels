@@ -62,6 +62,7 @@ export interface IRoomType {
   baseOccupancy: number;
   maxOccupancy: number;
   basePriceCents: number;
+  extraAdultChargeCents: number;
   currencyCode: string;
   sizeSqft: number;
   bedType: string;
