@@ -21,19 +21,20 @@ import {
   type MenuProps,
   Modal,
   message,
+  Alert,
 } from "antd";
 import dayjs from "dayjs";
-import { useNavigate, useParams } from "react-router";
 import { useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import useSWR, { mutate } from "swr";
 
 import Spinner from "@shared/components/Spinner";
-import { APP_LOCALE } from "@shared/constants/app";
+import { APP_LOCALE, TAX_RATES } from "@shared/constants/app";
 import { type ApiResponse } from "@shared/models/common";
 import { fetcher, mutationFetcher } from "@utils/swrFetcher";
 
-import { type Booking, type CancelBookingRequest } from "../types/bookings";
 import CancellationModal from "../components/CancellationModal";
+import { type Booking, type CancelBookingRequest } from "../types/bookings";
 
 const { Title, Text } = Typography;
 const { confirm } = Modal;
@@ -153,31 +154,38 @@ function ViewBooking() {
 
     try {
       setCancelLoading(true);
-      const response: any = await mutationFetcher(`/bookings/${booking.id}/cancel`, {
-        arg: {
-          method: "PATCH",
-          body: data,
+      const response: any = await mutationFetcher(
+        `/bookings/${booking.id}/cancel`,
+        {
+          arg: {
+            method: "PATCH",
+            body: data,
+          },
         },
-      });
-      
+      );
+
       // Show appropriate message based on refund processing result
       if (data.refundAmountCents && data.refundAmountCents > 0) {
         if (response.data?.refundProcessed) {
-          message.success("Booking cancelled and refund processed via Razorpay successfully");
+          message.success(
+            "Booking cancelled and refund processed via Razorpay successfully",
+          );
         } else if (response.data?.refundMarkedManual) {
-          message.warning("Booking cancelled. Refund marked for manual processing (no Razorpay payment found)");
+          message.warning(
+            "Booking cancelled. Refund marked for manual processing (no Razorpay payment found)",
+          );
         } else {
           message.success("Booking cancelled successfully");
         }
       } else {
         message.success("Booking cancelled successfully");
       }
-      
+
       setCancellationModalOpen(false);
       mutate(`/bookings/${id}`);
     } catch (err) {
       message.error(
-        (err as Error).message || "Failed to cancel booking. Please try again."
+        (err as Error).message || "Failed to cancel booking. Please try again.",
       );
     } finally {
       setCancelLoading(false);
@@ -274,20 +282,43 @@ function ViewBooking() {
       (acc, item) => acc + (item.booking_addon.priceCents || 0),
       0,
     ) ?? 0;
-  // Use stored room price from booking (calculated at booking time with correct offer price)
+
   const nights =
     dayjs(booking.checkOutDate).diff(dayjs(booking.checkInDate), "day") || 1;
   const numRooms = booking.items?.length || 1;
 
-  // Calculate room price total using stored per-night price or fallback to reverse calculation
-  // Note: roomPriceCents will be 0 for existing bookings created before this field was added
+  // Room price total — prefer stored per-night price, fall back to reverse calculation
   const roomPrice =
     booking.roomPriceCents && booking.roomPriceCents > 0
       ? booking.roomPriceCents * nights * numRooms
       : totalAmount - addonsTotal + discountAmount - taxAmount;
 
+  // Per-night-per-room price (for the label formula)
+  const perNightPrice =
+    booking.roomPriceCents && booking.roomPriceCents > 0
+      ? booking.roomPriceCents
+      : nights > 0 && numRooms > 0
+        ? Math.round(roomPrice / nights / numRooms)
+        : 0;
+
   const subtotal = roomPrice + addonsTotal;
   const subtotalAfterDiscount = subtotal - discountAmount;
+
+  // Tax breakdown — derive extra adult charge from the stored totals
+  const roomTaxCents = Math.round(subtotalAfterDiscount * TAX_RATES.ROOM_TAX);
+  const extraAdultChargeCents = Math.max(
+    0,
+    totalAmount - subtotalAfterDiscount - taxAmount,
+  );
+  const extraAdultTaxCents = Math.max(0, taxAmount - roomTaxCents);
+
+  // Occupancy breakdown from stored children ages
+  const numAdults = booking.numAdults ?? 0;
+  const numChildren = booking.numChildren ?? 0;
+  const childrenOver10 =
+    booking.children?.filter((c) => c.age > 10).length ?? 0;
+  const childrenUnder10 = numChildren - childrenOver10;
+  const effectiveAdults = numAdults + childrenOver10;
 
   return (
     <div>
@@ -314,10 +345,19 @@ function ViewBooking() {
           message="Cancellation Requested"
           description={
             <div>
-              <p>The customer has requested to cancel this booking via the public cancellation system.</p>
-              {booking.notes && booking.notes.includes("Customer requested cancellation via OTP") && (
-                <p>Please review the booking details and process the refund if applicable.</p>
-              )}
+              <p>
+                The customer has requested to cancel this booking via the public
+                cancellation system.
+              </p>
+              {booking.notes &&
+                booking.notes.includes(
+                  "Customer requested cancellation via OTP",
+                ) && (
+                  <p>
+                    Please review the booking details and process the refund if
+                    applicable.
+                  </p>
+                )}
             </div>
           }
           type="warning"
@@ -327,7 +367,7 @@ function ViewBooking() {
       )}
       <Card>
         <Row gutter={[16, 16]}>
-          <Col xs={24} md={16}>
+          <Col xs={24} md={12}>
             <Card title="Booking Details" className="!mb-4">
               <Descriptions bordered column={1}>
                 <Descriptions.Item label="Hotel">
@@ -346,23 +386,58 @@ function ViewBooking() {
                     APP_LOCALE,
                   )}
                 </Descriptions.Item>
-                <Descriptions.Item label="Guests">
-                  {booking.numAdults} Adults, {booking.numChildren} Children
+                <Descriptions.Item label="Stay">
+                  {nights} night{nights !== 1 ? "s" : ""}
                 </Descriptions.Item>
+                <Descriptions.Item label="Number of Rooms">
+                  <Text strong>{numRooms}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Adults">
+                  <Text>{numAdults}</Text>
+                </Descriptions.Item>
+                <Descriptions.Item label="Children (total)">
+                  <Text>{numChildren}</Text>
+                  {numChildren > 0 && (
+                    <Text
+                      type="secondary"
+                      style={{ marginLeft: 8, fontSize: 12 }}
+                    >
+                      (age ≤ 10: {childrenUnder10} free&nbsp;|&nbsp;age &gt; 10:{" "}
+                      {childrenOver10} count as adults)
+                    </Text>
+                  )}
+                </Descriptions.Item>
+                <Descriptions.Item label="Effective Adults (for occupancy)">
+                  <Text strong style={{ color: "#1677ff" }}>
+                    {effectiveAdults}
+                  </Text>
+                  {childrenOver10 > 0 && (
+                    <Text
+                      type="secondary"
+                      style={{ marginLeft: 8, fontSize: 12 }}
+                    >
+                      ({numAdults} adults + {childrenOver10} child
+                      {childrenOver10 > 1 ? "ren" : ""} over 10)
+                    </Text>
+                  )}
+                </Descriptions.Item>
+                {extraAdultChargeCents > 0 && (
+                  <Descriptions.Item label="Extra Persons in Room">
+                    <Tag color="orange">Extra adult charge applied</Tag>
+                  </Descriptions.Item>
+                )}
               </Descriptions>
             </Card>
             <Card title="Rooms" className="!mb-4">
               <List
                 dataSource={booking.items}
                 renderItem={(item: any) => (
-                  <>
-                    <List.Item>
-                      <List.Item.Meta
-                        title={item.room_type?.name}
-                        description={`Room Number: ${item.room?.roomNumber}`}
-                      />
-                    </List.Item>
-                  </>
+                  <List.Item>
+                    <List.Item.Meta
+                      title={item.room_type?.name}
+                      description={`Room Number: ${item.room?.roomNumber}`}
+                    />
+                  </List.Item>
                 )}
               />
             </Card>
@@ -402,7 +477,7 @@ function ViewBooking() {
               </Card>
             )}
           </Col>
-          <Col xs={24} md={8}>
+          <Col xs={24} md={12}>
             <Card title="Customer Details" className="!mb-4">
               <Descriptions column={1}>
                 <Descriptions.Item label="Name">
@@ -418,76 +493,124 @@ function ViewBooking() {
             </Card>
             <Card title="Payment Details" className="mt-4">
               <Descriptions bordered column={1}>
-                <Descriptions.Item label="Room Price">
-                  {new Intl.NumberFormat("en-US", {
+                <Descriptions.Item
+                  label={
+                    <Text type="secondary">
+                      {`Room Charge (₹${(perNightPrice / 100).toLocaleString()} × ${nights} night${nights !== 1 ? "s" : ""} × ${numRooms} room${numRooms > 1 ? "s" : ""})`}
+                    </Text>
+                  }
+                >
+                  {new Intl.NumberFormat(APP_LOCALE, {
                     style: "currency",
                     currency: booking.currencyCode,
                   }).format(roomPrice / 100)}
                 </Descriptions.Item>
-                <Descriptions.Item label="Add-ons">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: booking.currencyCode,
-                  }).format(addonsTotal / 100)}
-                </Descriptions.Item>
+                {addonsTotal > 0 && (
+                  <Descriptions.Item label="Add-ons Total">
+                    {new Intl.NumberFormat(APP_LOCALE, {
+                      style: "currency",
+                      currency: booking.currencyCode,
+                    }).format(addonsTotal / 100)}
+                  </Descriptions.Item>
+                )}
                 <Descriptions.Item label="Subtotal">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: booking.currencyCode,
-                  }).format(subtotal / 100)}
+                  <Text strong>
+                    {new Intl.NumberFormat(APP_LOCALE, {
+                      style: "currency",
+                      currency: booking.currencyCode,
+                    }).format(subtotal / 100)}
+                  </Text>
                 </Descriptions.Item>
                 {discountAmount > 0 && (
                   <>
-                    <Descriptions.Item label="Discount (Promo Code)">
-                      <span>
+                    <Descriptions.Item
+                      label={
+                        <Text style={{ color: "green" }}>
+                          Promo Discount
+                          {booking.promotions &&
+                            booking.promotions.length > 0 &&
+                            booking.promotions[0].promo_code && (
+                              <Tag color="green" style={{ marginLeft: 8 }}>
+                                {booking.promotions[0].promo_code.code}
+                              </Tag>
+                            )}
+                        </Text>
+                      }
+                    >
+                      <Text strong style={{ color: "green" }}>
                         -
-                        {new Intl.NumberFormat("en-US", {
+                        {new Intl.NumberFormat(APP_LOCALE, {
                           style: "currency",
                           currency: booking.currencyCode,
                         }).format(discountAmount / 100)}
-                        {booking.promotions &&
-                          booking.promotions.length > 0 &&
-                          booking.promotions[0].promo_code && (
-                            <Tag color="green" style={{ marginLeft: 8 }}>
-                              {booking.promotions[0].promo_code.code}
-                            </Tag>
-                          )}
-                      </span>
+                      </Text>
                     </Descriptions.Item>
                     <Descriptions.Item label="Subtotal After Discount">
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: booking.currencyCode,
-                      }).format(subtotalAfterDiscount / 100)}
+                      <Text strong>
+                        {new Intl.NumberFormat(APP_LOCALE, {
+                          style: "currency",
+                          currency: booking.currencyCode,
+                        }).format(subtotalAfterDiscount / 100)}
+                      </Text>
                     </Descriptions.Item>
                   </>
                 )}
-                <Descriptions.Item label="Taxes & Fees (18%)">
-                  {new Intl.NumberFormat("en-US", {
+                <Descriptions.Item
+                  label={`Room Tax (${TAX_RATES.ROOM_TAX * 100}%)`}
+                >
+                  {new Intl.NumberFormat(APP_LOCALE, {
                     style: "currency",
                     currency: booking.currencyCode,
-                  }).format(taxAmount / 100)}
+                  }).format(roomTaxCents / 100)}
                 </Descriptions.Item>
-                <Descriptions.Item label="Total Amount">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: booking.currencyCode,
-                  }).format(totalAmount / 100)}
+                {extraAdultChargeCents > 0 && (
+                  <>
+                    <Descriptions.Item label="Extra Adult Charge">
+                      <Text style={{ color: "#fa8c16" }}>
+                        {new Intl.NumberFormat(APP_LOCALE, {
+                          style: "currency",
+                          currency: booking.currencyCode,
+                        }).format(extraAdultChargeCents / 100)}
+                      </Text>
+                    </Descriptions.Item>
+                    <Descriptions.Item
+                      label={`Extra Adult Tax (${TAX_RATES.EXTRA_ADULT_TAX * 100}%)`}
+                    >
+                      <Text style={{ color: "#fa8c16" }}>
+                        {new Intl.NumberFormat(APP_LOCALE, {
+                          style: "currency",
+                          currency: booking.currencyCode,
+                        }).format(extraAdultTaxCents / 100)}
+                      </Text>
+                    </Descriptions.Item>
+                  </>
+                )}
+                <Descriptions.Item label={<Text strong>Total Amount</Text>}>
+                  <Text strong style={{ fontSize: 18 }}>
+                    {new Intl.NumberFormat(APP_LOCALE, {
+                      style: "currency",
+                      currency: booking.currencyCode,
+                    }).format(totalAmount / 100)}
+                  </Text>
                 </Descriptions.Item>
                 <Descriptions.Item label="Paid Amount">
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: booking.currencyCode,
-                  }).format(paidAmount / 100)}
+                  <Text style={{ color: "green" }}>
+                    {new Intl.NumberFormat(APP_LOCALE, {
+                      style: "currency",
+                      currency: booking.currencyCode,
+                    }).format(paidAmount / 100)}
+                  </Text>
                 </Descriptions.Item>
-                <Descriptions.Item
-                  label="Remaining Amount"
-                  style={{ color: remainingAmount > 0 ? "red" : "green" }}
-                >
-                  {new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: booking.currencyCode,
-                  }).format(remainingAmount / 100)}
+                <Descriptions.Item label="Remaining Amount">
+                  <Text
+                    strong
+                    style={{ color: remainingAmount > 0 ? "red" : "green" }}
+                  >
+                    {new Intl.NumberFormat(APP_LOCALE, {
+                      style: "currency",
+                      currency: booking.currencyCode,
+                    }).format(remainingAmount / 100)}
+                  </Text>
                 </Descriptions.Item>
               </Descriptions>
             </Card>

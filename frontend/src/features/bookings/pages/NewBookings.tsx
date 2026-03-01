@@ -51,7 +51,7 @@ const NewBookings = () => {
       const checkInDate = values.dateRange[0].format(DATE_FORMAT_API);
       const checkOutDate = values.dateRange[1].format(DATE_FORMAT_API);
       const query = `/rooms/availability?hotelId=${values.hotelId}&roomTypeId=${values.roomTypeId}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&guestCount=${effectiveAdults}&numberOfRooms=${values.numRooms}`;
-      const result = await fetcher(query);
+      const result = await fetcher<{ data: { roomTypes: { rooms: unknown[] }[] } }>(query);
       const roomCount = result?.data?.roomTypes?.[0]?.rooms?.length ?? 0;
 
       if (roomCount === 0) {

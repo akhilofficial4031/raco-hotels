@@ -20,7 +20,7 @@ import {
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 
-import { DATE_FORMAT_API } from "@shared/constants/app";
+import { DATE_FORMAT_API, TAX_RATES } from "@shared/constants/app";
 
 import { type AddonInBooking } from "../../addon/types/addon";
 import { validatePromoCode } from "../../promo-code/services/promoCodeService";
@@ -72,6 +72,7 @@ interface BookingData {
     roomTypeId?: number;
     numAdults: number;
     numChildren: number;
+    childrenAges?: { age: number | undefined }[];
     numRooms?: number;
     dateRange?: any;
     checkInDate?: any;
@@ -147,35 +148,52 @@ const ReviewAndSubmit = ({
       ? getEffectiveRoomPrice(roomTypeDetails)
       : 0;
 
+  // Resolve room count: prefer explicitly selected rooms, fall back to form input
+  const numRooms =
+    (selectedRooms?.length ?? 0) > 0
+      ? (selectedRooms?.length ?? 0)
+      : (bookingDetails?.numRooms ?? 0);
+
   const roomTotal =
-    (mode === "create" || mode === "edit") && roomTypeDetails && selectedRooms
-      ? effectivePrice * nights * selectedRooms.length
+    (mode === "create" || mode === "edit") && roomTypeDetails
+      ? effectivePrice * nights * numRooms
       : 0;
 
   const addOnsTotal =
     (mode === "create" || mode === "edit") && selectedAddons && roomTypeDetails
       ? (selectedAddons || []).reduce((total, addon) => {
-          const roomTypeAddon = roomTypeDetails.addons?.find(
-            (a: any) => a.addonId === addon.id,
-          );
-          return total + (roomTypeAddon?.priceCents ?? 0);
-        }, 0)
+        const roomTypeAddon = roomTypeDetails.addons?.find(
+          (a: any) => a.addonId === addon.id,
+        );
+        return total + (roomTypeAddon?.priceCents ?? 0);
+      }, 0)
       : 0;
 
   const subtotal = roomTotal + addOnsTotal;
 
-  // Occupancy policy — only adults (age 10+) count toward max_occupancy
-  const numRooms = selectedRooms?.length ?? 0;
-  const maxOccupancy = roomTypeDetails?.maxOccupancy ?? 0;
-  const maxAllowed = maxOccupancy * numRooms;
+  // Occupancy policy — children strictly over 10 count as adults
   const numAdults = bookingDetails?.numAdults ?? 0;
-  const hasExtraAdult = numAdults > 0 && numAdults === maxAllowed + 1;
-  const isOccupancyBlocked = numAdults > 0 && numAdults >= maxAllowed + 2;
+  const numChildren = bookingDetails?.numChildren ?? 0;
+  const childrenAgesList = bookingDetails?.childrenAges ?? [];
+  const childrenOver10 = childrenAgesList.filter(
+    (c) => (c.age ?? 0) > 10,
+  ).length;
+  const childrenUnder10 = numChildren - childrenOver10;
+  const effectiveAdults = numAdults + childrenOver10;
+
+  const maxOccupancy = roomTypeDetails?.maxOccupancy ?? 0;
+  const maxStandard = maxOccupancy * numRooms;
+  const maxWithExtra = maxStandard + numRooms;
+  const extraAdults = Math.max(0, effectiveAdults - maxStandard);
+  const isOccupancyBlocked = effectiveAdults > maxWithExtra;
+  const hasExtraAdult = extraAdults > 0 && !isOccupancyBlocked;
 
   const extraAdultChargeCents = hasExtraAdult
-    ? (roomTypeDetails?.extraAdultChargeCents ?? 100000)
+    ? extraAdults * (roomTypeDetails?.extraAdultChargeCents ?? 100000)
     : 0;
-  const extraAdultTaxCents = Math.round(extraAdultChargeCents * 0.05);
+  const extraAdultTaxCents = Math.round(
+    extraAdultChargeCents * TAX_RATES.EXTRA_ADULT_TAX,
+  );
 
   const [discount, setDiscount] = useState(0);
   useEffect(() => {
@@ -200,9 +218,9 @@ const ReviewAndSubmit = ({
     }
   }, [appliedPromoCode, subtotal]);
 
-  // Apply discount to subtotal, calculate 18% room tax, then add extra adult charge + 5% tax
+  // Apply discount to subtotal, calculate room tax, then add extra adult charge + tax
   const subtotalAfterDiscount = Math.max(0, subtotal - discount);
-  const roomTax = subtotalAfterDiscount * 0.18;
+  const roomTax = subtotalAfterDiscount * TAX_RATES.ROOM_TAX;
   const taxes = roomTax + extraAdultTaxCents;
   const total = subtotalAfterDiscount + taxes + extraAdultChargeCents;
 
@@ -281,6 +299,17 @@ const ReviewAndSubmit = ({
               </Descriptions.Item>
               <Descriptions.Item label="Children">
                 {bookingDetails?.numChildren}
+                {childrenOver10 > 0 && (
+                  <Text
+                    type="secondary"
+                    style={{ marginLeft: 8, fontSize: 12 }}
+                  >
+                    ({childrenOver10} over 10, counted as adults)
+                  </Text>
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label="Effective Adults">
+                <Text strong>{effectiveAdults}</Text>
               </Descriptions.Item>
               {bookingDetails?.status && (
                 <Descriptions.Item label="Status">
@@ -369,14 +398,22 @@ const ReviewAndSubmit = ({
               {roomTypeDetails.name}
             </Descriptions.Item>
             <Descriptions.Item label="Stay">{`${nights} nights`}</Descriptions.Item>
-            <Descriptions.Item label="Rooms">
-              {selectedRooms.map((room) => room.roomNumber).join(", ")}
+            <Descriptions.Item label="Number of Rooms">
+              <Text strong>{numRooms}</Text>
+              {selectedRooms.length > 0 && (
+                <Text type="secondary" style={{ marginLeft: 8 }}>
+                  ({selectedRooms.map((room) => room.roomNumber).join(", ")})
+                </Text>
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="Max Occupancy per Room">
+              {maxOccupancy} {maxOccupancy === 1 ? "adult" : "adults"}
             </Descriptions.Item>
             <Descriptions.Item label="Room Price">
               {(() => {
-                const effectivePrice = getEffectiveRoomPrice(roomTypeDetails);
+                const displayPrice = getEffectiveRoomPrice(roomTypeDetails);
                 const isOfferPrice =
-                  effectivePrice !== (roomTypeDetails.basePriceCents ?? 0);
+                  displayPrice !== (roomTypeDetails.basePriceCents ?? 0);
                 return (
                   <span>
                     {isOfferPrice && (
@@ -399,7 +436,7 @@ const ReviewAndSubmit = ({
                         fontWeight: isOfferPrice ? "bold" : "normal",
                       }}
                     >
-                      ₹{(effectivePrice / 100).toLocaleString()} / night
+                      ₹{(displayPrice / 100).toLocaleString()} / night
                     </span>
                     {isOfferPrice && (
                       <Tag color="green" style={{ marginLeft: 8 }}>
@@ -410,12 +447,37 @@ const ReviewAndSubmit = ({
                 );
               })()}
             </Descriptions.Item>
-            <Descriptions.Item label="Adults">
-              {bookingDetails?.numAdults}
+            <Descriptions.Item label="Adults (from form)">
+              <Text>{numAdults}</Text>
             </Descriptions.Item>
-            <Descriptions.Item label="Children">
-              {bookingDetails?.numChildren}
+            <Descriptions.Item label="Children (total)">
+              <Text>{numChildren}</Text>
+              {numChildren > 0 && (
+                <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
+                  (age ≤ 10: {childrenUnder10} free &nbsp;|&nbsp; age &gt; 10:{" "}
+                  {childrenOver10} count as adults)
+                </Text>
+              )}
             </Descriptions.Item>
+            <Descriptions.Item label="Effective Adults (for occupancy)">
+              <Text strong style={{ color: "#1677ff" }}>
+                {effectiveAdults}
+              </Text>
+              {childrenOver10 > 0 && (
+                <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
+                  ({numAdults} adults + {childrenOver10} child
+                  {childrenOver10 > 1 ? "ren" : ""} over 10)
+                </Text>
+              )}
+            </Descriptions.Item>
+            {hasExtraAdult && !isOccupancyBlocked && (
+              <Descriptions.Item label="Extra Persons in Room">
+                <Tag color="orange">
+                  {extraAdults} extra adult{extraAdults > 1 ? "s" : ""}{" "}
+                  (charged)
+                </Tag>
+              </Descriptions.Item>
+            )}
             {bookingStatus && (
               <Descriptions.Item label="Booking Status">
                 <Tag color={bookingStatus === "CHECKED IN" ? "blue" : "green"}>
@@ -472,7 +534,7 @@ const ReviewAndSubmit = ({
               showIcon
               style={{ marginBottom: 16 }}
               message="Maximum occupancy exceeded"
-              description={`${numAdults} adults cannot be accommodated in ${numRooms} room(s) with max occupancy of ${maxOccupancy} per room. Please book an additional room.`}
+              description={`${effectiveAdults} effective adults cannot be accommodated in ${numRooms} room(s) even with extra adult allowance (max ${maxOccupancy + 1} per room). Please add more rooms.`}
             />
           )}
 
@@ -480,52 +542,85 @@ const ReviewAndSubmit = ({
             <Alert
               type="warning"
               showIcon
-              style={{ marginBottom: 16 }}
-              message="One extra adult"
-              description={`One extra adult will be charged ₹${(extraAdultChargeCents / 100).toLocaleString()} + 5% tax (₹${(extraAdultTaxCents / 100).toLocaleString()}).`}
+              style={{ marginBottom: 16, marginTop: 38 }}
+              message={`Extra adult charge applies (${extraAdults} extra adult${extraAdults > 1 ? "s" : ""})`}
+              description={`₹${(extraAdultChargeCents / 100).toLocaleString()} extra adult charge + ${TAX_RATES.EXTRA_ADULT_TAX * 100}% tax (₹${(extraAdultTaxCents / 100).toLocaleString()}) will be added.`}
             />
           )}
 
           <Card>
             <Title level={4}>Price Details</Title>
             <Descriptions column={1} size="middle">
-              <Descriptions.Item label="Room Total">
+              <Descriptions.Item
+                label={
+                  <Text type="secondary">
+                    {`Room Charge (₹${(effectivePrice / 100).toLocaleString()} × ${nights} nights × ${numRooms} room${numRooms > 1 ? "s" : ""})`}
+                  </Text>
+                }
+              >
                 <Text>{`₹${(roomTotal / 100).toLocaleString()}`}</Text>
               </Descriptions.Item>
-              <Descriptions.Item label="Add-ons Total">
-                <Text>{`₹${(addOnsTotal / 100).toLocaleString()}`}</Text>
-              </Descriptions.Item>
+              {addOnsTotal > 0 && (
+                <Descriptions.Item label="Add-ons Total">
+                  <Text>{`₹${(addOnsTotal / 100).toLocaleString()}`}</Text>
+                </Descriptions.Item>
+              )}
               <Descriptions.Item label="Subtotal">
                 <Text strong>{`₹${(subtotal / 100).toLocaleString()}`}</Text>
               </Descriptions.Item>
               {appliedPromoCode && (
-                <Descriptions.Item label="Discount (Promo Code)">
+                <Descriptions.Item
+                  label={
+                    <Text style={{ color: "green" }}>
+                      Promo Discount ({appliedPromoCode.code})
+                    </Text>
+                  }
+                >
                   <Text
                     strong
                     style={{ color: "green" }}
                   >{`-₹${(discount / 100).toLocaleString()}`}</Text>
                 </Descriptions.Item>
               )}
-              <Descriptions.Item label="Subtotal After Discount">
-                <Text
-                  strong
-                >{`₹${(subtotalAfterDiscount / 100).toLocaleString()}`}</Text>
-              </Descriptions.Item>
-              <Descriptions.Item label="Taxes & Fees (18%)">
+              {appliedPromoCode && (
+                <Descriptions.Item label="Subtotal After Discount">
+                  <Text
+                    strong
+                  >{`₹${(subtotalAfterDiscount / 100).toLocaleString()}`}</Text>
+                </Descriptions.Item>
+              )}
+              <Descriptions.Item
+                label={`Room Tax (${TAX_RATES.ROOM_TAX * 100}%)`}
+              >
                 <Text>{`₹${(roomTax / 100).toLocaleString()}`}</Text>
               </Descriptions.Item>
               {hasExtraAdult && (
                 <>
-                  <Descriptions.Item label="Extra Adult Charge">
-                    <Text>{`₹${(extraAdultChargeCents / 100).toLocaleString()}`}</Text>
+                  <Descriptions.Item
+                    label={
+                      <Text type="secondary">
+                        {`Extra Adult Charge (${extraAdults} adult${extraAdults > 1 ? "s" : ""} × ₹${((roomTypeDetails?.extraAdultChargeCents ?? 100000) / 100).toLocaleString()})`}
+                      </Text>
+                    }
+                  >
+                    <Text
+                      style={{ color: "#fa8c16" }}
+                    >{`₹${(extraAdultChargeCents / 100).toLocaleString()}`}</Text>
                   </Descriptions.Item>
-                  <Descriptions.Item label="Extra Adult Tax (5%)">
-                    <Text>{`₹${(extraAdultTaxCents / 100).toLocaleString()}`}</Text>
+                  <Descriptions.Item
+                    label={`Extra Adult Tax (${TAX_RATES.EXTRA_ADULT_TAX * 100}%)`}
+                  >
+                    <Text
+                      style={{ color: "#fa8c16" }}
+                    >{`₹${(extraAdultTaxCents / 100).toLocaleString()}`}</Text>
                   </Descriptions.Item>
                 </>
               )}
-              <Descriptions.Item label="Total Amount">
-                <Title level={3}>{`₹${(total / 100).toLocaleString()}`}</Title>
+              <Descriptions.Item label={<Text strong>Total Amount</Text>}>
+                <Title
+                  level={3}
+                  style={{ margin: 0 }}
+                >{`₹${(total / 100).toLocaleString()}`}</Title>
               </Descriptions.Item>
             </Descriptions>
 

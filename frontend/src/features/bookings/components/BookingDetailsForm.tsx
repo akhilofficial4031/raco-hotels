@@ -1,6 +1,16 @@
 /* eslint-disable no-unused-vars */
-import { Button, Col, DatePicker, Form, InputNumber, Row, Select, Tooltip, message } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Col,
+  DatePicker,
+  Form,
+  InputNumber,
+  Row,
+  Select,
+  Tooltip,
+  message,
+} from "antd";
 import { type Dayjs } from "dayjs";
 import { useEffect } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -21,7 +31,6 @@ const CHILD_AGE_OPTIONS = [
     label: `${i + 1} ${i + 1 === 1 ? "year" : "years"}`,
   })),
 ];
-
 
 interface BookingDetailsFormValues {
   hotelId: number | null;
@@ -109,7 +118,6 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
         age: currentAges[i]?.age,
       })),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [numChildren]);
 
   const { data: hotelsData } = useSWR(
@@ -140,9 +148,9 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
       );
 
       if (selectedRoomType) {
-        // Children 10+ count as adults for occupancy
+        // Children strictly over 10 count as adults for occupancy (age 10 and under are free)
         const childrenOver10 = (values.childrenAges ?? []).filter(
-          (c) => (c.age ?? 0) >= 10,
+          (c) => (c.age ?? 0) > 10,
         ).length;
         const effectiveAdults = values.numAdults + childrenOver10;
 
@@ -156,7 +164,7 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
         if (values.numRooms < minRoomsNeeded) {
           setError("numRooms", {
             type: "manual",
-            message: `Your group of ${effectiveAdults} adult${effectiveAdults !== 1 ? "s" : ""} needs at least ${minRoomsNeeded} room${minRoomsNeeded !== 1 ? "s" : ""}. Please increase the number of rooms.`,
+            message: ` ${effectiveAdults} adult${effectiveAdults !== 1 ? "s" : ""} needs at least ${minRoomsNeeded} room${minRoomsNeeded !== 1 ? "s" : ""}.`,
           });
           return;
         }
@@ -178,7 +186,10 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
   };
 
   return (
-    <Form onFinish={handleSubmit(handleSubmitWithOccupancyCheck)} layout="vertical">
+    <Form
+      onFinish={handleSubmit(handleSubmitWithOccupancyCheck)}
+      layout="vertical"
+    >
       <Row gutter={16}>
         {mode === "create" && (
           <>
@@ -259,7 +270,7 @@ const BookingDetailsForm: React.FC<BookingDetailsFormProps> = ({
             label={
               <div className="flex items-center gap-2">
                 Children
-                <Tooltip title="Enter count of guests under age 10. Children are free and do not affect room capacity.">
+                <Tooltip title="Enter count of guests aged 10 and under. They are free and do not count toward room capacity. Guests aged 11+ must be counted as adults.">
                   <InfoCircleOutlined className="text-gray-400" />
                 </Tooltip>
               </div>

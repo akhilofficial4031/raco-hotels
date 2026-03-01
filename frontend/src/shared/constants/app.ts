@@ -21,3 +21,9 @@ export const LOCALE_DATE_OPTIONS_LONG: Intl.DateTimeFormatOptions = {
 export const DEFAULT_CURRENCY = "INR";
 
 export const CURRENCY_SYMBOL = "₹";
+
+// Tax rates (as multipliers, e.g. 0.05 = 5%)
+export const TAX_RATES = {
+  ROOM_TAX: 0.05,
+  EXTRA_ADULT_TAX: 0.05,
+} as const;

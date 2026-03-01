@@ -22,6 +22,7 @@ export interface DatabaseRoomType extends HotelScopedEntity {
   sizeSqft: number | null;
   bedType: string | null;
   smokingAllowed: number;
+  extraAdultChargeCents: number | null;
   totalRooms: number;
   isActive: number;
   images?: DatabaseRoomTypeImage[];

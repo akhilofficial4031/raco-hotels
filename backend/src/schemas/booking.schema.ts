@@ -47,16 +47,29 @@ export const CustomerDataSchema = z.object({
 
 export const CreateBookingRequestSchema = z.object({
   hotelId: z.number().int().positive(),
-  bookingDetails: z.object({
-    checkInDate: z.string(),
-    checkOutDate: z.string(),
-    numAdults: z.number().int().min(1),
-    numChildren: z.number().int().min(0),
-    childrenAges: z.array(z.number().min(0).max(18)).optional(),
-    status: BookingStatusEnum.optional(),
-  }),
+  bookingDetails: z
+    .object({
+      checkInDate: z.string(),
+      checkOutDate: z.string(),
+      numAdults: z.number().int().min(1),
+      numChildren: z.number().int().min(0),
+      childrenAges: z.array(z.number().int().min(0).max(18)).optional(),
+      numRooms: z.number().int().min(1).optional(),
+      status: BookingStatusEnum.optional(),
+    })
+    .refine(
+      (d) =>
+        d.numChildren === 0 ||
+        d.childrenAges === undefined ||
+        d.childrenAges.length === d.numChildren,
+      {
+        message:
+          "childrenAges must contain exactly one age per child (length must equal numChildren)",
+        path: ["childrenAges"],
+      },
+    ),
   customerData: CustomerDataSchema,
-  selectedRooms: z.array(z.object({ id: z.number().int() })),
+  selectedRooms: z.array(z.object({ id: z.number().int() })).optional().default([]),
   selectedAddons: z.array(
     z.object({
       id: z.number().int(),
@@ -246,6 +259,7 @@ export const BookingConfirmationResponseSchema = z
         checkOutDate: z.string(),
         totalAmountCents: z.number().int(),
         currencyCode: z.string(),
+        numRoomsUsed: z.number().int().optional(),
       }),
       message: z.string().optional(),
     }),
@@ -518,14 +532,27 @@ export const BookingDetailsResponseSchema = z.object({
 });
 
 export const UpdateBookingRequestSchema = z.object({
-  bookingDetails: z.object({
-    checkInDate: z.string().optional(),
-    checkOutDate: z.string().optional(),
-    numAdults: z.number().int().min(1).optional(),
-    numChildren: z.number().int().min(0).optional(),
-    childrenAges: z.array(z.number().min(0).max(18)).optional(),
-    status: z.string().optional(),
-  }),
+  bookingDetails: z
+    .object({
+      checkInDate: z.string().optional(),
+      checkOutDate: z.string().optional(),
+      numAdults: z.number().int().min(1).optional(),
+      numChildren: z.number().int().min(0).optional(),
+      childrenAges: z.array(z.number().int().min(0).max(18)).optional(),
+      status: z.string().optional(),
+    })
+    .refine(
+      (d) =>
+        d.numChildren === undefined ||
+        d.numChildren === 0 ||
+        d.childrenAges === undefined ||
+        d.childrenAges.length === d.numChildren,
+      {
+        message:
+          "childrenAges must contain exactly one age per child (length must equal numChildren)",
+        path: ["childrenAges"],
+      },
+    ),
   customerData: CustomerDataSchema.partial().optional(),
   // For now, updating rooms and addons is not supported in this simplified version.
   // selectedRooms: z.array(z.object({ id: z.number().int() })).optional(),

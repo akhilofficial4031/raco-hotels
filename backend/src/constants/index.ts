@@ -91,6 +91,12 @@ export const PAYMENT_STATUS = {
   REFUNDED: "refunded",
 } as const;
 
+// Tax Rates (as multipliers, e.g. 0.05 = 5%)
+export const TAX_RATES = {
+  ROOM_TAX: 0.05,
+  EXTRA_ADULT_TAX: 0.05,
+} as const;
+
 // Error Codes
 export const ERROR_CODES = {
   VALIDATION_ERROR: "VALIDATION_ERROR",

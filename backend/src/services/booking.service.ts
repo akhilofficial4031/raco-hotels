@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, gt, inArray, lt, notInArray } from "drizzle-orm";
 
 import {
   bookingAddon,
@@ -7,9 +7,11 @@ import {
   bookingItems,
   bookingPromotion,
   customer,
+  room as roomUnit,
   roomTypeAddon,
   booking as bookingTable,
 } from "../../drizzle/schema";
+import { TAX_RATES } from "../constants";
 import { getDb } from "../db";
 import { PaymentService } from "./payment.service";
 import { AddonRepository } from "../repositories/addon.repository";
@@ -150,22 +152,37 @@ export class BookingService {
         throw new Error("Room type not found");
       }
 
-      // Occupancy validation — each room allows up to maxOccupancy + 1 adults (1 extra per room with charge)
+      // Derive effective adult count: numAdults + children aged strictly over 10
+      const childrenAgesInput = data.bookingDetails?.childrenAges ?? [];
+      const olderChildrenCount = childrenAgesInput.filter(
+        (age: number) => age > 10,
+      ).length;
+      const numAdultsUpdate =
+        data.bookingDetails.numAdults ?? booking.numAdults;
+      const effectiveAdultsUpdate = numAdultsUpdate + olderChildrenCount;
+
+      // Occupancy validation
       const numRooms = data.selectedRooms.length;
-      const maxAllowed = (roomType.maxOccupancy ?? 0) * numRooms;
-      const maxAllowedWithExtra = maxAllowed + numRooms;
-      const numAdultsUpdate = data.bookingDetails.numAdults ?? booking.numAdults;
-      if (numAdultsUpdate > maxAllowedWithExtra) {
+      const maxStandard = (roomType.maxOccupancy ?? 0) * numRooms;
+      const maxWithExtra = maxStandard + numRooms;
+
+      if (effectiveAdultsUpdate > maxWithExtra) {
+        const requiredRooms = Math.ceil(
+          effectiveAdultsUpdate / ((roomType.maxOccupancy ?? 0) + 1),
+        );
         throw new Error(
-          `validation: Maximum occupancy exceeded. ${numAdultsUpdate} adults cannot be accommodated in ${numRooms} room(s). Max ${roomType.maxOccupancy + 1} adults per room (${maxAllowedWithExtra} total). Please book an additional room.`,
+          `validation: Maximum occupancy exceeded. ${effectiveAdultsUpdate} adults cannot be accommodated in ${numRooms} room(s) even with extra adult charges (max ${(roomType.maxOccupancy ?? 0) + 1} per room). Please book at least ${requiredRooms} room(s).`,
         );
       }
 
-      const extraAdultsUpdate = Math.max(0, numAdultsUpdate - maxAllowed);
+      const extraAdultsUpdate = Math.max(
+        0,
+        effectiveAdultsUpdate - maxStandard,
+      );
       const extraAdultChargeCentsUpdate =
         extraAdultsUpdate * (roomType.extraAdultChargeCents ?? 100000);
       const extraAdultTaxCentsUpdate = Math.round(
-        extraAdultChargeCentsUpdate * 0.05,
+        extraAdultChargeCentsUpdate * TAX_RATES.EXTRA_ADULT_TAX,
       );
 
       // Calculate number of nights
@@ -242,9 +259,10 @@ export class BookingService {
         }
       }
 
-      // Apply discount, then add 18% room tax + extra adult charge with its 5% tax
       const subtotalAfterDiscount = Math.max(0, subtotal - discountAmountCents);
-      const roomTaxCents = Math.round(subtotalAfterDiscount * 0.18);
+      const roomTaxCents = Math.round(
+        subtotalAfterDiscount * TAX_RATES.ROOM_TAX,
+      );
       taxAmountCents = roomTaxCents + extraAdultTaxCentsUpdate;
       totalAmountCents =
         subtotalAfterDiscount + taxAmountCents + extraAdultChargeCentsUpdate;
@@ -624,22 +642,91 @@ export class BookingService {
       "day",
     );
 
-    // Occupancy validation — each room allows up to maxOccupancy + 1 adults (1 extra per room with charge)
-    const numRooms = selectedRooms.length;
-    const maxAllowed = (roomTypeFromDb.maxOccupancy ?? 0) * numRooms;
-    const maxAllowedWithExtra = maxAllowed + numRooms;
-    const numAdults = bookingDetails.numAdults;
-    if (numAdults > maxAllowedWithExtra) {
+    // Step 1 — Derive effective adult count: numAdults + children strictly over age 10
+    const childrenAgesInput = bookingDetails.childrenAges ?? [];
+    const olderChildrenCount = childrenAgesInput.filter(
+      (age) => age > 10,
+    ).length;
+    const effectiveAdults = bookingDetails.numAdults + olderChildrenCount;
+    const maxOccupancy = roomTypeFromDb.maxOccupancy ?? 0;
+
+    // Step 2 — Resolve which physical rooms to use
+    // Admin portal: selectedRooms provided explicitly by staff
+    // Customer portal: selectedRooms is empty → auto-select available rooms
+    let resolvedRooms: Array<{ id: number }>;
+
+    if (selectedRooms && selectedRooms.length > 0) {
+      resolvedRooms = selectedRooms;
+    } else {
+      // Determine the minimum number of rooms needed
+      const requestedRooms = bookingDetails.numRooms ?? 1;
+      const requiredRooms = Math.ceil(effectiveAdults / (maxOccupancy + 1));
+      const finalNumRooms = Math.max(requestedRooms, requiredRooms);
+
+      // Find room units already booked for overlapping dates (any non-cancelled status)
+      const conflictingBookedRooms = await database
+        .select({ roomId: bookingItems.roomId })
+        .from(bookingItems)
+        .innerJoin(bookingTable, eq(bookingItems.bookingId, bookingTable.id))
+        .where(
+          and(
+            inArray(bookingTable.status, [
+              "confirmed",
+              "checkedin",
+              "paid",
+              "partial_paid",
+              "pending_cancellation",
+            ]),
+            lt(bookingTable.checkInDate, bookingDetails.checkOutDate),
+            gt(bookingTable.checkOutDate, bookingDetails.checkInDate),
+          ),
+        );
+
+      const conflictingIds = conflictingBookedRooms.map((r) => r.roomId);
+
+      // Pick active rooms of this room type that are not already booked
+      const availableRooms = await database
+        .select({ id: roomUnit.id })
+        .from(roomUnit)
+        .where(
+          and(
+            eq(roomUnit.roomTypeId, roomTypeFromDb.id),
+            eq(roomUnit.isActive, 1),
+            conflictingIds.length > 0
+              ? notInArray(roomUnit.id, conflictingIds)
+              : undefined,
+          ),
+        )
+        .limit(finalNumRooms);
+
+      if (availableRooms.length < finalNumRooms) {
+        throw new Error(
+          `validation: Not enough rooms available. Need ${finalNumRooms} room(s) of this type but only ${availableRooms.length} are available for the selected dates.`,
+        );
+      }
+
+      resolvedRooms = availableRooms;
+    }
+
+    // Step 3 — Occupancy check against the resolved room count
+    const numRooms = resolvedRooms.length;
+    const maxStandard = maxOccupancy * numRooms;
+    const maxWithExtra = maxStandard + numRooms; // one extra slot per room
+
+    if (effectiveAdults > maxWithExtra) {
+      const requiredRooms = Math.ceil(effectiveAdults / (maxOccupancy + 1));
       throw new Error(
-        `validation: Maximum occupancy exceeded. ${numAdults} adults cannot be accommodated in ${numRooms} room(s). Max ${roomTypeFromDb.maxOccupancy + 1} adults per room (${maxAllowedWithExtra} total). Please book an additional room.`,
+        `validation: Maximum occupancy exceeded. ${effectiveAdults} adults cannot be accommodated in ${numRooms} room(s) even with extra adult charges (max ${maxOccupancy + 1} per room). Please book at least ${requiredRooms} room(s).`,
       );
     }
 
-    // Extra adult charge: one charge per adult beyond standard max, up to 1 extra per room
-    const extraAdults = Math.max(0, numAdults - maxAllowed);
+    // Step 4 — Extra adult charge (one per adult beyond the standard max, up to 1 per room)
+    const extraAdults = Math.max(0, effectiveAdults - maxStandard);
     const extraAdultChargeCents =
       extraAdults * (roomTypeFromDb.extraAdultChargeCents ?? 100000);
-    const extraAdultTaxCents = Math.round(extraAdultChargeCents * 0.05);
+    const extraAdultTaxCents = Math.round(
+      extraAdultChargeCents * TAX_RATES.EXTRA_ADULT_TAX,
+    );
 
     // Use effective room price (offer price if available and valid) from DATABASE
     const effectiveRoomPrice = getEffectiveRoomPrice(roomTypeFromDb);
@@ -715,7 +802,9 @@ export class BookingService {
     // Apply discount to subtotal first, then calculate tax on discounted amount
     // Extra adult charge and its 5% tax are added on top of the discounted room+addon total
     const subtotalAfterDiscount = Math.max(0, subtotal - discountAmountCents);
-    const roomTaxAmountCents = Math.round(subtotalAfterDiscount * 0.18); // 18% tax rate
+    const roomTaxAmountCents = Math.round(
+      subtotalAfterDiscount * TAX_RATES.ROOM_TAX,
+    );
     const taxAmountCents = roomTaxAmountCents + extraAdultTaxCents;
     const totalAmountCents =
       subtotalAfterDiscount + taxAmountCents + extraAdultChargeCents;
@@ -825,7 +914,7 @@ export class BookingService {
       }
 
       await database.insert(bookingItems).values(
-        selectedRooms.map((r) => ({
+        resolvedRooms.map((r) => ({
           bookingId: newBooking.id,
           roomTypeId: roomTypeFromDb.id,
           roomId: r.id,
@@ -928,7 +1017,7 @@ export class BookingService {
         console.log("Skipping booking confirmation email as requested");
       }
 
-      return newBooking;
+      return { ...newBooking, numRoomsUsed: resolvedRooms.length };
     } catch (error) {
       console.error("Error creating booking:", error);
       console.error("Error details:", {
@@ -1003,7 +1092,8 @@ export class BookingService {
     const finalBalanceDue = Math.max(0, totalAmountCents - finalAmountPaid);
 
     // Calculate transaction amount (difference between new total paid and previous total paid)
-    const transactionAmount = finalAmountPaid - (existingBooking.amountPaidCents ?? 0);
+    const transactionAmount =
+      finalAmountPaid - (existingBooking.amountPaidCents ?? 0);
 
     // If this is a new payment (amount increased), record it in the payment table
     if (transactionAmount > 0) {
@@ -1015,7 +1105,8 @@ export class BookingService {
           status: "succeeded", // Mark as succeeded since we are updating payment status
           method: paymentData.paymentMethod || "card",
           processor: paymentData.paymentProcessor || "manual",
-          processorPaymentId: paymentData.processorPaymentId || paymentData.transactionId,
+          processorPaymentId:
+            paymentData.processorPaymentId || paymentData.transactionId,
         });
       } catch (error) {
         console.error("Failed to record payment in payment table:", error);

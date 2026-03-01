@@ -287,7 +287,33 @@ export class RoomTypeService {
     const amenities = await RoomTypeRepository.getAmenities(db, id);
     const rooms = await RoomRepository.findByRoomTypeId(db, id);
     const addons = await RoomTypeRepository.getAddons(db, id);
-    return { ...rt, amenities, rooms, addons } as any;
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    let computedOfferPrice: number | null = null;
+    if (rt.offerPrice) {
+      if (rt.offerStartDate && rt.offerEndDate) {
+        const startDate = new Date(rt.offerStartDate);
+        const endDate = new Date(rt.offerEndDate);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        if (now >= startDate && now <= endDate) {
+          computedOfferPrice = rt.offerPrice;
+        }
+      } else if (!rt.offerEndDate) {
+        // No end date — offer is open-ended, always valid
+        computedOfferPrice = rt.offerPrice;
+      }
+    }
+
+    return {
+      ...rt,
+      amenities,
+      rooms,
+      addons,
+      offerPrice: computedOfferPrice,
+    } as any;
   }
 
   static async getRoomTypes(
