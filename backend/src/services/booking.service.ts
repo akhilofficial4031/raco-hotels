@@ -179,16 +179,17 @@ export class BookingService {
         0,
         effectiveAdultsUpdate - maxStandard,
       );
-      const extraAdultChargeCentsUpdate =
-        extraAdultsUpdate * (roomType.extraAdultChargeCents ?? 100000);
-      const extraAdultTaxCentsUpdate = Math.round(
-        extraAdultChargeCentsUpdate * TAX_RATES.EXTRA_ADULT_TAX,
-      );
 
-      // Calculate number of nights
+      // Calculate number of nights before extra adult charge (charge is per adult per night)
       const checkInDate = data.bookingDetails.checkInDate;
       const checkOutDate = data.bookingDetails.checkOutDate;
       const nights = dayjs(checkOutDate).diff(dayjs(checkInDate), "day");
+
+      const extraAdultChargeCentsUpdate =
+        extraAdultsUpdate * (roomType.extraAdultChargeCents ?? 100000) * nights;
+      const extraAdultTaxCentsUpdate = Math.round(
+        extraAdultChargeCentsUpdate * TAX_RATES.EXTRA_ADULT_TAX,
+      );
 
       // Calculate room total using effective price (offer price if available and valid)
       effectiveRoomPrice = getEffectiveRoomPrice(roomType);
@@ -720,10 +721,10 @@ export class BookingService {
       );
     }
 
-    // Step 4 — Extra adult charge (one per adult beyond the standard max, up to 1 per room)
+    // Step 4 — Extra adult charge per night (one per adult beyond the standard max, up to 1 per room)
     const extraAdults = Math.max(0, effectiveAdults - maxStandard);
     const extraAdultChargeCents =
-      extraAdults * (roomTypeFromDb.extraAdultChargeCents ?? 100000);
+      extraAdults * (roomTypeFromDb.extraAdultChargeCents ?? 100000) * nights;
     const extraAdultTaxCents = Math.round(
       extraAdultChargeCents * TAX_RATES.EXTRA_ADULT_TAX,
     );

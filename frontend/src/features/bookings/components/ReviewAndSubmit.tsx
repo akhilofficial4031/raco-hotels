@@ -162,11 +162,11 @@ const ReviewAndSubmit = ({
   const addOnsTotal =
     (mode === "create" || mode === "edit") && selectedAddons && roomTypeDetails
       ? (selectedAddons || []).reduce((total, addon) => {
-        const roomTypeAddon = roomTypeDetails.addons?.find(
-          (a: any) => a.addonId === addon.id,
-        );
-        return total + (roomTypeAddon?.priceCents ?? 0);
-      }, 0)
+          const roomTypeAddon = roomTypeDetails.addons?.find(
+            (a: any) => a.addonId === addon.id,
+          );
+          return total + (roomTypeAddon?.priceCents ?? 0);
+        }, 0)
       : 0;
 
   const subtotal = roomTotal + addOnsTotal;
@@ -189,7 +189,7 @@ const ReviewAndSubmit = ({
   const hasExtraAdult = extraAdults > 0 && !isOccupancyBlocked;
 
   const extraAdultChargeCents = hasExtraAdult
-    ? extraAdults * (roomTypeDetails?.extraAdultChargeCents ?? 100000)
+    ? extraAdults * (roomTypeDetails?.extraAdultChargeCents ?? 100000) * nights
     : 0;
   const extraAdultTaxCents = Math.round(
     extraAdultChargeCents * TAX_RATES.EXTRA_ADULT_TAX,
@@ -544,7 +544,7 @@ const ReviewAndSubmit = ({
               showIcon
               style={{ marginBottom: 16, marginTop: 38 }}
               message={`Extra adult charge applies (${extraAdults} extra adult${extraAdults > 1 ? "s" : ""})`}
-              description={`₹${(extraAdultChargeCents / 100).toLocaleString()} extra adult charge + ${TAX_RATES.EXTRA_ADULT_TAX * 100}% tax (₹${(extraAdultTaxCents / 100).toLocaleString()}) will be added.`}
+              description={`₹${((roomTypeDetails?.extraAdultChargeCents ?? 100000) / 100).toLocaleString()} × ${extraAdults} adult${extraAdults > 1 ? "s" : ""} × ${nights} night${nights !== 1 ? "s" : ""} = ₹${(extraAdultChargeCents / 100).toLocaleString()} + ${TAX_RATES.EXTRA_ADULT_TAX * 100}% tax (₹${(extraAdultTaxCents / 100).toLocaleString()}).`}
             />
           )}
 
@@ -599,7 +599,7 @@ const ReviewAndSubmit = ({
                   <Descriptions.Item
                     label={
                       <Text type="secondary">
-                        {`Extra Adult Charge (${extraAdults} adult${extraAdults > 1 ? "s" : ""} × ₹${((roomTypeDetails?.extraAdultChargeCents ?? 100000) / 100).toLocaleString()})`}
+                        {`Extra Adult Charge (${extraAdults} adult${extraAdults > 1 ? "s" : ""} × ₹${((roomTypeDetails?.extraAdultChargeCents ?? 100000) / 100).toLocaleString()} × ${nights} night${nights !== 1 ? "s" : ""})`}
                       </Text>
                     }
                   >
