@@ -78,6 +78,8 @@ export const PERMISSIONS = {
   INQUIRIES_CREATE: "inquiries.create",
   INQUIRIES_UPDATE: "inquiries.update",
   INQUIRIES_DELETE: "inquiries.delete",
+
+  PAYMENTS_READ: "payments.read",
 } as const;
 
 export type PermissionKey = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -154,6 +156,7 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.INQUIRIES_CREATE,
     PERMISSIONS.INQUIRIES_UPDATE,
     PERMISSIONS.INQUIRIES_DELETE,
+    PERMISSIONS.PAYMENTS_READ,
   ],
   [USER_ROLES.STAFF]: [
     PERMISSIONS.USERS_READ,
@@ -170,5 +173,6 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, PermissionKey[]> = {
     PERMISSIONS.INQUIRIES_READ,
     PERMISSIONS.INQUIRIES_CREATE,
     PERMISSIONS.INQUIRIES_UPDATE,
+    PERMISSIONS.PAYMENTS_READ,
   ],
 };

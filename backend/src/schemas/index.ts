@@ -19,3 +19,4 @@ export * from "./addon_configuration.schema";
 export * from "./dashboard.schema";
 export * from "./attraction.schema";
 export * from "./inquiry.schema";
+export * from "./payment.schema";

@@ -1,53 +1,96 @@
-import { Pagination, Table } from "antd";
-import { useState } from "react";
+import { Pagination, Table, Tag, Typography } from "antd";
+import { type ColumnsType } from "antd/es/table";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import useSWR from "swr";
 
 import TableHeader from "@shared/components/TableHeader";
 import { APP_LOCALE } from "@shared/constants/app";
+import { convertJsonToQueryParams } from "@utils/queryParams";
+import { fetcher } from "@utils/swrFetcher";
 
-// NOTE: This is a temporary type definition.
-// In the future, this should be replaced by a shared model from a centralized types definition file.
-interface PaymentDto {
-  id: number;
-  bookingId: number;
-  amountCents: number;
-  currencyCode: string;
-  status: string;
-  method: string;
-  processor: string;
-  processorPaymentId: string | null;
-  createdAt: string;
-}
+import {
+  type PaymentDto,
+  type PaymentListParamStructure,
+  type PaymentListResponse,
+} from "../types/payment";
 
-interface PaymentListParamStructure {
-  page: number;
-  limit: number;
-  search: string;
-}
+const { Text } = Typography;
+
+const PAYMENT_STATUS_COLORS: Record<string, string> = {
+  succeeded: "green",
+  paid: "green",
+  pending: "orange",
+  failed: "red",
+  refunded: "blue",
+  partially_refunded: "cyan",
+  cancelled: "volcano",
+};
 
 const Payment = () => {
+  const navigate = useNavigate();
+
   const [filterParams, setFilterParams] = useState<PaymentListParamStructure>({
     page: 1,
     limit: 10,
     search: "",
+    status: "",
   });
 
-  // As per the requirement, we are using a hardcoded empty array for now.
-  // This will be replaced with an API call in the future.
-  const payments: PaymentDto[] = [];
-  const isLoading = false;
-  const totalPayments = 0;
+  const queryString = useMemo(
+    () => convertJsonToQueryParams(filterParams),
+    [filterParams],
+  );
 
-  const columns = [
+  const {
+    data: response,
+    isLoading,
+    error,
+  } = useSWR(`/payments${queryString}`, fetcher<PaymentListResponse>, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    shouldRetryOnError: false,
+  });
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    setFilterParams((prev) => ({ ...prev, page, limit: pageSize }));
+  };
+
+  const handleSearch = (value: string) => {
+    setFilterParams((prev) => ({ ...prev, search: value, page: 1 }));
+  };
+
+  const formatAmount = (amountCents: number, currencyCode: string) =>
+    new Intl.NumberFormat(APP_LOCALE, {
+      style: "currency",
+      currency: currencyCode || "INR",
+    }).format(amountCents / 100);
+
+  const columns: ColumnsType<PaymentDto> = [
     {
-      title: "Booking ID",
-      dataIndex: "bookingId",
-      key: "bookingId",
+      title: "Booking Ref.",
+      dataIndex: "bookingReferenceCode",
+      key: "bookingReferenceCode",
+      render: (refCode: string | null, record: PaymentDto) =>
+        refCode ? (
+          <Text
+            className="cursor-pointer text-blue-600 hover:underline"
+            onClick={() => navigate(`/bookings/${record.bookingId}`)}
+          >
+            {refCode}
+          </Text>
+        ) : (
+          <Text type="secondary">#{record.bookingId}</Text>
+        ),
     },
     {
       title: "Amount",
-      dataIndex: "amountCents",
-      key: "amountCents",
-      render: (amount: number) => (amount / 100).toFixed(2),
+      key: "amount",
+      render: (_: unknown, record: PaymentDto) => (
+        <Text strong>
+          {formatAmount(record.amountCents, record.currencyCode)}
+        </Text>
+      ),
     },
     {
       title: "Currency",
@@ -58,48 +101,55 @@ const Payment = () => {
       title: "Status",
       dataIndex: "status",
       key: "status",
+      render: (status: string) => (
+        <Tag color={PAYMENT_STATUS_COLORS[status] ?? "default"}>
+          {status.toUpperCase()}
+        </Tag>
+      ),
     },
     {
       title: "Method",
       dataIndex: "method",
       key: "method",
+      render: (method: string) => <Text className="capitalize">{method}</Text>,
     },
     {
       title: "Processor",
       dataIndex: "processor",
       key: "processor",
+      render: (processor: string) => (
+        <Text className="capitalize">{processor}</Text>
+      ),
     },
     {
       title: "Processor Payment ID",
       dataIndex: "processorPaymentId",
       key: "processorPaymentId",
+      render: (id: string | null) =>
+        id ? <Text copyable>{id}</Text> : <Text type="secondary">-</Text>,
     },
     {
-      title: "Created At",
+      title: "Date",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (text: string) => new Date(text).toLocaleDateString(APP_LOCALE),
     },
   ];
 
-  const handlePageChange = (page: number, pageSize: number) => {
-    setFilterParams((prev) => ({ ...prev, page, limit: pageSize }));
-  };
-
-  const handleSearch = (value: string) => {
-    setFilterParams((prev) => ({ ...prev, search: value }));
-  };
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
-    <>
+    <div>
       <TableHeader
-        searchPlaceholder="payments"
+        searchPlaceholder="payments by booking ref. or processor ID"
         showAddButton={false}
         onSearch={handleSearch}
       />
       <div className="bg-white p-2 rounded-lg mb-2 border border-gray-200">
         <Table
-          dataSource={payments}
+          dataSource={response?.data?.payments || []}
           className="!bg-white"
           bordered={true}
           columns={columns}
@@ -112,12 +162,12 @@ const Payment = () => {
           <Pagination
             current={filterParams.page}
             pageSize={filterParams.limit}
-            total={totalPayments}
+            total={response?.data?.pagination?.total || 0}
             onChange={handlePageChange}
           />
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
